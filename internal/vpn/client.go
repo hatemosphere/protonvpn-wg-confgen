@@ -61,9 +61,9 @@ func (c *Client) GetCertificate(keyPair *ed25519.KeyPair) (*api.VPNInfo, error) 
 		"DeviceName":          deviceName,
 		"Duration":            durationStr,
 		"Features": map[string]interface{}{
-			"NetShieldLevel": 0,                           // NetShield disabled
-			"RandomNAT":      false,                       // Moderate NAT disabled
-			"PortForwarding": false,                       // Port forwarding disabled
+			"NetShieldLevel": 0,                          // NetShield disabled
+			"RandomNAT":      false,                      // Moderate NAT disabled
+			"PortForwarding": false,                      // Port forwarding disabled
 			"SplitTCP":       c.config.EnableAccelerator, // VPN Accelerator (called SplitTCP in API)
 		},
 	}
