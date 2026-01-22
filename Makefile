@@ -1,9 +1,9 @@
 .PHONY: build build-all clean test fmt vet lint install vendor run dev show-version
 
-BINARY_NAME=protonvpn-wg-config-generate
+BINARY_NAME=protonvpn-wg-confgen
 BUILD_DIR=build
 CMD_DIR=cmd/protonvpn-wg
-MODULE=protonvpn-wg-config-generate
+MODULE=protonvpn-wg-confgen
 
 # Fetch latest ProtonVPN Linux client version from GitHub (with fallback)
 PROTON_VERSION_URL=https://raw.githubusercontent.com/ProtonVPN/proton-vpn-gtk-app/stable/versions.yml

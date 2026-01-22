@@ -6,11 +6,11 @@ import (
 	"os"
 	"strings"
 
-	"protonvpn-wg-config-generate/internal/api"
-	"protonvpn-wg-config-generate/internal/auth"
-	"protonvpn-wg-config-generate/internal/config"
-	"protonvpn-wg-config-generate/internal/vpn"
-	"protonvpn-wg-config-generate/pkg/wireguard"
+	"protonvpn-wg-confgen/internal/api"
+	"protonvpn-wg-confgen/internal/auth"
+	"protonvpn-wg-confgen/internal/config"
+	"protonvpn-wg-confgen/internal/vpn"
+	"protonvpn-wg-confgen/pkg/wireguard"
 
 	"github.com/ProtonVPN/go-vpn-lib/ed25519"
 )

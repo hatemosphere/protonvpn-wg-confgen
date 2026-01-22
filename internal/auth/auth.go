@@ -14,10 +14,10 @@ import (
 	"strings"
 	"time"
 
-	"protonvpn-wg-config-generate/internal/api"
-	"protonvpn-wg-config-generate/internal/config"
-	"protonvpn-wg-config-generate/internal/constants"
-	"protonvpn-wg-config-generate/pkg/timeutil"
+	"protonvpn-wg-confgen/internal/api"
+	"protonvpn-wg-confgen/internal/config"
+	"protonvpn-wg-confgen/internal/constants"
+	"protonvpn-wg-confgen/pkg/timeutil"
 
 	"github.com/ProtonMail/go-srp"
 	"golang.org/x/term"

@@ -1,4 +1,4 @@
-module protonvpn-wg-config-generate
+module protonvpn-wg-confgen
 
 go 1.25.6
 

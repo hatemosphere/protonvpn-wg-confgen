@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"protonvpn-wg-config-generate/internal/api"
-	"protonvpn-wg-config-generate/internal/config"
+	"protonvpn-wg-confgen/internal/api"
+	"protonvpn-wg-confgen/internal/config"
 )
 
 func TestConfigGeneration(t *testing.T) {

@@ -7,8 +7,8 @@ import (
 	"os"
 	"strings"
 
-	"protonvpn-wg-config-generate/internal/constants"
-	"protonvpn-wg-config-generate/pkg/validation"
+	"protonvpn-wg-confgen/internal/constants"
+	"protonvpn-wg-confgen/pkg/validation"
 )
 
 // Parse parses command-line flags and returns a Config

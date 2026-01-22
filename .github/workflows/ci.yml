@@ -71,7 +71,7 @@ jobs:
           cache: true
 
       - name: Build (native)
-        run: go build -o build/protonvpn-wg-config-generate${{ matrix.os == 'windows-latest' && '.exe' || '' }} cmd/protonvpn-wg/main.go
+        run: go build -o build/protonvpn-wg-confgen${{ matrix.os == 'windows-latest' && '.exe' || '' }} cmd/protonvpn-wg/main.go
 
   cross-compile:
     name: Cross-compile
@@ -115,10 +115,10 @@ jobs:
           CGO_ENABLED: "0"
         run: |
           mkdir -p build
-          go build -o build/protonvpn-wg-config-generate-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }} cmd/protonvpn-wg/main.go
+          go build -o build/protonvpn-wg-confgen-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }} cmd/protonvpn-wg/main.go
 
       - name: Upload artifact
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
-          name: protonvpn-wg-config-generate-${{ matrix.goos }}-${{ matrix.goarch }}
-          path: build/protonvpn-wg-config-generate-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}
+          name: protonvpn-wg-confgen-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: build/protonvpn-wg-confgen-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}

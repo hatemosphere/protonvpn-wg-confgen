@@ -1,8 +1,8 @@
 # ProtonVPN WireGuard Config Generate
 
-[![CI](https://github.com/hatemosphere/protonvpn-wg-config-generate/actions/workflows/ci.yml/badge.svg)](https://github.com/hatemosphere/protonvpn-wg-config-generate/actions/workflows/ci.yml)
-[![Release](https://img.shields.io/github/v/release/hatemosphere/protonvpn-wg-config-generate?include_prereleases)](https://github.com/hatemosphere/protonvpn-wg-config-generate/releases/latest)
-[![Go Report Card](https://goreportcard.com/badge/github.com/hatemosphere/protonvpn-wg-config-generate)](https://goreportcard.com/report/github.com/hatemosphere/protonvpn-wg-config-generate)
+[![CI](https://github.com/hatemosphere/protonvpn-wg-confgen/actions/workflows/ci.yml/badge.svg)](https://github.com/hatemosphere/protonvpn-wg-confgen/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/hatemosphere/protonvpn-wg-confgen?include_prereleases)](https://github.com/hatemosphere/protonvpn-wg-confgen/releases/latest)
+[![Go Report Card](https://goreportcard.com/badge/github.com/hatemosphere/protonvpn-wg-confgen)](https://goreportcard.com/report/github.com/hatemosphere/protonvpn-wg-confgen)
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 A Go program that generates WireGuard configuration files for ProtonVPN servers with automatic selection of the best servers from specified countries with support of generic filters.
@@ -28,8 +28,8 @@ The motivation to write this was simple - I wanted to automatically rotate VPN s
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/hatemosphere/protonvpn-wg-config-generate
-cd protonvpn-wg-config-generate
+git clone https://github.com/hatemosphere/protonvpn-wg-confgen
+cd protonvpn-wg-confgen
 ```
 
 2. Build the program:
@@ -39,13 +39,13 @@ make build
 
 Or manually with Go:
 ```bash
-go build -o build/protonvpn-wg-config-generate cmd/protonvpn-wg/main.go
+go build -o build/protonvpn-wg-confgen cmd/protonvpn-wg/main.go
 ```
 
 ## Usage
 
 ```bash
-./build/protonvpn-wg-config-generate -username <username> -countries <country-codes> [options]
+./build/protonvpn-wg-confgen -username <username> -countries <country-codes> [options]
 ```
 
 ### Options
@@ -73,52 +73,52 @@ go build -o build/protonvpn-wg-config-generate cmd/protonvpn-wg/main.go
 
 1. Generate config for best P2P server in US or Netherlands:
 ```bash
-./build/protonvpn-wg-config-generate -username myusername -countries US,NL
+./build/protonvpn-wg-confgen -username myusername -countries US,NL
 ```
 
 2. Generate config with custom DNS and output file:
 ```bash
-./build/protonvpn-wg-config-generate -username myusername -countries CH,DE -dns 1.1.1.1,8.8.8.8 -output switzerland.conf
+./build/protonvpn-wg-confgen -username myusername -countries CH,DE -dns 1.1.1.1,8.8.8.8 -output switzerland.conf
 ```
 
 3. Disable VPN accelerator:
 ```bash
-./build/protonvpn-wg-config-generate -username myusername -countries US -accelerator=false
+./build/protonvpn-wg-confgen -username myusername -countries US -accelerator=false
 ```
 
 4. Generate config with 30-day duration:
 ```bash
-./build/protonvpn-wg-config-generate -username myusername -countries US -duration 30d
+./build/protonvpn-wg-confgen -username myusername -countries US -duration 30d
 ```
 
 5. Generate config without saving session (always prompt for password):
 ```bash
-./build/protonvpn-wg-config-generate -username myusername -countries US -no-session
+./build/protonvpn-wg-confgen -username myusername -countries US -no-session
 ```
 
 6. Use session with 24-hour expiration:
 ```bash
-./build/protonvpn-wg-config-generate -username myusername -countries US -session-duration 24h
+./build/protonvpn-wg-confgen -username myusername -countries US -session-duration 24h
 ```
 
 7. Enable IPv6 support:
 ```bash
-./build/protonvpn-wg-config-generate -username myusername -countries US -ipv6
+./build/protonvpn-wg-confgen -username myusername -countries US -ipv6
 ```
 
 8. Use Secure Core servers for enhanced privacy:
 ```bash
-./build/protonvpn-wg-config-generate -username myusername -countries NL,US -secure-core
+./build/protonvpn-wg-confgen -username myusername -countries NL,US -secure-core
 ```
 
 9. Debug mode to see all available servers:
 ```bash
-./build/protonvpn-wg-config-generate -username myusername -countries US -debug
+./build/protonvpn-wg-confgen -username myusername -countries US -debug
 ```
 
 10. Use Free tier servers only:
 ```bash
-./build/protonvpn-wg-config-generate -username myusername -countries US,NL -free-only
+./build/protonvpn-wg-confgen -username myusername -countries US,NL -free-only
 ```
 
 ## IPv6 Support

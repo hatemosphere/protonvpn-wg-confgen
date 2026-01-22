@@ -1,16 +1,16 @@
 # yaml-language-server: $schema=https://goreleaser.com/static/schema.json
 version: 2
 
-project_name: protonvpn-wg-config-generate
+project_name: protonvpn-wg-confgen
 
 before:
   hooks:
     - go mod tidy
 
 builds:
-  - id: protonvpn-wg-config-generate
+  - id: protonvpn-wg-confgen
     main: ./cmd/protonvpn-wg
-    binary: protonvpn-wg-config-generate
+    binary: protonvpn-wg-confgen
     env:
       - CGO_ENABLED=0
     goos:
@@ -69,7 +69,7 @@ changelog:
 release:
   github:
     owner: '{{ envOrDefault "GITHUB_REPOSITORY_OWNER" "" }}'
-    name: protonvpn-wg-config-generate
+    name: protonvpn-wg-confgen
   draft: false
   prerelease: auto
   mode: replace

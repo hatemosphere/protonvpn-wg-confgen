@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"protonvpn-wg-config-generate/internal/constants"
+	"protonvpn-wg-confgen/internal/constants"
 )
 
 // Error codes from ProtonVPN API

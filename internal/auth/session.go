@@ -10,8 +10,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"protonvpn-wg-config-generate/internal/api"
-	"protonvpn-wg-config-generate/internal/constants"
+	"protonvpn-wg-confgen/internal/api"
+	"protonvpn-wg-confgen/internal/constants"
 )
 
 // SessionStore handles persistent session storage
