@@ -293,9 +293,10 @@ If you encounter "CAPTCHA verification required" error:
 ### App Version Errors (Error 5003)
 
 If you see "This version of the app is no longer supported":
-- The app version headers are hardcoded and may become outdated
-- Check ProtonVPN forums or GitHub for current working versions
-- The tool currently uses `linux-vpn@4.2.0`
+- The app version is automatically fetched from ProtonVPN's GitHub at build time
+- Rebuild with `make build` to get the latest version
+- Override manually if needed: `make build PROTON_VERSION=X.Y.Z`
+- Check current version: `make show-version`
 
 ### Two-Password Mode Error (Code 10013)
 
@@ -313,6 +314,10 @@ If authentication succeeds but you get error 9100 when getting the VPN certifica
 - **Solution**: Run with `-clear-session` flag to force re-authentication, which should prompt for 2FA
 - If 2FA prompt still doesn't appear, try from a different IP/network to bypass device trust
 - This can also occur if your account uses 2-password mode (see error 10013 above)
+
+## API Reference
+
+For detailed API documentation including endpoints, request formats, response codes, and reference implementations, see [API_REFERENCE.md](API_REFERENCE.md).
 
 ## License
 

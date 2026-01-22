@@ -8,15 +8,17 @@ import (
 )
 
 // Error codes from ProtonVPN API
+// Official source: github.com/ProtonMail/protoncore_android/.../ResponseCodes.kt
+// See API_REFERENCE.md for full documentation.
 const (
 	CodeSuccess              = constants.APICodeSuccess
-	CodeWrongPassword        = 8002
-	CodeWrongPasswordFormat  = 8004 // Different error code for password format
-	CodeCaptchaRequired      = 9001
-	Code2FARequiredForVPN    = 9100 // 2FA required for VPN operations (session lacks 2FA scope)
-	Code2FARequired          = 10002
-	CodeInvalid2FA           = 10003
-	CodeMailboxPasswordError = 10013
+	CodeWrongPassword        = 8002  // PASSWORD_WRONG: Incorrect password
+	CodeWrongPasswordFormat  = 8004  // Password format is incorrect (observed)
+	CodeCaptchaRequired      = 9001  // HUMAN_VERIFICATION_REQUIRED: CAPTCHA needed
+	Code2FARequiredForVPN    = 9100  // VPN-specific: certificate endpoint requires 2FA session (not in official docs)
+	CodeAccountDeleted       = 10002 // ACCOUNT_DELETED: Account has been deleted
+	CodeAccountDisabled      = 10003 // ACCOUNT_DISABLED: Account has been disabled
+	CodeMailboxPasswordError = 10013 // Legacy 2-password mode / invalid refresh token (context-dependent)
 )
 
 // Error represents an authentication error with ProtonVPN-specific error code
@@ -50,10 +52,10 @@ func getErrorMessage(code int) string {
 		return "CAPTCHA verification required"
 	case Code2FARequiredForVPN:
 		return "2FA required for VPN operations - your session was authenticated without 2FA (device trust). Use -clear-session to force re-authentication with 2FA"
-	case Code2FARequired:
-		return "2FA code is required"
-	case CodeInvalid2FA:
-		return "invalid 2FA code"
+	case CodeAccountDeleted:
+		return "account has been deleted"
+	case CodeAccountDisabled:
+		return "account has been disabled"
 	case CodeMailboxPasswordError:
 		return "account uses legacy 2-password mode - please switch to single-password mode at account.proton.me"
 	default:
@@ -61,13 +63,13 @@ func getErrorMessage(code int) string {
 	}
 }
 
-// Is2FAError checks if the error is a 2FA-related error
-func Is2FAError(err error) bool {
+// IsAccountError checks if the error is an account status error (deleted or disabled)
+func IsAccountError(err error) bool {
 	var authErr Error
 	if !errors.As(err, &authErr) {
 		return false
 	}
-	return authErr.Code == Code2FARequired || authErr.Code == CodeInvalid2FA
+	return authErr.Code == CodeAccountDeleted || authErr.Code == CodeAccountDisabled
 }
 
 // IsCaptchaError checks if the error requires CAPTCHA verification

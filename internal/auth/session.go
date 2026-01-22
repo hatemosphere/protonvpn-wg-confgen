@@ -129,12 +129,12 @@ func (s *SessionStore) GetPath() string {
 // RefreshSession attempts to refresh the session using the refresh token.
 // It returns a new session with updated tokens if successful.
 func RefreshSession(httpClient *http.Client, apiURL string, oldSession *api.Session) (*api.Session, error) {
-	// Based on WebClients source, the refresh endpoint is /auth/refresh
+	// Based on proton-python-client/proton/api.py refresh() method
 	reqBody := map[string]interface{}{
 		"ResponseType": "token",
 		"GrantType":    "refresh_token",
 		"RefreshToken": oldSession.RefreshToken,
-		"RedirectURI":  "https://protonmail.com",
+		"RedirectURI":  "http://protonmail.ch",
 	}
 
 	body, err := json.Marshal(reqBody)
@@ -172,7 +172,7 @@ func RefreshSession(httpClient *http.Client, apiURL string, oldSession *api.Sess
 		if err := json.Unmarshal(respBody, &session); err != nil {
 			return nil, err
 		}
-		if session.Code == constants.APICodeSuccess {
+		if constants.IsSuccessCode(session.Code) {
 			return &session, nil
 		}
 	}

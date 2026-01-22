@@ -52,6 +52,8 @@ func (c *Client) GetCertificate(keyPair *ed25519.KeyPair) (*api.VPNInfo, error) 
 		return nil, fmt.Errorf("failed to parse duration: %w", err)
 	}
 
+	// Build certificate request matching official ProtonVPN API format
+	// Feature keys from: python-proton-vpn-api-core/proton/vpn/session/fetcher.py
 	certReq := map[string]interface{}{
 		"ClientPublicKey":     publicKeyPEM,
 		"ClientPublicKeyMode": "EC",
@@ -59,11 +61,10 @@ func (c *Client) GetCertificate(keyPair *ed25519.KeyPair) (*api.VPNInfo, error) 
 		"DeviceName":          deviceName,
 		"Duration":            durationStr,
 		"Features": map[string]interface{}{
-			"netshield-level": 0,
-			"moderate-nat":    false,
-			"port-forwarding": false,
-			"vpn-accelerator": c.config.EnableAccelerator,
-			"bouncing":        true,
+			"NetShieldLevel": 0,                           // NetShield disabled
+			"RandomNAT":      false,                       // Moderate NAT disabled
+			"PortForwarding": false,                       // Port forwarding disabled
+			"SplitTCP":       c.config.EnableAccelerator, // VPN Accelerator (called SplitTCP in API)
 		},
 	}
 
@@ -95,7 +96,7 @@ func (c *Client) GetCertificate(keyPair *ed25519.KeyPair) (*api.VPNInfo, error) 
 		return nil, err
 	}
 
-	if vpnInfo.Code != constants.APICodeSuccess {
+	if !constants.IsSuccessCode(vpnInfo.Code) {
 		// Include the actual API error message if available
 		if vpnInfo.Error != "" {
 			return nil, fmt.Errorf("VPN certificate error (code %d): %s", vpnInfo.Code, vpnInfo.Error)
@@ -131,7 +132,7 @@ func (c *Client) GetServers() ([]api.LogicalServer, error) {
 		return nil, err
 	}
 
-	if response.Code != constants.APICodeSuccess {
+	if !constants.IsSuccessCode(response.Code) {
 		return nil, fmt.Errorf("API returned error code: %d", response.Code)
 	}
 
