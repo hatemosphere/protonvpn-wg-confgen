@@ -66,6 +66,25 @@ type VPNInfo struct {
 	} `json:"Features"`
 }
 
+// VPNCertificate represents a single certificate entry returned by /vpn/v1/certificate/all.
+type VPNCertificate struct {
+	SerialNumber         string `json:"SerialNumber"`
+	ClientKeyFingerprint string `json:"ClientKeyFingerprint"`
+	ClientKey            string `json:"ClientKey"`
+	DeviceName           string `json:"DeviceName,omitempty"`
+	Mode                 string `json:"Mode"`
+	ExpirationTime       int64  `json:"ExpirationTime"`
+	RefreshTime          int64  `json:"RefreshTime"`
+}
+
+// CertListResponse is the response body for GET /vpn/v1/certificate/all.
+type CertListResponse struct {
+	Code         int              `json:"Code"`
+	Error        string           `json:"Error,omitempty"`
+	Certificates []VPNCertificate `json:"Certificates"`
+	Total        int              `json:"Total"`
+}
+
 // LogicalServer represents a ProtonVPN logical server
 type LogicalServer struct {
 	ID           string           `json:"ID"`

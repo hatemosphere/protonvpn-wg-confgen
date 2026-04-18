@@ -139,6 +139,55 @@ func (c *Client) GetServers() ([]api.LogicalServer, error) {
 	return response.LogicalServers, nil
 }
 
+// ListCertificates fetches all persistent certificates on the account, paginating via BeginID.
+func (c *Client) ListCertificates() ([]api.VPNCertificate, error) {
+	const pageSize = 50
+	var all []api.VPNCertificate
+	var beginID string
+
+	for {
+		u := fmt.Sprintf("%s%s/all?Mode=persistent&Limit=%d", c.config.APIURL, constants.CertificatePath, pageSize)
+		if beginID != "" {
+			u += "&BeginID=" + beginID
+		}
+
+		req, err := http.NewRequest(http.MethodGet, u, http.NoBody)
+		if err != nil {
+			return nil, err
+		}
+		c.setHeaders(req)
+
+		resp, err := c.httpClient.Do(req)
+		if err != nil {
+			return nil, err
+		}
+		body, err := io.ReadAll(resp.Body)
+		_ = resp.Body.Close()
+		if err != nil {
+			return nil, err
+		}
+
+		var page api.CertListResponse
+		if err := json.Unmarshal(body, &page); err != nil {
+			return nil, fmt.Errorf("failed to parse certificate list: %w", err)
+		}
+		if !constants.IsSuccessCode(page.Code) {
+			if page.Error != "" {
+				return nil, fmt.Errorf("list certificates error (code %d): %s", page.Code, page.Error)
+			}
+			return nil, fmt.Errorf("list certificates failed, code: %d", page.Code)
+		}
+
+		all = append(all, page.Certificates...)
+		if len(page.Certificates) < pageSize {
+			break
+		}
+		beginID = page.Certificates[len(page.Certificates)-1].SerialNumber
+	}
+
+	return all, nil
+}
+
 func (c *Client) setHeaders(req *http.Request) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.session.AccessToken))

@@ -53,8 +53,8 @@ func NewConfigGenerator(cfg *config.Config) *ConfigGenerator {
 }
 
 // Generate creates a WireGuard configuration file
-func (g *ConfigGenerator) Generate(server *api.LogicalServer, physicalServer *api.PhysicalServer, privateKey string) error {
-	content, err := g.buildConfig(server, physicalServer, privateKey)
+func (g *ConfigGenerator) Generate(server *api.LogicalServer, physicalServer *api.PhysicalServer, privateKey string, vpnInfo *api.VPNInfo) error {
+	content, err := g.buildConfig(server, physicalServer, privateKey, vpnInfo)
 	if err != nil {
 		return err
 	}
@@ -66,9 +66,9 @@ func (g *ConfigGenerator) Generate(server *api.LogicalServer, physicalServer *ap
 	return nil
 }
 
-func (g *ConfigGenerator) buildConfig(server *api.LogicalServer, physicalServer *api.PhysicalServer, privateKey string) (string, error) {
+func (g *ConfigGenerator) buildConfig(server *api.LogicalServer, physicalServer *api.PhysicalServer, privateKey string, vpnInfo *api.VPNInfo) (string, error) {
 	// Build metadata header
-	metadata := g.buildMetadata(server, physicalServer)
+	metadata := g.buildMetadata(server, physicalServer, vpnInfo)
 
 	data := configData{
 		PrivateKey:  privateKey,
@@ -95,13 +95,18 @@ func (g *ConfigGenerator) buildAddressLine() string {
 	return fmt.Sprintf("Address = %s", constants.WireGuardIPv4)
 }
 
-func (g *ConfigGenerator) buildMetadata(server *api.LogicalServer, physicalServer *api.PhysicalServer) string {
+func (g *ConfigGenerator) buildMetadata(server *api.LogicalServer, physicalServer *api.PhysicalServer, vpnInfo *api.VPNInfo) string {
 	var metadata strings.Builder
 
 	metadata.WriteString("# ProtonVPN WireGuard Configuration\n")
 	fmt.Fprintf(&metadata, "# Generated: %s\n", time.Now().Format("2006-01-02 15:04:05 MST"))
-	if g.config.DeviceName != "" {
-		fmt.Fprintf(&metadata, "# Device: %s\n", g.config.DeviceName)
+
+	deviceName := g.config.DeviceName
+	if vpnInfo != nil && vpnInfo.DeviceName != "" {
+		deviceName = vpnInfo.DeviceName
+	}
+	if deviceName != "" {
+		fmt.Fprintf(&metadata, "# Device: %s\n", deviceName)
 	}
 	metadata.WriteString("#\n")
 	metadata.WriteString("# Server Information:\n")

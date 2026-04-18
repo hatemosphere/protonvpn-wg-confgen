@@ -28,7 +28,7 @@ func TestConfigGeneration(t *testing.T) {
 
 	privateKey := "testPrivateKey456="
 
-	result, err := generator.buildConfig(server, physicalServer, privateKey)
+	result, err := generator.buildConfig(server, physicalServer, privateKey, nil)
 	if err != nil {
 		t.Fatalf("buildConfig failed: %v", err)
 	}
@@ -97,7 +97,7 @@ func TestConfigGenerationWithIPv6(t *testing.T) {
 
 	privateKey := "testPrivateKey456="
 
-	result, err := generator.buildConfig(server, physicalServer, privateKey)
+	result, err := generator.buildConfig(server, physicalServer, privateKey, nil)
 	if err != nil {
 		t.Fatalf("buildConfig failed: %v", err)
 	}

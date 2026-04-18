@@ -56,7 +56,16 @@ func Parse() (*Config, error) {
 	flag.StringVar(&cfg.APIURL, "api-url", constants.DefaultAPIURL, "ProtonVPN API URL")
 	flag.BoolVar(&cfg.Debug, "debug", false, "Enable debug output")
 
+	// List mode (enumerates persistent configurations registered on the account)
+	flag.BoolVar(&cfg.ListConfigs, "list-configs", false, "List all persistent WireGuard configurations on the account and exit")
+
 	flag.Parse()
+
+	// -list-configs does not need a country filter.
+	if cfg.ListConfigs {
+		cfg.Username = validation.CleanUsername(cfg.Username)
+		return cfg, nil
+	}
 
 	// Validate required flags
 	if countriesFlag == "" {

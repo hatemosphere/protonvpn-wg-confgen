@@ -333,9 +333,7 @@ func (c *Client) get2FACode() (string, error) {
 }
 
 func (c *Client) getAuthInfo() (*api.AuthInfoResponse, error) {
-	reqBody := map[string]any{
-		"Username": c.config.Username,
-	}
+	reqBody := map[string]any{"Username": c.config.Username}
 
 	body, err := json.Marshal(reqBody)
 	if err != nil {

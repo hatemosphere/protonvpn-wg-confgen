@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"protonvpn-wg-confgen/internal/api"
 	"protonvpn-wg-confgen/internal/auth"
@@ -23,14 +24,12 @@ func main() {
 }
 
 func run() error {
-	// Parse configuration
 	cfg, err := config.Parse()
 	if err != nil {
 		config.PrintUsage()
 		return err
 	}
 
-	// Authenticate
 	authClient := auth.NewClient(cfg)
 	session, err := authClient.Authenticate()
 	if err != nil {
@@ -38,36 +37,37 @@ func run() error {
 	}
 	fmt.Println("Authentication successful!")
 
-	// Generate key pair
+	vpnClient := vpn.NewClient(cfg, session)
+
+	if cfg.ListConfigs {
+		return listConfigs(vpnClient)
+	}
+	return generateConfig(cfg, vpnClient)
+}
+
+func generateConfig(cfg *config.Config, vpnClient *vpn.Client) error {
 	keyPair, err := ed25519.NewKeyPair()
 	if err != nil {
 		return fmt.Errorf("failed to generate key pair: %w", err)
 	}
 	cfg.ClientPrivateKey = keyPair.ToX25519Base64()
 
-	// Create VPN client
-	vpnClient := vpn.NewClient(cfg, session)
-
-	// Get VPN certificate
 	vpnInfo, err := vpnClient.GetCertificate(keyPair)
 	if err != nil {
 		return fmt.Errorf("failed to get VPN certificate: %w", err)
 	}
 
-	// Get server list
 	servers, err := vpnClient.GetServers()
 	if err != nil {
 		return fmt.Errorf("failed to get servers: %w", err)
 	}
 
-	// Select best server
 	selector := vpn.NewServerSelector(cfg)
 	server, err := selector.SelectBest(servers)
 	if err != nil {
 		return err
 	}
 
-	// Build feature list string
 	features := api.GetFeatureNames(server.Features)
 	featureStr := ""
 	if len(features) > 0 {
@@ -78,27 +78,44 @@ func run() error {
 		server.Name, server.ExitCountry, server.City, api.GetTierName(server.Tier),
 		server.Load, server.Score, len(server.Servers), featureStr)
 
-	// Get best physical server
 	physicalServer := vpn.GetBestPhysicalServer(server)
 	if physicalServer == nil {
 		return fmt.Errorf("no physical servers available")
 	}
 
-	// Generate WireGuard configuration
 	generator := wireguard.NewConfigGenerator(cfg)
-	if err := generator.Generate(server, physicalServer, cfg.ClientPrivateKey); err != nil {
+	if err := generator.Generate(server, physicalServer, cfg.ClientPrivateKey, vpnInfo); err != nil {
 		return fmt.Errorf("failed to generate WireGuard config: %w", err)
 	}
 
 	fmt.Printf("WireGuard configuration written to: %s\n", cfg.OutputFile)
-
-	// Note about persistence
 	if vpnInfo.DeviceName != "" {
 		fmt.Printf("Device name: %s (visible in ProtonVPN dashboard)\n", vpnInfo.DeviceName)
 	}
-
-	// Show final success
 	fmt.Printf("\nSuccessfully generated config for %s\n", server.ExitCountry)
+	return nil
+}
 
+func listConfigs(vpnClient *vpn.Client) error {
+	certs, err := vpnClient.ListCertificates()
+	if err != nil {
+		return fmt.Errorf("failed to list configurations: %w", err)
+	}
+	if len(certs) == 0 {
+		fmt.Println("No persistent configurations found.")
+		return nil
+	}
+
+	fmt.Printf("%-40s  %-30s  %-20s  %s\n", "SerialNumber", "DeviceName", "Expires", "Fingerprint")
+	fmt.Println(strings.Repeat("-", 120))
+	for _, c := range certs {
+		exp := time.Unix(c.ExpirationTime, 0).UTC().Format("2006-01-02 15:04 UTC")
+		name := c.DeviceName
+		if name == "" {
+			name = "-"
+		}
+		fmt.Printf("%-40s  %-30s  %-20s  %s\n", c.SerialNumber, name, exp, c.ClientKeyFingerprint)
+	}
+	fmt.Printf("\nTotal: %d\n", len(certs))
 	return nil
 }

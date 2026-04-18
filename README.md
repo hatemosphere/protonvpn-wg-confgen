@@ -14,15 +14,16 @@ I wanted to automatically rotate VPN servers on my private HTPC Linux host runni
 ## Features
 
 - Authenticates with ProtonVPN using username/password
-- Opnionally persists and refreshes login session, to function in headless mode after entering password once
+- Optionally persists and refreshes login session, to function in headless mode after entering password once
 - Supports 2FA authentication (TOTP only, no FIDO2/security keys)
 - Creates persistent WireGuard configurations (visible in ProtonVPN dashboard)
-- Automatically selects the best server (highest score, lowest load) from specified countries
-- Supports both Free tier and paid tier servers (Plus and ProtonMail)
+- Automatically selects the best server from the specified countries using the Proton Quick Connect metric (lowest `Score`, with `Load` as tiebreaker — lower is better per the official API)
+- Supports Free tier or paid tier servers (Plus/Visionary)
 - Filters servers by features (P2P support, Secure Core)
 - Generates WireGuard configuration files
 - Supports VPN accelerator feature
 - IPv6 support
+- Lists persistent configurations registered on your account
 
 ## Installation
 
@@ -68,6 +69,12 @@ go build -o build/protonvpn-wg-confgen cmd/protonvpn-wg/main.go
 - `-no-session`: Don't save or use session persistence
 - `-force-refresh`: Force session refresh even if not close to expiration (requires re-authentication)
 - `-session-duration`: Session cache duration (default: 0 = use API expiration). Examples: 12h, 24h, 7d. Max: 30d
+
+#### Listing existing configurations
+
+- `-list-configs`: List every persistent configuration on the account (SerialNumber, DeviceName, expiry, key fingerprint) and exit. `-countries` is not required in this mode.
+
+Revoking a configuration is only possible via the ProtonVPN web dashboard (<https://account.proton.me/u/0/vpn/WireGuard>): the Proton API gates `DELETE /vpn/v1/certificate` behind the `full` session scope, which is granted only to `account.proton.me` web/desktop logins, not to VPN API clients.
 
 ### Examples
 
@@ -119,6 +126,11 @@ go build -o build/protonvpn-wg-confgen cmd/protonvpn-wg/main.go
 10. Use Free tier servers only:
 ```bash
 ./build/protonvpn-wg-confgen -username myusername -countries US,NL -free-only
+```
+
+11. List all persistent configurations on the account:
+```bash
+./build/protonvpn-wg-confgen -username myusername -list-configs
 ```
 
 ## IPv6 Support
@@ -196,10 +208,10 @@ Import the configuration file into your WireGuard client.
 
 ## Server Tier Support
 
-By default, the tool excludes Free tier servers and only uses paid tier servers (Plus and ProtonMail):
-- **Free tier (tier 0)**: Available with `-free-only` flag. Limited server selection, no P2P support
+By default, the tool excludes Free tier servers and only uses paid tier servers:
+- **Free tier (tier 0)**: Only selected when `-free-only` is set. Limited server selection, no P2P support
 - **Plus tier (tier 2)**: Default. Full feature support including P2P and Secure Core
-- **ProtonMail tier (tier 3)**: Default. Included with Proton bundle subscriptions
+- **Visionary tier (tier 3)**: Default. Returned by the API for accounts on historical/bundle plans
 
 **Important Notes:**
 - When using `-free-only`, P2P filtering is automatically disabled since Free servers don't support P2P
@@ -213,7 +225,7 @@ By default, the tool excludes Free tier servers and only uses paid tier servers 
 
 ## Security Notes
 
-- The program generates a new WireGuard private key for each run
+- The program generates a new WireGuard private/public keypair on every generation run
 - Configuration files contain sensitive information and are saved with 0600 permissions
 - Never share your WireGuard configuration files
 - Persistent configurations appear in your ProtonVPN dashboard and can be revoked there
@@ -224,40 +236,39 @@ By default, the tool excludes Free tier servers and only uses paid tier servers 
 ```
 .
 ├── cmd/
-│   └── protonvpn-wg/      # Main application entry point
-│       └── main.go        # CLI entry point
-├── internal/              # Private application code
-│   ├── api/              # API types and data structures
-│   │   └── types.go      # ProtonVPN API response types
-│   ├── auth/             # Authentication logic
-│   │   ├── auth.go       # SRP authentication implementation
-│   │   ├── errors.go     # Custom error types
-│   │   └── session.go    # Session management and refresh
-│   ├── config/           # Configuration handling
-│   │   ├── flags.go      # Command-line flag parsing
-│   │   └── types.go      # Config struct and validation
-│   ├── constants/        # Application constants
-│   │   ├── api.go        # API endpoints and headers
-│   │   ├── defaults.go   # Default configuration values
-│   │   ├── session.go    # Session-related constants
-│   │   └── wireguard.go  # WireGuard network constants
-│   └── vpn/              # VPN functionality
-│       ├── client.go     # Certificate generation
-│       └── servers.go    # Server selection logic
-├── pkg/                  # Public packages
-│   ├── timeutil/         # Time and duration utilities
-│   │   ├── formatter.go  # Duration formatting
-│   │   └── parser.go     # Duration parsing
-│   ├── validation/       # Input validation
-│   │   └── validation.go # Username and country code validation
-│   └── wireguard/        # WireGuard configuration
-│       ├── config.go     # Config file generation
-│       └── config_test.go # Config generation tests
-├── vendor/               # Vendored dependencies
-├── Makefile              # Build automation
-├── go.mod                # Go module definition
-├── go.sum                # Module checksums
-└── README.md             # This file
+│   └── protonvpn-wg/
+│       └── main.go         # CLI entry point + command dispatch
+├── internal/
+│   ├── api/
+│   │   └── types.go        # ProtonVPN API request/response types
+│   ├── auth/
+│   │   ├── auth.go         # SRP authentication
+│   │   ├── errors.go       # API error codes and types
+│   │   └── session.go      # Session persistence, refresh, verify
+│   ├── config/
+│   │   ├── flags.go        # Command-line flag parsing
+│   │   └── types.go        # Config struct
+│   ├── constants/
+│   │   ├── api.go          # API endpoints and version headers
+│   │   ├── defaults.go     # Certificate/selection defaults
+│   │   ├── session.go      # Session persistence constants
+│   │   └── wireguard.go    # WireGuard network defaults
+│   └── vpn/
+│       ├── client.go       # Certificate create + list + server fetch
+│       └── servers.go      # Server selection
+├── pkg/
+│   ├── timeutil/
+│   │   ├── duration.go     # Human-readable duration formatting
+│   │   └── parser.go       # Duration parsing
+│   ├── validation/
+│   │   └── username.go     # Username and country-code validation
+│   └── wireguard/
+│       ├── config.go       # .conf file generation
+│       └── config_test.go
+├── Makefile
+├── go.mod
+├── go.sum
+└── README.md
 ```
 
 ## Development
@@ -306,14 +317,9 @@ If you see "unexpected mailbox password request - account might still be in 2-pa
 - To switch: Go to Proton account settings → Security → Password mode → Switch to single password
 - Note: Single password mode is the default for all new Proton accounts since ~2020
 
-### 2FA Required for VPN (Error 9100)
+### Insufficient Scope (Error 9100)
 
-If authentication succeeds but you get error 9100 when getting the VPN certificate:
-- Your account has 2FA enabled, but ProtonVPN's device trust mechanism allowed login without 2FA
-- The VPN certificate endpoint requires a session that was authenticated with 2FA
-- **Solution**: Run with `-clear-session` flag to force re-authentication, which should prompt for 2FA
-- If 2FA prompt still doesn't appear, try from a different IP/network to bypass device trust
-- This can also occur if your account uses 2-password mode (see error 10013 above)
+Proton returns code 9100 when an endpoint needs a higher session scope than the current session has. In this tool it only shows up when fetching the VPN certificate during `generate`: the session needs the `vpn` scope, which is granted via 2FA. If your account has 2FA but the initial login didn't prompt for it (e.g. device trust reused a prior session), run with `-clear-session` to force a fresh 2FA-authenticated login.
 
 ## API Reference
 

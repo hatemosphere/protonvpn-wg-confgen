@@ -37,6 +37,9 @@ type Config struct {
 	// Advanced configuration
 	APIURL string
 	Debug  bool
+
+	// Management mode
+	ListConfigs bool
 }
 
 // ValidateCredentials checks if we have the required credentials
