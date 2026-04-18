@@ -130,7 +130,7 @@ func (s *SessionStore) GetPath() string {
 // It returns a new session with updated tokens if successful.
 func RefreshSession(httpClient *http.Client, apiURL string, oldSession *api.Session) (*api.Session, error) {
 	// Based on proton-python-client/proton/api.py refresh() method
-	reqBody := map[string]interface{}{
+	reqBody := map[string]any{
 		"ResponseType": "token",
 		"GrantType":    "refresh_token",
 		"RefreshToken": oldSession.RefreshToken,
@@ -142,7 +142,7 @@ func RefreshSession(httpClient *http.Client, apiURL string, oldSession *api.Sess
 		return nil, err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, apiURL+"/auth/refresh", bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodPost, apiURL+constants.RefreshPath, bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
 	}
@@ -184,7 +184,7 @@ func RefreshSession(httpClient *http.Client, apiURL string, oldSession *api.Sess
 // VerifySession checks if a session is still valid by making a test API request.
 func VerifySession(httpClient *http.Client, apiURL string, session *api.Session) bool {
 	// Make a simple request to verify the session
-	req, err := http.NewRequest(http.MethodGet, apiURL+"/vpn/v1/logicals", http.NoBody)
+	req, err := http.NewRequest(http.MethodGet, apiURL+constants.LogicalsPath, http.NoBody)
 	if err != nil {
 		return false
 	}

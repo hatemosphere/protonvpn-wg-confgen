@@ -99,39 +99,39 @@ func (g *ConfigGenerator) buildMetadata(server *api.LogicalServer, physicalServe
 	var metadata strings.Builder
 
 	metadata.WriteString("# ProtonVPN WireGuard Configuration\n")
-	metadata.WriteString(fmt.Sprintf("# Generated: %s\n", time.Now().Format("2006-01-02 15:04:05 MST")))
+	fmt.Fprintf(&metadata, "# Generated: %s\n", time.Now().Format("2006-01-02 15:04:05 MST"))
 	if g.config.DeviceName != "" {
-		metadata.WriteString(fmt.Sprintf("# Device: %s\n", g.config.DeviceName))
+		fmt.Fprintf(&metadata, "# Device: %s\n", g.config.DeviceName)
 	}
 	metadata.WriteString("#\n")
 	metadata.WriteString("# Server Information:\n")
-	metadata.WriteString(fmt.Sprintf("# - Name: %s\n", server.Name))
-	metadata.WriteString(fmt.Sprintf("# - Country: %s\n", server.ExitCountry))
-	metadata.WriteString(fmt.Sprintf("# - City: %s\n", server.City))
-	metadata.WriteString(fmt.Sprintf("# - Tier: %s\n", api.GetTierName(server.Tier)))
-	metadata.WriteString(fmt.Sprintf("# - Load: %d%%\n", server.Load))
-	metadata.WriteString(fmt.Sprintf("# - Score: %.2f\n", server.Score))
+	fmt.Fprintf(&metadata, "# - Name: %s\n", server.Name)
+	fmt.Fprintf(&metadata, "# - Country: %s\n", server.ExitCountry)
+	fmt.Fprintf(&metadata, "# - City: %s\n", server.City)
+	fmt.Fprintf(&metadata, "# - Tier: %s\n", api.GetTierName(server.Tier))
+	fmt.Fprintf(&metadata, "# - Load: %d%%\n", server.Load)
+	fmt.Fprintf(&metadata, "# - Score: %.2f\n", server.Score)
 
 	// Add features if any
 	features := api.GetFeatureNames(server.Features)
 	if len(features) > 0 {
-		metadata.WriteString(fmt.Sprintf("# - Features: %s\n", strings.Join(features, ", ")))
+		fmt.Fprintf(&metadata, "# - Features: %s\n", strings.Join(features, ", "))
 	}
 
 	// Add physical server info
 	metadata.WriteString("#\n")
 	metadata.WriteString("# Physical Server:\n")
-	metadata.WriteString(fmt.Sprintf("# - ID: %s\n", physicalServer.ID))
-	metadata.WriteString(fmt.Sprintf("# - Entry IP: %s\n", physicalServer.EntryIP))
+	fmt.Fprintf(&metadata, "# - ID: %s\n", physicalServer.ID)
+	fmt.Fprintf(&metadata, "# - Entry IP: %s\n", physicalServer.EntryIP)
 	if physicalServer.ExitIP != physicalServer.EntryIP {
-		metadata.WriteString(fmt.Sprintf("# - Exit IP: %s\n", physicalServer.ExitIP))
+		fmt.Fprintf(&metadata, "# - Exit IP: %s\n", physicalServer.ExitIP)
 	}
 
 	// Add secure core routing info if applicable
 	if server.EntryCountry != server.ExitCountry && server.EntryCountry != "" {
 		metadata.WriteString("#\n")
-		metadata.WriteString(fmt.Sprintf("# Secure Core Routing: %s → %s\n",
-			server.EntryCountry, server.ExitCountry))
+		fmt.Fprintf(&metadata, "# Secure Core Routing: %s → %s\n",
+			server.EntryCountry, server.ExitCountry)
 	}
 
 	metadata.WriteString("#\n\n")

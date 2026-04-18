@@ -208,7 +208,7 @@ By default, the tool excludes Free tier servers and only uses paid tier servers 
 
 ## Requirements
 
-- Go 1.25 or higher
+- Go 1.26 or higher
 - ProtonVPN account (Free tier or paid subscription)
 
 ## Security Notes

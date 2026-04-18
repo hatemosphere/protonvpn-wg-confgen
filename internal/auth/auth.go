@@ -216,13 +216,12 @@ func (c *Client) generateSRPProofs(authInfo *api.AuthInfoResponse) (*srp.Proofs,
 }
 
 // buildAuthRequest builds the authentication request payload
-func (c *Client) buildAuthRequest(authInfo *api.AuthInfoResponse, proofs *srp.Proofs) map[string]interface{} {
-	return map[string]interface{}{
-		"Username":          c.config.Username,
-		"ClientEphemeral":   base64.StdEncoding.EncodeToString(proofs.ClientEphemeral),
-		"ClientProof":       base64.StdEncoding.EncodeToString(proofs.ClientProof),
-		"SRPSession":        authInfo.SRPSession,
-		"PersistentCookies": 0,
+func (c *Client) buildAuthRequest(authInfo *api.AuthInfoResponse, proofs *srp.Proofs) map[string]any {
+	return map[string]any{
+		"Username":        c.config.Username,
+		"ClientEphemeral": base64.StdEncoding.EncodeToString(proofs.ClientEphemeral),
+		"ClientProof":     base64.StdEncoding.EncodeToString(proofs.ClientProof),
+		"SRPSession":      authInfo.SRPSession,
 	}
 }
 
@@ -298,7 +297,7 @@ func (c *Client) ensureUsername() error {
 func (c *Client) ensurePassword() error {
 	if c.config.Password == "" {
 		fmt.Print("Password: ")
-		passwordBytes, err := term.ReadPassword(int(os.Stdin.Fd()))
+		passwordBytes, err := term.ReadPassword(int(os.Stdin.Fd())) //nolint:gosec // fd fits in int; term.ReadPassword requires int
 		fmt.Println()
 		if err != nil {
 			return fmt.Errorf("error reading password: %w", err)
@@ -334,9 +333,8 @@ func (c *Client) get2FACode() (string, error) {
 }
 
 func (c *Client) getAuthInfo() (*api.AuthInfoResponse, error) {
-	reqBody := map[string]interface{}{
+	reqBody := map[string]any{
 		"Username": c.config.Username,
-		"Intent":   "Proton",
 	}
 
 	body, err := json.Marshal(reqBody)
@@ -344,7 +342,7 @@ func (c *Client) getAuthInfo() (*api.AuthInfoResponse, error) {
 		return nil, err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, c.config.APIURL+"/core/v4/auth/info", bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodPost, c.config.APIURL+constants.AuthInfoPath, bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
 	}
@@ -386,13 +384,13 @@ func (c *Client) getAuthInfo() (*api.AuthInfoResponse, error) {
 	return &authInfo, nil
 }
 
-func (c *Client) sendAuthRequest(authReq map[string]interface{}) (*api.Session, error) {
+func (c *Client) sendAuthRequest(authReq map[string]any) (*api.Session, error) {
 	body, err := json.Marshal(authReq)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, c.config.APIURL+"/core/v4/auth", bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodPost, c.config.APIURL+constants.AuthPath, bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
 	}
@@ -446,7 +444,7 @@ func (c *Client) setHeaders(req *http.Request) {
 
 // submit2FA submits a 2FA code to upgrade the session with additional scopes (like VPN)
 func (c *Client) submit2FA(session *api.Session, code string) ([]string, error) {
-	reqBody := map[string]interface{}{
+	reqBody := map[string]any{
 		"TwoFactorCode": code,
 	}
 
@@ -455,7 +453,7 @@ func (c *Client) submit2FA(session *api.Session, code string) ([]string, error) 
 		return nil, err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, c.config.APIURL+"/core/v4/auth/2fa", bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodPost, c.config.APIURL+constants.TwoFAPath, bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
 	}

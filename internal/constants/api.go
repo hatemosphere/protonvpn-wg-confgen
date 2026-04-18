@@ -2,10 +2,12 @@
 package constants
 
 // API endpoints
+// Paths match the ProtonVPN Linux reference client (python-proton-core/python-proton-vpn-api-core).
 const (
 	DefaultAPIURL   = "https://vpn-api.proton.me"
-	AuthInfoPath    = "/core/v4/auth/info"
-	AuthPath        = "/core/v4/auth"
+	AuthInfoPath    = "/auth/info"
+	AuthPath        = "/auth"
+	TwoFAPath       = "/auth/2fa"
 	RefreshPath     = "/auth/refresh"
 	CertificatePath = "/vpn/v1/certificate"
 	LogicalsPath    = "/vpn/v1/logicals"

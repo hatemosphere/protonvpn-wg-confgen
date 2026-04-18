@@ -3,6 +3,7 @@ package vpn
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 
@@ -33,13 +34,12 @@ func (s *ServerSelector) SelectBest(servers []api.LogicalServer) (*api.LogicalSe
 		return nil, s.buildNoServersError()
 	}
 
-	// Sort servers: first by score (descending), then by load (ascending)
+	// Sort servers: lowest score first (Proton API convention: lower = better for Quick Connect),
+	// with lower load as tiebreaker.
 	sort.Slice(filtered, func(i, j int) bool {
-		// If scores are different, higher score wins
 		if filtered[i].Score != filtered[j].Score {
-			return filtered[i].Score > filtered[j].Score
+			return filtered[i].Score < filtered[j].Score
 		}
-		// If scores are equal, lower load wins
 		return filtered[i].Load < filtered[j].Load
 	})
 
@@ -101,12 +101,7 @@ func (s *ServerSelector) isServerEligible(server *api.LogicalServer) bool {
 }
 
 func (s *ServerSelector) isCountryMatch(server *api.LogicalServer) bool {
-	for _, country := range s.config.Countries {
-		if server.ExitCountry == country {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(s.config.Countries, server.ExitCountry)
 }
 
 func (s *ServerSelector) buildNoServersError() error {

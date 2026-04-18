@@ -54,13 +54,13 @@ func (c *Client) GetCertificate(keyPair *ed25519.KeyPair) (*api.VPNInfo, error) 
 
 	// Build certificate request matching official ProtonVPN API format
 	// Feature keys from: python-proton-vpn-api-core/proton/vpn/session/fetcher.py
-	certReq := map[string]interface{}{
+	certReq := map[string]any{
 		"ClientPublicKey":     publicKeyPEM,
 		"ClientPublicKeyMode": "EC",
 		"Mode":                "persistent", // Create persistent configuration
 		"DeviceName":          deviceName,
 		"Duration":            durationStr,
-		"Features": map[string]interface{}{
+		"Features": map[string]any{
 			"NetShieldLevel": 0,                          // NetShield disabled
 			"RandomNAT":      false,                      // Moderate NAT disabled
 			"PortForwarding": false,                      // Port forwarding disabled
@@ -73,7 +73,7 @@ func (c *Client) GetCertificate(keyPair *ed25519.KeyPair) (*api.VPNInfo, error) 
 		return nil, err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, c.config.APIURL+"/vpn/v1/certificate", bytes.NewBuffer(certJSON))
+	req, err := http.NewRequest(http.MethodPost, c.config.APIURL+constants.CertificatePath, bytes.NewBuffer(certJSON))
 	if err != nil {
 		return nil, err
 	}
@@ -109,7 +109,7 @@ func (c *Client) GetCertificate(keyPair *ed25519.KeyPair) (*api.VPNInfo, error) 
 
 // GetServers fetches the list of VPN servers
 func (c *Client) GetServers() ([]api.LogicalServer, error) {
-	req, err := http.NewRequest(http.MethodGet, c.config.APIURL+"/vpn/v1/logicals", http.NoBody)
+	req, err := http.NewRequest(http.MethodGet, c.config.APIURL+constants.LogicalsPath, http.NoBody)
 	if err != nil {
 		return nil, err
 	}
