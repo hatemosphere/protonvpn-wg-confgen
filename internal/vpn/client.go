@@ -57,8 +57,6 @@ func (c *Client) GetCertificate(keyPair *ed25519.KeyPair) (*api.VPNInfo, error) 
 	certReq := map[string]any{
 		"ClientPublicKey":     publicKeyPEM,
 		"ClientPublicKeyMode": "EC",
-		"Mode":                "persistent", // Create persistent configuration
-		"DeviceName":          deviceName,
 		"Duration":            durationStr,
 		"Features": map[string]any{
 			"NetShieldLevel": 0,                          // NetShield disabled
@@ -66,6 +64,13 @@ func (c *Client) GetCertificate(keyPair *ed25519.KeyPair) (*api.VPNInfo, error) 
 			"PortForwarding": false,                      // Port forwarding disabled
 			"SplitTCP":       c.config.EnableAccelerator, // VPN Accelerator (called SplitTCP in API)
 		},
+	}
+
+	// When NoSave is set, omit Mode and DeviceName so the cert is session-only
+	// and won't appear in the ProtonVPN dashboard.
+	if !c.config.NoSave {
+		certReq["Mode"] = constants.CertMode       // "persistent"
+		certReq["DeviceName"] = deviceName
 	}
 
 	certJSON, err := json.Marshal(certReq)

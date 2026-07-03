@@ -40,6 +40,9 @@ type Config struct {
 
 	// Management mode
 	ListConfigs bool
+
+	// Non-persistent mode (do not register on account)
+	NoSave bool
 }
 
 // ValidateCredentials checks if we have the required credentials

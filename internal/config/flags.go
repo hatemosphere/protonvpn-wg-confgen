@@ -56,6 +56,9 @@ func Parse() (*Config, error) {
 	flag.StringVar(&cfg.APIURL, "api-url", constants.DefaultAPIURL, "ProtonVPN API URL")
 	flag.BoolVar(&cfg.Debug, "debug", false, "Enable debug output")
 
+	// Non-persistent mode
+	flag.BoolVar(&cfg.NoSave, "no-save", false, "Generate config without registering on the account (non-persistent, 24h lifetime)")
+
 	// List mode (enumerates persistent configurations registered on the account)
 	flag.BoolVar(&cfg.ListConfigs, "list-configs", false, "List all persistent WireGuard configurations on the account and exit")
 
