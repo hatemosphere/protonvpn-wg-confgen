@@ -29,6 +29,7 @@ func Parse() (*Config, error) {
 
 	// Server selection flags
 	flag.StringVar(&countriesFlag, "countries", "", "Comma-separated list of country codes (e.g., US,NL,CH)")
+	flag.StringVar(&cfg.ServerName, "server", "", "Select a specific server by name (e.g., UA#122)")
 	flag.BoolVar(&cfg.P2PServersOnly, "p2p-only", constants.DefaultP2POnly, "Use only P2P-enabled servers")
 	flag.BoolVar(&cfg.SecureCoreOnly, "secure-core", false, "Use only Secure Core servers (multi-hop through privacy-friendly countries)")
 	flag.BoolVar(&cfg.FreeOnly, "free-only", false, "Use only Free tier servers (tier 0)")
@@ -70,16 +71,18 @@ func Parse() (*Config, error) {
 		return cfg, nil
 	}
 
-	// Validate required flags
-	if countriesFlag == "" {
-		return nil, fmt.Errorf("countries flag is required")
+	// Validate required flags: countries are needed unless -server is specified
+	if countriesFlag == "" && cfg.ServerName == "" {
+		return nil, fmt.Errorf("countries flag is required (or use -server to select a specific server)")
 	}
 
 	// Parse and validate country codes
-	cfg.Countries = parseCountries(countriesFlag)
-	for _, country := range cfg.Countries {
-		if !validation.IsValidCountryCode(country) {
-			return nil, fmt.Errorf("invalid country code: %s", country)
+	if countriesFlag != "" {
+		cfg.Countries = parseCountries(countriesFlag)
+		for _, country := range cfg.Countries {
+			if !validation.IsValidCountryCode(country) {
+				return nil, fmt.Errorf("invalid country code: %s", country)
+			}
 		}
 	}
 
@@ -127,6 +130,7 @@ func parseCountries(countriesFlag string) []string {
 
 // PrintUsage prints usage information
 func PrintUsage() {
-	fmt.Fprintf(os.Stderr, "Usage: %s -username <username> -countries <country-codes> [options]\n\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "Usage: %s -username <username> -countries <country-codes> [options]\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "       %s -username <username> -server <server-name> [options]\n\n", os.Args[0])
 	flag.PrintDefaults()
 }

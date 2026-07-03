@@ -10,6 +10,7 @@ type Config struct {
 
 	// Server selection
 	Countries      []string
+	ServerName     string
 	P2PServersOnly bool
 	SecureCoreOnly bool
 	FreeOnly       bool

@@ -24,6 +24,16 @@ func NewServerSelector(cfg *config.Config) *ServerSelector {
 
 // SelectBest selects the best server based on configuration
 func (s *ServerSelector) SelectBest(servers []api.LogicalServer) (*api.LogicalServer, error) {
+	// If a specific server is requested, find it by exact name match
+	if s.config.ServerName != "" {
+		for i := range servers {
+			if servers[i].Name == s.config.ServerName && servers[i].Status == constants.StatusOnline {
+				return &servers[i], nil
+			}
+		}
+		return nil, fmt.Errorf("server %q not found or offline", s.config.ServerName)
+	}
+
 	filtered := s.filterServers(servers)
 
 	if s.config.Debug {
