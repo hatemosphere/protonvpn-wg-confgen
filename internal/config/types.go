@@ -25,6 +25,7 @@ type Config struct {
 	AllowedIPs        []string
 	EnableAccelerator bool
 	EnableIPv6        bool
+	PortForwarding    bool
 
 	// Certificate configuration
 	Duration string

@@ -43,6 +43,7 @@ func Parse() (*Config, error) {
 	flag.StringVar(&dnsServersFlag, "dns", "", "Comma-separated list of DNS servers (defaults based on IPv6 setting)")
 	flag.StringVar(&allowedIPsFlag, "allowed-ips", "", "Comma-separated list of allowed IPs (defaults based on IPv6 setting)")
 	flag.BoolVar(&cfg.EnableAccelerator, "accelerator", true, "Enable VPN accelerator")
+	flag.BoolVar(&cfg.PortForwarding, "port-forwarding", false, "Enable NAT-PMP port forwarding for P2P")
 
 	// Certificate configuration
 	flag.StringVar(&cfg.Duration, "duration", constants.DefaultCertDuration, "Certificate duration (e.g., 30m, 24h, 7d, 1h30m). Max: 365d")

@@ -61,7 +61,7 @@ func (c *Client) GetCertificate(keyPair *ed25519.KeyPair) (*api.VPNInfo, error) 
 		"Features": map[string]any{
 			"NetShieldLevel": 0,                          // NetShield disabled
 			"RandomNAT":      false,                      // Moderate NAT disabled
-			"PortForwarding": false,                      // Port forwarding disabled
+			"PortForwarding": c.config.PortForwarding,     // NAT-PMP port forwarding
 			"SplitTCP":       c.config.EnableAccelerator, // VPN Accelerator (called SplitTCP in API)
 		},
 	}
