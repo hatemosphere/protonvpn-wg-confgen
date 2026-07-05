@@ -187,8 +187,12 @@ func listServers(cfg *config.Config, vpnClient *vpn.Client) error {
 			featureStr = "-"
 		}
 
+		serverName := s.Name
+		if s.HostCountry != "" && s.HostCountry != s.ExitCountry {
+			serverName = fmt.Sprintf("%s(%s)", s.Name, s.HostCountry)
+		}
 		fmt.Printf("%-7s  %-14s  %-18s  %3d%%  %6.2f  %-10s  %s\n",
-			s.ExitCountry, s.Name, s.City, s.Load, s.Score,
+			s.ExitCountry, serverName, s.City, s.Load, s.Score,
 			api.GetTierName(s.Tier), featureStr)
 	}
 
