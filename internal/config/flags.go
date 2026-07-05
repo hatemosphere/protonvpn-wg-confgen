@@ -72,6 +72,16 @@ func Parse() (*Config, error) {
 
 	flag.Parse()
 
+	// Parse and validate country codes (needed by most modes)
+	if countriesFlag != "" {
+		cfg.Countries = parseCountries(countriesFlag)
+		for _, country := range cfg.Countries {
+			if !validation.IsValidCountryCode(country) {
+				return nil, fmt.Errorf("invalid country code: %s", country)
+			}
+		}
+	}
+
 	// -list-configs does not need a country filter.
 	if cfg.ListConfigs {
 		cfg.Username = validation.CleanUsername(cfg.Username)
@@ -93,16 +103,6 @@ func Parse() (*Config, error) {
 	// Validate required flags: countries are needed unless -server is specified
 	if countriesFlag == "" && cfg.ServerName == "" {
 		return nil, fmt.Errorf("countries flag is required (or use -server to select a specific server)")
-	}
-
-	// Parse and validate country codes
-	if countriesFlag != "" {
-		cfg.Countries = parseCountries(countriesFlag)
-		for _, country := range cfg.Countries {
-			if !validation.IsValidCountryCode(country) {
-				return nil, fmt.Errorf("invalid country code: %s", country)
-			}
-		}
 	}
 
 	// Set defaults based on IPv6 setting
