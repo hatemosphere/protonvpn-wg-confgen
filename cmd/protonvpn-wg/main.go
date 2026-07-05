@@ -4,6 +4,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -125,17 +126,8 @@ func listServers(cfg *config.Config, vpnClient *vpn.Client) error {
 		}
 
 		// Country filter
-		if len(cfg.Countries) > 0 {
-			match := false
-			for _, c := range cfg.Countries {
-				if s.ExitCountry == c {
-					match = true
-					break
-				}
-			}
-			if !match {
-				continue
-			}
+		if len(cfg.Countries) > 0 && !slices.Contains(cfg.Countries, s.ExitCountry) {
+			continue
 		}
 
 		// Tier filter
@@ -156,6 +148,11 @@ func listServers(cfg *config.Config, vpnClient *vpn.Client) error {
 
 		// Secure Core filter
 		if cfg.SecureCoreOnly && s.Features&api.FeatureSecureCore == 0 {
+			continue
+		}
+
+		// Skip servers with no physical servers
+		if len(s.Servers) == 0 {
 			continue
 		}
 

@@ -142,9 +142,18 @@ func parseCommaSeparatedList(input string) []string {
 	return result
 }
 
-// parseCountries parses and normalizes country codes
+// parseCountries parses and normalizes country codes (deduplicated)
 func parseCountries(countriesFlag string) []string {
-	return parseCommaSeparatedList(strings.ToUpper(countriesFlag))
+	raw := parseCommaSeparatedList(strings.ToUpper(countriesFlag))
+	seen := make(map[string]struct{}, len(raw))
+	result := make([]string, 0, len(raw))
+	for _, c := range raw {
+		if _, ok := seen[c]; !ok {
+			seen[c] = struct{}{}
+			result = append(result, c)
+		}
+	}
+	return result
 }
 
 // PrintUsage prints usage information
