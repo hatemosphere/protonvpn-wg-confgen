@@ -83,8 +83,13 @@ func generateConfig(cfg *config.Config, vpnClient *vpn.Client) error {
 		featureStr = fmt.Sprintf(", Features: %s", strings.Join(features, ", "))
 	}
 
+	countryStr := server.ExitCountry
+	if server.HostCountry != "" && server.HostCountry != server.ExitCountry {
+		countryStr = fmt.Sprintf("%s (host: %s)", server.ExitCountry, server.HostCountry)
+	}
+
 	fmt.Printf("Selected server: %s (Country: %s, City: %s, Tier: %s, Load: %d%%, Score: %.2f, Servers: %d%s)\n",
-		server.Name, server.ExitCountry, server.City, api.GetTierName(server.Tier),
+		server.Name, countryStr, server.City, api.GetTierName(server.Tier),
 		server.Load, server.Score, len(server.Servers), featureStr)
 
 	physicalServer := vpn.GetBestPhysicalServer(server)
