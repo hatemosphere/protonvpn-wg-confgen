@@ -92,6 +92,12 @@ func generateConfig(cfg *config.Config, vpnClient *vpn.Client) error {
 	if vpnInfo.DeviceName != "" {
 		fmt.Printf("Device name: %s (visible in ProtonVPN dashboard)\n", vpnInfo.DeviceName)
 	}
+	mode := vpnInfo.Mode
+	if mode == "" {
+		mode = "session"
+	}
+	fmt.Printf("Certificate: %s, expires %s\n",
+		mode, time.Unix(vpnInfo.ExpirationTime, 0).UTC().Format("2006-01-02 15:04 UTC"))
 	fmt.Printf("\nSuccessfully generated config for %s\n", server.ExitCountry)
 	return nil
 }
