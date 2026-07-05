@@ -64,10 +64,28 @@ func Parse() (*Config, error) {
 	// List mode (enumerates persistent configurations registered on the account)
 	flag.BoolVar(&cfg.ListConfigs, "list-configs", false, "List all persistent WireGuard configurations on the account and exit")
 
+	// Server listing mode
+	flag.BoolVar(&cfg.ListServers, "list-servers", false, "List available servers and exit (optionally filter by -countries)")
+
+	// Renew mode
+	flag.StringVar(&cfg.RenewSerial, "renew-serial", "", "Renew a persistent configuration by SerialNumber (reuses existing key, no config file generated)")
+
 	flag.Parse()
 
 	// -list-configs does not need a country filter.
 	if cfg.ListConfigs {
+		cfg.Username = validation.CleanUsername(cfg.Username)
+		return cfg, nil
+	}
+
+	// -list-servers does not need a country filter either.
+	if cfg.ListServers {
+		cfg.Username = validation.CleanUsername(cfg.Username)
+		return cfg, nil
+	}
+
+	// -renew-serial may optionally filter by country, but doesn't require it.
+	if cfg.RenewSerial != "" {
 		cfg.Username = validation.CleanUsername(cfg.Username)
 		return cfg, nil
 	}

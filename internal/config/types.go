@@ -43,6 +43,12 @@ type Config struct {
 	// Management mode
 	ListConfigs bool
 
+	// List servers mode
+	ListServers bool
+
+	// Renew certificate by serial number
+	RenewSerial string
+
 	// Non-persistent mode (do not register on account)
 	NoSave bool
 }

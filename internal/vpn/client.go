@@ -193,6 +193,67 @@ func (c *Client) ListCertificates() ([]api.VPNCertificate, error) {
 	return all, nil
 }
 
+// RenewCertificate renews an existing persistent certificate by reusing its public key.
+// Unlike GetCertificate, this does not generate a new key pair and sends Renew: true.
+func (c *Client) RenewCertificate(publicKeyPEM, deviceName string) (*api.VPNInfo, error) {
+	durationStr, err := timeutil.ParseToMinutes(c.config.Duration)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse duration: %w", err)
+	}
+
+	certReq := map[string]any{
+		"ClientPublicKey":     publicKeyPEM,
+		"ClientPublicKeyMode": "EC",
+		"Mode":                constants.CertMode,
+		"DeviceName":          deviceName,
+		"Duration":            durationStr,
+		"Features": map[string]any{
+			"NetShieldLevel": 0,
+			"RandomNAT":      false,
+			"PortForwarding": c.config.PortForwarding,
+			"SplitTCP":       c.config.EnableAccelerator,
+		},
+		"Renew": true,
+	}
+
+	certJSON, err := json.Marshal(certReq)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, c.config.APIURL+constants.CertificatePath, bytes.NewBuffer(certJSON))
+	if err != nil {
+		return nil, err
+	}
+
+	c.setHeaders(req)
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var vpnInfo api.VPNInfo
+	if err := json.Unmarshal(body, &vpnInfo); err != nil {
+		return nil, err
+	}
+
+	if !constants.IsSuccessCode(vpnInfo.Code) {
+		if vpnInfo.Error != "" {
+			return nil, fmt.Errorf("renew certificate error (code %d): %s", vpnInfo.Code, vpnInfo.Error)
+		}
+		return nil, fmt.Errorf("failed to renew certificate, code: %d", vpnInfo.Code)
+	}
+
+	return &vpnInfo, nil
+}
+
 func (c *Client) setHeaders(req *http.Request) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.session.AccessToken))
