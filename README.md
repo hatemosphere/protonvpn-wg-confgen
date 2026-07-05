@@ -16,14 +16,16 @@ I wanted to automatically rotate VPN servers on my private HTPC Linux host runni
 - Authenticates with ProtonVPN using username/password
 - Optionally persists and refreshes login session, to function in headless mode after entering password once
 - Supports 2FA authentication (TOTP only, no FIDO2/security keys)
-- Creates persistent WireGuard configurations (visible in ProtonVPN dashboard)
+- Creates persistent WireGuard configurations (visible in ProtonVPN dashboard) or session-only (non-persistent) configurations
 - Automatically selects the best server from the specified countries using the Proton Quick Connect metric (lowest `Score`, with `Load` as tiebreaker — lower is better per the official API)
+- Supports choosing a specific server by name with `-server`
 - Supports Free tier or paid tier servers (Plus/Visionary)
 - Filters servers by features (P2P support, Secure Core)
-- Generates WireGuard configuration files
-- Supports VPN accelerator feature
+- Generates WireGuard configuration files with VPN accelerator and NAT-PMP port forwarding support
 - IPv6 support
 - Lists persistent configurations registered on your account
+- Lists available servers with optional country, tier, and feature filters
+- Renews existing persistent certificates without generating a new key pair
 
 ## Installation
 
@@ -47,12 +49,17 @@ go build -o build/protonvpn-wg-confgen cmd/protonvpn-wg/main.go
 
 ```bash
 ./build/protonvpn-wg-confgen -username <username> -countries <country-codes> [options]
+./build/protonvpn-wg-confgen -username <username> -server <server-name> [options]
+./build/protonvpn-wg-confgen -username <username> -list-servers [-countries <country-codes>]
+./build/protonvpn-wg-confgen -username <username> -list-configs
+./build/protonvpn-wg-confgen -username <username> -renew-serial <serial-number>
 ```
 
 ### Options
 
 - `-username`: ProtonVPN username (optional, will prompt if not provided)
-- `-countries`: Comma-separated list of country codes (e.g., US,NL,CH) **[Required]**
+- `-countries`: Comma-separated list of country codes (e.g., US,NL,CH)
+- `-server`: Select a specific server by name (e.g., UA#122). Alternative to `-countries`
 - `-output`: Output WireGuard configuration file (default: protonvpn.conf)
 - `-ipv6`: Enable IPv6 support (default: false)
 - `-dns`: Comma-separated list of DNS servers (defaults based on IPv6 setting)
@@ -65,14 +72,23 @@ go build -o build/protonvpn-wg-confgen cmd/protonvpn-wg/main.go
 - `-device-name`: Device name for WireGuard config (auto-generated if empty)
 - `-debug`: Enable debug output showing all filtered servers (default: false)
 - `-duration`: Certificate duration (default: 365d). Examples: 30m, 24h, 7d, 1h30m. Maximum: 365d
+- `-port-forwarding`: Enable NAT-PMP port forwarding for P2P (default: false)
+- `-no-save`: Generate config without registering on the account (non-persistent, API-limited to 7 days)
 - `-clear-session`: Clear saved session and force re-authentication
 - `-no-session`: Don't save or use session persistence
 - `-force-refresh`: Force session refresh even if not close to expiration (requires re-authentication)
 - `-session-duration`: Session cache duration (default: 0 = use API expiration). Examples: 12h, 24h, 7d. Max: 30d
 
-#### Listing existing configurations
+#### Listing servers
 
-- `-list-configs`: List every persistent configuration on the account (SerialNumber, DeviceName, expiry, key fingerprint) and exit. `-countries` is not required in this mode.
+- `-list-servers`: List available ProtonVPN servers with details (country, server name, city, load, score, tier, features) and exit. Optionally filter by `-countries`. Also respects `-secure-core`, `-p2p-only`, and `-free-only` filters.
+- `-list-configs`: List every persistent configuration on the account (SerialNumber, DeviceName, expiry, key fingerprint) and exit.
+
+#### Renewing certificates
+
+- `-renew-serial <serial>`: Renew an existing persistent certificate by its SerialNumber. Reuses the existing public key (no new key pair generated) and extends the certificate server-side. Does not produce a `.conf` file.
+
+#### Revoking configurations
 
 Revoking a configuration is only possible via the ProtonVPN web dashboard (<https://account.proton.me/u/0/vpn/WireGuard>): the Proton API gates `DELETE /vpn/v1/certificate` behind the `full` session scope, which is granted only to `account.proton.me` web/desktop logins, not to VPN API clients.
 
@@ -131,6 +147,36 @@ Revoking a configuration is only possible via the ProtonVPN web dashboard (<http
 11. List all persistent configurations on the account:
 ```bash
 ./build/protonvpn-wg-confgen -username myusername -list-configs
+```
+
+12. List all available servers in US and Poland:
+```bash
+./build/protonvpn-wg-confgen -username myusername -list-servers -countries US,PL
+```
+
+13. List only Secure Core servers:
+```bash
+./build/protonvpn-wg-confgen -username myusername -list-servers -secure-core
+```
+
+14. Renew a certificate by serial number:
+```bash
+./build/protonvpn-wg-confgen -username myusername -renew-serial "SERIAL12345"
+```
+
+15. Select a specific server by name:
+```bash
+./build/protonvpn-wg-confgen -username myusername -server UA#122
+```
+
+16. Generate a session-only config (non-persistent, 7-day limit):
+```bash
+./build/protonvpn-wg-confgen -username myusername -countries US -no-save
+```
+
+17. Enable NAT-PMP port forwarding:
+```bash
+./build/protonvpn-wg-confgen -username myusername -countries NL -port-forwarding
 ```
 
 ## IPv6 Support
@@ -225,11 +271,12 @@ By default, the tool excludes Free tier servers and only uses paid tier servers:
 
 ## Security Notes
 
-- The program generates a new WireGuard private/public keypair on every generation run
+- The program generates a new WireGuard private/public keypair on every generation run (unless using `-renew-serial`, which reuses the existing key)
 - Configuration files contain sensitive information and are saved with 0600 permissions
 - Never share your WireGuard configuration files
 - Persistent configurations appear in your ProtonVPN dashboard and can be revoked there
-- Certificates are valid for the specified duration (default: 365 days, max: 365 days)
+- Session-only configurations (with `-no-save`) do not appear in the dashboard and are API-limited to 7 days regardless of requested duration
+- Persistent certificates are valid for the specified duration (default: 365 days, max: 365 days) and can be renewed with `-renew-serial`
 
 ## Project Structure
 

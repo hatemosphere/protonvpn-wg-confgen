@@ -123,6 +123,8 @@ func listServers(cfg *config.Config, vpnClient *vpn.Client) error {
 		if s.Status != constants.StatusOnline {
 			continue
 		}
+
+		// Country filter
 		if len(cfg.Countries) > 0 {
 			match := false
 			for _, c := range cfg.Countries {
@@ -135,6 +137,28 @@ func listServers(cfg *config.Config, vpnClient *vpn.Client) error {
 				continue
 			}
 		}
+
+		// Tier filter
+		if cfg.FreeOnly {
+			if s.Tier != api.TierFree {
+				continue
+			}
+		} else {
+			if s.Tier == api.TierFree {
+				continue
+			}
+		}
+
+		// P2P filter
+		if cfg.P2PServersOnly && !cfg.SecureCoreOnly && !cfg.FreeOnly && s.Features&api.FeatureP2P == 0 {
+			continue
+		}
+
+		// Secure Core filter
+		if cfg.SecureCoreOnly && s.Features&api.FeatureSecureCore == 0 {
+			continue
+		}
+
 		filtered = append(filtered, servers[i])
 	}
 
@@ -171,16 +195,12 @@ func listServers(cfg *config.Config, vpnClient *vpn.Client) error {
 			api.GetTierName(s.Tier), featureStr)
 	}
 
-	if len(cfg.Countries) > 0 {
-		fmt.Printf("\n%d servers found in %d countries.\n", len(filtered), len(cfg.Countries))
-	} else {
-		// Count unique countries
-		seen := map[string]struct{}{}
-		for i := range filtered {
-			seen[filtered[i].ExitCountry] = struct{}{}
-		}
-		fmt.Printf("\n%d servers found across %d countries.\n", len(filtered), len(seen))
+	// Count unique countries
+	seen := map[string]struct{}{}
+	for i := range filtered {
+		seen[filtered[i].ExitCountry] = struct{}{}
 	}
+	fmt.Printf("\n%d servers found across %d countries.\n", len(filtered), len(seen))
 	return nil
 }
 
