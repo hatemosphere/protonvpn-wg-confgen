@@ -10,6 +10,7 @@ type Config struct {
 
 	// Server selection
 	Countries      []string
+	ServerName     string
 	P2PServersOnly bool
 	SecureCoreOnly bool
 	FreeOnly       bool
@@ -24,6 +25,7 @@ type Config struct {
 	AllowedIPs        []string
 	EnableAccelerator bool
 	EnableIPv6        bool
+	PortForwarding    bool
 
 	// Certificate configuration
 	Duration string
@@ -40,6 +42,15 @@ type Config struct {
 
 	// Management mode
 	ListConfigs bool
+
+	// List servers mode
+	ListServers bool
+
+	// Renew certificate by serial number
+	RenewSerial string
+
+	// Non-persistent mode (do not register on account)
+	NoSave bool
 }
 
 // ValidateCredentials checks if we have the required credentials
