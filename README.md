@@ -21,7 +21,7 @@ I wanted to automatically rotate VPN servers on my private HTPC Linux host runni
 - Supports choosing a specific server by name with `-server`
 - Supports Free tier or paid tier servers (Plus/Visionary)
 - Filters servers by features (P2P support, Secure Core)
-- Generates WireGuard configuration files with VPN accelerator and NAT-PMP port forwarding support
+- Generates WireGuard configuration files with VPN accelerator, NAT-PMP port forwarding, and Moderate NAT support
 - IPv6 support
 - Lists persistent configurations registered on your account
 - Lists available servers with optional country, tier, and feature filters
@@ -72,7 +72,8 @@ go build -o build/protonvpn-wg-confgen cmd/protonvpn-wg/main.go
 - `-device-name`: Device name for WireGuard config (auto-generated if empty)
 - `-debug`: Enable debug output showing all filtered servers (default: false)
 - `-duration`: Certificate duration (default: 365d). Examples: 30m, 24h, 7d, 1h30m. Maximum: 365d
-- `-port-forwarding`: Enable NAT-PMP port forwarding for P2P (default: false)
+- `-port-forwarding`: Enable NAT-PMP port forwarding on Plus-tier P2P servers (default: false)
+- `-moderate-nat`: Enable Moderate NAT on paid plans (default: false). Cannot be combined with `-port-forwarding`
 - `-no-save`: Generate config without registering on the account (non-persistent, API-limited to 7 days)
 - `-clear-session`: Clear saved session and force re-authentication
 - `-no-session`: Don't save or use session persistence
@@ -177,6 +178,11 @@ Revoking a configuration is only possible via the ProtonVPN web dashboard (<http
 17. Enable NAT-PMP port forwarding:
 ```bash
 ./build/protonvpn-wg-confgen -username myusername -countries NL -port-forwarding
+```
+
+18. Enable Moderate NAT:
+```bash
+./build/protonvpn-wg-confgen -username myusername -countries NL -moderate-nat
 ```
 
 ## IPv6 Support

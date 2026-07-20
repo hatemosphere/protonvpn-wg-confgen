@@ -43,7 +43,8 @@ func Parse() (*Config, error) {
 	flag.StringVar(&dnsServersFlag, "dns", "", "Comma-separated list of DNS servers (defaults based on IPv6 setting)")
 	flag.StringVar(&allowedIPsFlag, "allowed-ips", "", "Comma-separated list of allowed IPs (defaults based on IPv6 setting)")
 	flag.BoolVar(&cfg.EnableAccelerator, "accelerator", true, "Enable VPN accelerator")
-	flag.BoolVar(&cfg.PortForwarding, "port-forwarding", false, "Enable NAT-PMP port forwarding for P2P")
+	flag.BoolVar(&cfg.PortForwarding, "port-forwarding", false, "Enable NAT-PMP port forwarding (Plus tier, P2P servers only)")
+	flag.BoolVar(&cfg.ModerateNAT, "moderate-nat", false, "Enable Moderate NAT (paid plans; incompatible with port forwarding)")
 
 	// Certificate configuration
 	flag.StringVar(&cfg.Duration, "duration", constants.DefaultCertDuration, "Certificate duration (e.g., 30m, 24h, 7d, 1h30m). Max: 365d")
@@ -71,6 +72,10 @@ func Parse() (*Config, error) {
 	flag.StringVar(&cfg.RenewSerial, "renew-serial", "", "Renew a persistent configuration by SerialNumber (reuses existing key, no config file generated)")
 
 	flag.Parse()
+
+	if err := validateFeatureFlags(cfg); err != nil {
+		return nil, err
+	}
 
 	// Parse and validate country codes (needed by most modes)
 	if countriesFlag != "" {
@@ -127,6 +132,13 @@ func Parse() (*Config, error) {
 	cfg.Username = validation.CleanUsername(cfg.Username)
 
 	return cfg, nil
+}
+
+func validateFeatureFlags(cfg *Config) error {
+	if cfg.PortForwarding && cfg.ModerateNAT {
+		return fmt.Errorf("port-forwarding and moderate-nat cannot be enabled together")
+	}
+	return nil
 }
 
 // parseCommaSeparatedList parses a comma-separated string into a trimmed slice

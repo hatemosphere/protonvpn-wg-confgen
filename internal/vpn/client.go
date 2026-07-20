@@ -58,18 +58,13 @@ func (c *Client) GetCertificate(keyPair *ed25519.KeyPair) (*api.VPNInfo, error) 
 		"ClientPublicKey":     publicKeyPEM,
 		"ClientPublicKeyMode": "EC",
 		"Duration":            durationStr,
-		"Features": map[string]any{
-			"NetShieldLevel": 0,                          // NetShield disabled
-			"RandomNAT":      false,                      // Moderate NAT disabled
-			"PortForwarding": c.config.PortForwarding,     // NAT-PMP port forwarding
-			"SplitTCP":       c.config.EnableAccelerator, // VPN Accelerator (called SplitTCP in API)
-		},
+		"Features":            c.certificateFeatures(),
 	}
 
 	// When NoSave is set, omit Mode and DeviceName so the cert is session-only
 	// and won't appear in the ProtonVPN dashboard.
 	if !c.config.NoSave {
-		certReq["Mode"] = constants.CertMode       // "persistent"
+		certReq["Mode"] = constants.CertMode // "persistent"
 		certReq["DeviceName"] = deviceName
 	}
 
@@ -207,13 +202,8 @@ func (c *Client) RenewCertificate(publicKeyPEM, deviceName string) (*api.VPNInfo
 		"Mode":                constants.CertMode,
 		"DeviceName":          deviceName,
 		"Duration":            durationStr,
-		"Features": map[string]any{
-			"NetShieldLevel": 0,
-			"RandomNAT":      false,
-			"PortForwarding": c.config.PortForwarding,
-			"SplitTCP":       c.config.EnableAccelerator,
-		},
-		"Renew": true,
+		"Features":            c.certificateFeatures(),
+		"Renew":               true,
 	}
 
 	certJSON, err := json.Marshal(certReq)
@@ -252,6 +242,16 @@ func (c *Client) RenewCertificate(publicKeyPEM, deviceName string) (*api.VPNInfo
 	}
 
 	return &vpnInfo, nil
+}
+
+func (c *Client) certificateFeatures() map[string]any {
+	return map[string]any{
+		"NetShieldLevel": 0,
+		// Proton's API field is inverted: RandomNAT=false enables Moderate NAT.
+		"RandomNAT":      !c.config.ModerateNAT,
+		"PortForwarding": c.config.PortForwarding,
+		"SplitTCP":       c.config.EnableAccelerator,
+	}
 }
 
 func (c *Client) setHeaders(req *http.Request) {

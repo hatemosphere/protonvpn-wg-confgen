@@ -122,47 +122,7 @@ func listServers(cfg *config.Config, vpnClient *vpn.Client) error {
 		return fmt.Errorf("failed to get servers: %w", err)
 	}
 
-	// Filter and sort servers
-	var filtered []api.LogicalServer
-	for i := range servers {
-		s := &servers[i]
-		if s.Status != constants.StatusOnline {
-			continue
-		}
-
-		// Country filter
-		if len(cfg.Countries) > 0 && !slices.Contains(cfg.Countries, s.ExitCountry) {
-			continue
-		}
-
-		// Tier filter
-		if cfg.FreeOnly {
-			if s.Tier != api.TierFree {
-				continue
-			}
-		} else {
-			if s.Tier == api.TierFree {
-				continue
-			}
-		}
-
-		// P2P filter
-		if cfg.P2PServersOnly && !cfg.SecureCoreOnly && !cfg.FreeOnly && s.Features&api.FeatureP2P == 0 {
-			continue
-		}
-
-		// Secure Core filter
-		if cfg.SecureCoreOnly && s.Features&api.FeatureSecureCore == 0 {
-			continue
-		}
-
-		// Skip servers with no physical servers
-		if len(s.Servers) == 0 {
-			continue
-		}
-
-		filtered = append(filtered, servers[i])
-	}
+	filtered := filterServersForList(cfg, servers)
 
 	if len(filtered) == 0 {
 		if len(cfg.Countries) > 0 {
@@ -185,11 +145,9 @@ func listServers(cfg *config.Config, vpnClient *vpn.Client) error {
 	for i := range filtered {
 		s := &filtered[i]
 		features := api.GetFeatureNames(s.Features)
-		featureStr := ""
+		featureStr := "-"
 		if len(features) > 0 {
 			featureStr = strings.Join(features, ", ")
-		} else {
-			featureStr = "-"
 		}
 
 		serverName := s.Name
@@ -208,6 +166,32 @@ func listServers(cfg *config.Config, vpnClient *vpn.Client) error {
 	}
 	fmt.Printf("\n%d servers found across %d countries.\n", len(filtered), len(seen))
 	return nil
+}
+
+func filterServersForList(cfg *config.Config, servers []api.LogicalServer) []api.LogicalServer {
+	filtered := make([]api.LogicalServer, 0, len(servers))
+	for i := range servers {
+		if isServerEligibleForList(cfg, &servers[i]) {
+			filtered = append(filtered, servers[i])
+		}
+	}
+	return filtered
+}
+
+func isServerEligibleForList(cfg *config.Config, server *api.LogicalServer) bool {
+	if server.Status != constants.StatusOnline || len(server.Servers) == 0 {
+		return false
+	}
+	if len(cfg.Countries) > 0 && !slices.Contains(cfg.Countries, server.ExitCountry) {
+		return false
+	}
+	if cfg.FreeOnly != (server.Tier == api.TierFree) {
+		return false
+	}
+	if cfg.P2PServersOnly && !cfg.SecureCoreOnly && !cfg.FreeOnly && server.Features&api.FeatureP2P == 0 {
+		return false
+	}
+	return !cfg.SecureCoreOnly || server.Features&api.FeatureSecureCore != 0
 }
 
 func renewSerial(cfg *config.Config, vpnClient *vpn.Client) error {

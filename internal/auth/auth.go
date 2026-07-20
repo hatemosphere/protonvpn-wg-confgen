@@ -297,7 +297,7 @@ func (c *Client) ensureUsername() error {
 func (c *Client) ensurePassword() error {
 	if c.config.Password == "" {
 		fmt.Print("Password: ")
-		passwordBytes, err := term.ReadPassword(int(os.Stdin.Fd())) //nolint:gosec // fd fits in int; term.ReadPassword requires int
+		passwordBytes, err := term.ReadPassword(int(os.Stdin.Fd()))
 		fmt.Println()
 		if err != nil {
 			return fmt.Errorf("error reading password: %w", err)

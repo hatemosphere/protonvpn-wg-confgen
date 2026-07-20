@@ -26,6 +26,7 @@ type Config struct {
 	EnableAccelerator bool
 	EnableIPv6        bool
 	PortForwarding    bool
+	ModerateNAT       bool
 
 	// Certificate configuration
 	Duration string
