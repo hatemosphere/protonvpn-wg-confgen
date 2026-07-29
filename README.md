@@ -2,7 +2,6 @@
 
 [![CI](https://github.com/hatemosphere/protonvpn-wg-confgen/actions/workflows/ci.yml/badge.svg)](https://github.com/hatemosphere/protonvpn-wg-confgen/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/hatemosphere/protonvpn-wg-confgen?include_prereleases)](https://github.com/hatemosphere/protonvpn-wg-confgen/releases/latest)
-[![Go Report Card](https://goreportcard.com/badge/github.com/hatemosphere/protonvpn-wg-confgen)](https://goreportcard.com/report/github.com/hatemosphere/protonvpn-wg-confgen)
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 Generate WireGuard configuration files for ProtonVPN from the command line, picking the best server in the countries you ask for. Headless-friendly: log in once, then rotate configs unattended.
