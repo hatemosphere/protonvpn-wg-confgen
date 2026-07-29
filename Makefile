@@ -7,7 +7,7 @@ MODULE=protonvpn-wg-confgen
 
 # Fetch latest ProtonVPN Linux client version from GitHub (with fallback)
 PROTON_VERSION_URL=https://raw.githubusercontent.com/ProtonVPN/proton-vpn-gtk-app/stable/versions.yml
-PROTON_VERSION ?= $(shell curl -sf "$(PROTON_VERSION_URL)" 2>/dev/null | head -1 | cut -d' ' -f2 || echo "4.13.1")
+PROTON_VERSION ?= $(shell curl -sf "$(PROTON_VERSION_URL)" 2>/dev/null | head -1 | cut -d' ' -f2 || echo "4.16.5")
 
 # ldflags to inject version at build time
 LDFLAGS=-ldflags "-X '$(MODULE)/internal/constants.AppVersion=linux-vpn@$(PROTON_VERSION)' \

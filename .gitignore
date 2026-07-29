@@ -51,3 +51,6 @@ reference/
 # Claude Code
 .claude/
 CLAUDE.md
+
+# goreleaser build output
+dist/

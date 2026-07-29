@@ -7,6 +7,12 @@ before:
   hooks:
     - go mod tidy
 
+# Advertise the current ProtonVPN Linux client version. Override by exporting
+# PROTON_VERSION; the default must track proton-vpn-gtk-app's versions.yml,
+# since an outdated value is rejected by the API with code 5003.
+env:
+  - PROTON_VERSION={{ envOrDefault "PROTON_VERSION" "4.16.5" }}
+
 builds:
   - id: protonvpn-wg-confgen
     main: ./cmd/protonvpn-wg
@@ -32,6 +38,8 @@ builds:
         goarch: arm
     ldflags:
       - -s -w
+      - -X 'protonvpn-wg-confgen/internal/constants.AppVersion=linux-vpn@{{ .Env.PROTON_VERSION }}'
+      - -X 'protonvpn-wg-confgen/internal/constants.UserAgent=ProtonVPN/{{ .Env.PROTON_VERSION }} (Linux; Ubuntu)'
 
 archives:
   - id: default
