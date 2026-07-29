@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"protonvpn-wg-confgen/internal/constants"
-	"protonvpn-wg-confgen/pkg/validation"
+	"protonvpn-wg-confgen/internal/timeutil"
+	"protonvpn-wg-confgen/internal/validation"
 )
 
 // Parse parses command-line flags and returns a Config
@@ -47,7 +49,7 @@ func Parse() (*Config, error) {
 	flag.BoolVar(&cfg.ModerateNAT, "moderate-nat", false, "Enable Moderate NAT (paid plans; incompatible with port forwarding)")
 
 	// Certificate configuration
-	flag.StringVar(&cfg.Duration, "duration", constants.DefaultCertDuration, "Certificate duration (e.g., 30m, 24h, 7d, 1h30m). Max: 365d")
+	flag.StringVar(&cfg.Duration, "duration", constants.DefaultCertDuration, "Certificate duration (e.g., 30m, 24h, 7d, 1h30m). Min: 10m, max: 365d (7d with -no-save)")
 
 	// Session management
 	flag.BoolVar(&cfg.ClearSession, "clear-session", false, "Clear saved session and force re-authentication")
@@ -60,7 +62,7 @@ func Parse() (*Config, error) {
 	flag.BoolVar(&cfg.Debug, "debug", false, "Enable debug output")
 
 	// Non-persistent mode
-	flag.BoolVar(&cfg.NoSave, "no-save", false, "Generate config without registering on the account (non-persistent, API-limited to 7 days)")
+	flag.BoolVar(&cfg.NoSave, "no-save", false, "Generate config without registering on the account (session-only, max 7 days)")
 
 	// List mode (enumerates persistent configurations registered on the account)
 	flag.BoolVar(&cfg.ListConfigs, "list-configs", false, "List all persistent WireGuard configurations on the account and exit")
@@ -72,6 +74,12 @@ func Parse() (*Config, error) {
 	flag.StringVar(&cfg.RenewSerial, "renew-serial", "", "Renew a persistent configuration by SerialNumber (reuses existing key, no config file generated)")
 
 	flag.Parse()
+
+	// Session certificates max out at 7 days, so fall back to that instead of
+	// the 365d persistent default when -duration was not given explicitly.
+	if cfg.NoSave && !isFlagSet("duration") {
+		cfg.Duration = constants.DefaultSessionCertDuration
+	}
 
 	if err := validateFeatureFlags(cfg); err != nil {
 		return nil, err
@@ -138,7 +146,39 @@ func validateFeatureFlags(cfg *Config) error {
 	if cfg.PortForwarding && cfg.ModerateNAT {
 		return fmt.Errorf("port-forwarding and moderate-nat cannot be enabled together")
 	}
+	return validateDuration(cfg)
+}
+
+// validateDuration enforces the API's certificate duration bounds up front, so
+// out-of-range values fail before authenticating rather than after.
+func validateDuration(cfg *Config) error {
+	duration, err := timeutil.ParseDuration(cfg.Duration)
+	if err != nil {
+		return fmt.Errorf("invalid duration format: %s", cfg.Duration)
+	}
+	// The API rejects shorter durations with code 2001.
+	if duration < constants.MinCertDuration {
+		return fmt.Errorf("duration must be at least 10 minutes")
+	}
+	if duration > constants.MaxCertDuration*24*time.Hour {
+		return fmt.Errorf("duration cannot exceed %dd", constants.MaxCertDuration)
+	}
+	if cfg.NoSave && duration > constants.MaxSessionCertDuration*24*time.Hour {
+		return fmt.Errorf("duration cannot exceed %dd with -no-save (the API silently clamps session certificates to %dd)",
+			constants.MaxSessionCertDuration, constants.MaxSessionCertDuration)
+	}
 	return nil
+}
+
+// isFlagSet reports whether the named flag was provided on the command line.
+func isFlagSet(name string) bool {
+	found := false
+	flag.Visit(func(f *flag.Flag) {
+		if f.Name == name {
+			found = true
+		}
+	})
+	return found
 }
 
 // parseCommaSeparatedList parses a comma-separated string into a trimmed slice

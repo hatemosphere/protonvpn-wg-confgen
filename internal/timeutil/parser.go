@@ -44,8 +44,9 @@ func ParseToMinutes(durationStr string) (string, error) {
 
 	// Convert to minutes
 	minutes := int(duration.Minutes())
-	if minutes < 1 {
-		return "", fmt.Errorf("duration must be at least 1 minute")
+	// The API rejects anything shorter with code 2001.
+	if minutes < 10 {
+		return "", fmt.Errorf("duration must be at least 10 minutes")
 	}
 
 	// Max 365 days = 525600 minutes
