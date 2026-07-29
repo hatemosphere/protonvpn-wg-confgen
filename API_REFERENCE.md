@@ -52,6 +52,21 @@ The certificate request to `/vpn/v1/certificate` uses the following format:
 }
 ```
 
+`Mode` is one of `session` or `persistent` (see `WireGuardConfigurationSection/Certificate.ts` in WebClients). Omitting it - as the official Linux client does for every connection - yields a session certificate: not registered on the account and absent from `GET /vpn/v1/certificate/all?Mode=persistent`. `persistent` backs the dashboard's saved configuration list, which is the only place such configs can be revoked.
+
+`Duration` is a request, not a guarantee; the granted expiry is returned as `ExpirationTime`. Observed against the live API (2026-07-29):
+
+| Mode | Requested | Granted |
+|------|-----------|---------|
+| session | 9 min or less | error, code 2001 `Certificate duration must be at least 10 minutes` |
+| session | 10m / 30m / 8h / 3d / 10080m (7d) | honored exactly |
+| session | 10081m / 8d / 30d / 365d | 10080m (7d), silently clamped with no error |
+| persistent | 365d | 365d |
+
+So session certificates are bounded at [10 min, 7 days]. The lower bound is enforced with a real error; the upper bound is a silent clamp, which is why this client rejects `-duration` over 7d when `-no-save` is set rather than letting a 365d request quietly become 7d.
+
+Note that the "the API does not allow intervals shorter than 1 day" comment in `python-proton-vpn-api-core`'s `fetcher.py` does not hold - sub-day durations are accepted down to 10 minutes. Likewise its 7-day `VPNPubkeyCredentials.REFRESH_INTERVAL` is that client's own refresh cadence and coincides with, but does not explain, the server-side cap.
+
 ### Feature Keys
 
 | Key | Type | Description |

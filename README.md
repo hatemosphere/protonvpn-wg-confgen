@@ -1,11 +1,11 @@
-# ProtonVPN WireGuard Config Generate
+# protonvpn-wg-confgen
 
 [![CI](https://github.com/hatemosphere/protonvpn-wg-confgen/actions/workflows/ci.yml/badge.svg)](https://github.com/hatemosphere/protonvpn-wg-confgen/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/hatemosphere/protonvpn-wg-confgen?include_prereleases)](https://github.com/hatemosphere/protonvpn-wg-confgen/releases/latest)
 [![Go Report Card](https://goreportcard.com/badge/github.com/hatemosphere/protonvpn-wg-confgen)](https://goreportcard.com/report/github.com/hatemosphere/protonvpn-wg-confgen)
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-A Go program that generates WireGuard configuration files for ProtonVPN servers with automatic selection of the best servers from specified countries with support of generic filters.
+Generate WireGuard configuration files for ProtonVPN from the command line, picking the best server in the countries you ask for. Headless-friendly: log in once, then rotate configs unattended.
 
 ## Motivation
 
@@ -13,278 +13,208 @@ I wanted to automatically rotate VPN servers on my private HTPC Linux host runni
 
 ## Features
 
-- Authenticates with ProtonVPN using username/password
-- Optionally persists and refreshes login session, to function in headless mode after entering password once
-- Supports 2FA authentication (TOTP only, no FIDO2/security keys)
-- Creates persistent WireGuard configurations (visible in ProtonVPN dashboard) or session-only (non-persistent) configurations
-- Automatically selects the best server from the specified countries using the Proton Quick Connect metric (lowest `Score`, with `Load` as tiebreaker — lower is better per the official API)
-- Supports choosing a specific server by name with `-server`
-- Supports Free tier or paid tier servers (Plus/Visionary)
-- Filters servers by features (P2P support, Secure Core)
-- Generates WireGuard configuration files with VPN accelerator, NAT-PMP port forwarding, and Moderate NAT support
-- IPv6 support
-- Lists persistent configurations registered on your account
-- Lists available servers with optional country, tier, and feature filters
-- Renews existing persistent certificates without generating a new key pair
+- Username/password login with SRP, including TOTP 2FA
+- Session persistence and automatic refresh, so headless runs only need the password once
+- Picks the best server using Proton's own Quick Connect metric (lowest `Score`, with `Load` as tiebreaker - lower is better per the official API)
+- Filters by country, tier, P2P, and Secure Core, or targets one server by name
+- Persistent configurations (visible in the ProtonVPN dashboard) or session-only ones that are never registered on the account
+- VPN accelerator, NAT-PMP port forwarding, Moderate NAT, and IPv6
+- Lists servers and registered configurations, and renews certificates without generating a new key pair
 
 ## Installation
 
-1. Clone the repository:
+Download a binary for your platform from the [latest release](https://github.com/hatemosphere/protonvpn-wg-confgen/releases/latest). Archives are named `protonvpn-wg-confgen_<version>_<os>_<arch>.tar.gz` (`.zip` on Windows) and are published with a `checksums.txt` (SHA-256):
+
+```bash
+tar xzf protonvpn-wg-confgen_*_linux_amd64.tar.gz
+./protonvpn-wg-confgen -h
+```
+
+Or build from source (requires Go 1.26+):
+
 ```bash
 git clone https://github.com/hatemosphere/protonvpn-wg-confgen
 cd protonvpn-wg-confgen
+make build          # produces ./build/protonvpn-wg-confgen
 ```
 
-2. Build the program:
-```bash
-make build
-```
+`make build` stamps the binary with the current ProtonVPN Linux client version, fetched from upstream at build time. A plain `go build` falls back to the version compiled into `internal/constants`. Advertising an outdated client version gets rejected by the API with code 5003, so prefer `make build`.
 
-Or manually with Go:
-```bash
-go build -o build/protonvpn-wg-confgen cmd/protonvpn-wg/main.go
-```
+You will need a ProtonVPN account; a free one works, with the tier caveats noted below.
 
 ## Usage
 
 ```bash
-./build/protonvpn-wg-confgen -username <username> -countries <country-codes> [options]
-./build/protonvpn-wg-confgen -username <username> -server <server-name> [options]
-./build/protonvpn-wg-confgen -username <username> -list-servers [-countries <country-codes>]
-./build/protonvpn-wg-confgen -username <username> -list-configs
-./build/protonvpn-wg-confgen -username <username> -renew-serial <serial-number>
+protonvpn-wg-confgen -username <username> -countries <country-codes> [options]
+protonvpn-wg-confgen -username <username> -server <server-name> [options]
+protonvpn-wg-confgen -username <username> -list-servers [-countries <country-codes>]
+protonvpn-wg-confgen -username <username> -list-configs
+protonvpn-wg-confgen -username <username> -renew-serial <serial-number>
 ```
 
-### Options
+`-username` is optional and prompted for when omitted, as is the password. Either `-countries` or `-server` is required when generating a configuration.
 
-- `-username`: ProtonVPN username (optional, will prompt if not provided)
-- `-countries`: Comma-separated list of country codes (e.g., US,NL,CH)
-- `-server`: Select a specific server by name (e.g., UA#122). Alternative to `-countries`
-- `-output`: Output WireGuard configuration file (default: protonvpn.conf)
-- `-ipv6`: Enable IPv6 support (default: false)
-- `-dns`: Comma-separated list of DNS servers (defaults based on IPv6 setting)
-- `-allowed-ips`: Comma-separated list of allowed IPs (defaults based on IPv6 setting)
-- `-accelerator`: Enable VPN accelerator (default: true)
-- `-api-url`: ProtonVPN API URL (default: https://vpn-api.proton.me)
-- `-p2p-only`: Use only P2P-enabled servers (default: true)
-- `-secure-core`: Use only Secure Core servers for multi-hop VPN (default: false)
-- `-free-only`: Use only Free tier servers (tier 0) (default: false)
-- `-device-name`: Device name for WireGuard config (auto-generated if empty)
-- `-debug`: Enable debug output showing all filtered servers (default: false)
-- `-duration`: Certificate duration (default: 365d). Examples: 30m, 24h, 7d, 1h30m. Maximum: 365d
-- `-port-forwarding`: Enable NAT-PMP port forwarding on Plus-tier P2P servers (default: false)
-- `-moderate-nat`: Enable Moderate NAT on paid plans (default: false). Cannot be combined with `-port-forwarding`
-- `-no-save`: Generate config without registering on the account (non-persistent, API-limited to 7 days)
-- `-clear-session`: Clear saved session and force re-authentication
-- `-no-session`: Don't save or use session persistence
-- `-force-refresh`: Force session refresh even if not close to expiration (requires re-authentication)
-- `-session-duration`: Session cache duration (default: 0 = use API expiration). Examples: 12h, 24h, 7d. Max: 30d
+### Modes
 
-#### Listing servers
+| Flag | Description |
+|------|-------------|
+| *(default)* | Generate a WireGuard configuration |
+| `-list-servers` | List available servers (country, name, city, load, score, tier, features) and exit. Honors `-countries`, `-secure-core`, `-p2p-only`, and `-free-only` |
+| `-list-configs` | List persistent configurations on the account (SerialNumber, DeviceName, expiry, key fingerprint) and exit |
+| `-renew-serial <serial>` | Renew a persistent certificate by SerialNumber, reusing its existing key. Extends it server-side and writes no `.conf` file |
 
-- `-list-servers`: List available ProtonVPN servers with details (country, server name, city, load, score, tier, features) and exit. Optionally filter by `-countries`. Also respects `-secure-core`, `-p2p-only`, and `-free-only` filters.
-- `-list-configs`: List every persistent configuration on the account (SerialNumber, DeviceName, expiry, key fingerprint) and exit.
+### Server selection
 
-#### Renewing certificates
+| Flag | Default | Description |
+|------|---------|-------------|
+| `-countries` | | Comma-separated country codes, e.g. `US,NL,CH`. Always matches the **exit** country |
+| `-server` | | Target one server by name, e.g. `UA#122`. Alternative to `-countries`, and bypasses the filters below |
+| `-p2p-only` | `true` | Use only P2P-enabled servers |
+| `-secure-core` | `false` | Use only Secure Core servers |
+| `-free-only` | `false` | Use only Free tier servers |
+| `-debug` | `false` | Print every server that survived filtering |
 
-- `-renew-serial <serial>`: Renew an existing persistent certificate by its SerialNumber. Reuses the existing public key (no new key pair generated) and extends the certificate server-side. Does not produce a `.conf` file.
+### Output and network
 
-#### Revoking configurations
+| Flag | Default | Description |
+|------|---------|-------------|
+| `-output` | `protonvpn.conf` | Output file path |
+| `-device-name` | *(generated)* | Device name shown in the ProtonVPN dashboard |
+| `-ipv6` | `false` | Enable IPv6 |
+| `-dns` | *(per `-ipv6`)* | Comma-separated DNS servers |
+| `-allowed-ips` | *(per `-ipv6`)* | Comma-separated allowed IPs |
+| `-accelerator` | `true` | VPN accelerator |
+| `-port-forwarding` | `false` | NAT-PMP port forwarding (Plus tier, P2P servers) |
+| `-moderate-nat` | `false` | Moderate NAT (paid plans). Cannot be combined with `-port-forwarding` |
 
-Revoking a configuration is only possible via the ProtonVPN web dashboard (<https://account.proton.me/u/0/vpn/WireGuard>): the Proton API gates `DELETE /vpn/v1/certificate` behind the `full` session scope, which is granted only to `account.proton.me` web/desktop logins, not to VPN API clients.
+### Certificate and session
 
-### Examples
+| Flag | Default | Description |
+|------|---------|-------------|
+| `-duration` | `365d` (`7d` with `-no-save`) | Certificate lifetime, e.g. `30m`, `24h`, `7d`, `1h30m`. Min `10m`, max `365d` (`7d` with `-no-save`) |
+| `-no-save` | `false` | Issue a session-only certificate, never registered on the account |
+| `-session-duration` | `0` | Session cache lifetime, e.g. `12h`, `7d`. `0` uses the API expiration. Max `30d` |
+| `-clear-session` | `false` | Clear the saved session and re-authenticate |
+| `-no-session` | `false` | Disable session persistence entirely |
+| `-force-refresh` | `false` | Refresh the session even if it is not expiring soon |
+| `-api-url` | `https://vpn-api.proton.me` | ProtonVPN API base URL |
 
-1. Generate config for best P2P server in US or Netherlands:
+## Examples
+
 ```bash
-./build/protonvpn-wg-confgen -username myusername -countries US,NL
+# Best P2P server across the US and Netherlands
+protonvpn-wg-confgen -username myusername -countries US,NL
+
+# Custom DNS and output path
+protonvpn-wg-confgen -username myusername -countries CH,DE -dns 1.1.1.1,8.8.8.8 -output switzerland.conf
+
+# A specific server, IPv6 enabled
+protonvpn-wg-confgen -username myusername -server UA#122 -ipv6
+
+# Secure Core, 30-day certificate
+protonvpn-wg-confgen -username myusername -countries NL,US -secure-core -duration 30d
+
+# Session-only config that never lands in the dashboard
+protonvpn-wg-confgen -username myusername -countries US -no-save
+
+# Port forwarding for P2P, or Moderate NAT for gaming (mutually exclusive)
+protonvpn-wg-confgen -username myusername -countries NL -port-forwarding
+protonvpn-wg-confgen -username myusername -countries NL -moderate-nat
+
+# Free tier only, no session saved to disk
+protonvpn-wg-confgen -username myusername -countries US,NL -free-only -no-session
 ```
 
-2. Generate config with custom DNS and output file:
+Listing and maintenance:
+
 ```bash
-./build/protonvpn-wg-confgen -username myusername -countries CH,DE -dns 1.1.1.1,8.8.8.8 -output switzerland.conf
+protonvpn-wg-confgen -username myusername -list-servers -countries US,PL
+protonvpn-wg-confgen -username myusername -list-servers -secure-core
+protonvpn-wg-confgen -username myusername -list-configs
+protonvpn-wg-confgen -username myusername -renew-serial "SERIAL12345"
 ```
 
-3. Disable VPN accelerator:
-```bash
-./build/protonvpn-wg-confgen -username myusername -countries US -accelerator=false
+## Persistent vs session-only configurations
+
+Proton issues certificates in one of two modes.
+
+**Persistent** (the default) registers a named configuration on your account. It appears in the ProtonVPN dashboard, is listed by `-list-configs`, can be renewed with `-renew-serial`, and accepts durations up to 365 days.
+
+**Session-only** (`-no-save`) omits `Mode` and `DeviceName` from the request, which is what the official ProtonVPN clients do for an ordinary connection. The `.conf` file is written normally; only the account-side registration is skipped. Consequences:
+
+- Absent from the dashboard and from `-list-configs`, which queries `Mode=persistent` only
+- Cannot be renewed - generate a new configuration instead
+- `-device-name` is ignored
+- Capped at 7 days, which is also the default when `-duration` is omitted. Anything between `10m` and `7d` is honored exactly; longer values are rejected up front, because the API would otherwise silently clamp them to 7 days
+
+Either way, the output reports what was actually issued and the expiry the API granted:
+
+```
+Certificate: session, expires 2026-08-05 11:13 UTC
 ```
 
-4. Generate config with 30-day duration:
-```bash
-./build/protonvpn-wg-confgen -username myusername -countries US -duration 30d
-```
+### Revoking
 
-5. Generate config without saving session (always prompt for password):
-```bash
-./build/protonvpn-wg-confgen -username myusername -countries US -no-session
-```
+Revoking is only possible through the [ProtonVPN web dashboard](https://account.proton.me/u/0/vpn/WireGuard). The API gates `DELETE /vpn/v1/certificate` behind the `full` session scope, which is granted to `account.proton.me` web and desktop logins but not to VPN API clients. Session-only certificates never appear there at all, so they can only be left to expire.
 
-6. Use session with 24-hour expiration:
-```bash
-./build/protonvpn-wg-confgen -username myusername -countries US -session-duration 24h
-```
+## Server tiers
 
-7. Enable IPv6 support:
-```bash
-./build/protonvpn-wg-confgen -username myusername -countries US -ipv6
-```
+Free tier servers are excluded unless you ask for them:
 
-8. Use Secure Core servers for enhanced privacy:
-```bash
-./build/protonvpn-wg-confgen -username myusername -countries NL,US -secure-core
-```
+| Tier | Selected when | Notes |
+|------|---------------|-------|
+| Free (0) | `-free-only` | Limited selection, higher load, no P2P |
+| Plus (2) | default | Full features, including P2P and Secure Core |
+| Visionary (3) | default | Returned by the API for historical and bundle plans |
 
-9. Debug mode to see all available servers:
-```bash
-./build/protonvpn-wg-confgen -username myusername -countries US -debug
-```
-
-10. Use Free tier servers only:
-```bash
-./build/protonvpn-wg-confgen -username myusername -countries US,NL -free-only
-```
-
-11. List all persistent configurations on the account:
-```bash
-./build/protonvpn-wg-confgen -username myusername -list-configs
-```
-
-12. List all available servers in US and Poland:
-```bash
-./build/protonvpn-wg-confgen -username myusername -list-servers -countries US,PL
-```
-
-13. List only Secure Core servers:
-```bash
-./build/protonvpn-wg-confgen -username myusername -list-servers -secure-core
-```
-
-14. Renew a certificate by serial number:
-```bash
-./build/protonvpn-wg-confgen -username myusername -renew-serial "SERIAL12345"
-```
-
-15. Select a specific server by name:
-```bash
-./build/protonvpn-wg-confgen -username myusername -server UA#122
-```
-
-16. Generate a session-only config (non-persistent, 7-day limit):
-```bash
-./build/protonvpn-wg-confgen -username myusername -countries US -no-save
-```
-
-17. Enable NAT-PMP port forwarding:
-```bash
-./build/protonvpn-wg-confgen -username myusername -countries NL -port-forwarding
-```
-
-18. Enable Moderate NAT:
-```bash
-./build/protonvpn-wg-confgen -username myusername -countries NL -moderate-nat
-```
-
-## IPv6 Support
-
-By default, the tool generates IPv4-only configurations. When you enable IPv6 with the `-ipv6` flag:
-
-- **Interface Address**: Both IPv4 (10.2.0.2/32) and IPv6 (2a07:b944::2:2/128) addresses are assigned
-- **DNS Servers**: IPv4 DNS (10.2.0.1) and IPv6 DNS (2a07:b944::2:1) - both ProtonVPN's internal DNS servers
-- **Allowed IPs**: Both IPv4 (0.0.0.0/0) and IPv6 (::/0) routes are included
-
-You can override the defaults by explicitly specifying `-dns` and `-allowed-ips` flags.
+`-free-only` swaps the tier filter rather than widening it: it selects Free servers *exclusively*. It also disables P2P filtering, since Free servers do not support P2P.
 
 ## Secure Core
 
-Secure Core is ProtonVPN's premium feature that routes your traffic through multiple servers before leaving the VPN network:
+Secure Core routes traffic through a server in a privacy-friendly country before it exits in your chosen one, which protects against network-based attacks at the exit at the cost of latency.
 
-- First hop: Through secure servers in privacy-friendly countries (Switzerland, Iceland, Sweden)
-- Second hop: To your chosen destination country
-- Provides additional protection against network-based attacks
-- Use the `-secure-core` flag to enable this feature
-- Note: Secure Core servers may have higher latency due to the multi-hop routing
+- Entry countries are always Switzerland (CH), Iceland (IS), or Sweden (SE)
+- `-countries` filters the **exit** country - where your traffic appears to come from
+- Server names carry both ends, so `IS-NL#1` is Iceland -> Netherlands
+- P2P filtering is disabled automatically, since Secure Core servers do not support P2P
+- Requires a Plus or higher subscription
 
-**Important Notes:**
-- Secure Core servers don't support P2P, so P2P filtering is automatically disabled when using `-secure-core`
-- The country filter always applies to **exit countries** - where your traffic appears to come from
-- Server names show both entry and exit countries (e.g., "IS-NL#1" = Iceland → Netherlands)
-- Entry countries for Secure Core are always privacy-friendly: Switzerland (CH), Iceland (IS), Sweden (SE)
+## IPv6
+
+Configurations are IPv4-only by default. `-ipv6` additionally assigns the IPv6 interface address `2a07:b944::2:2/128`, adds Proton's internal IPv6 DNS `2a07:b944::2:1`, and routes `::/0`. Explicit `-dns` and `-allowed-ips` override these defaults.
 
 ## Authentication
 
-**Important:** This tool only works with Proton accounts configured in [Single Password Mode](https://proton.me/support/single-password). This is the default for all new Proton accounts. If your account uses the legacy 2-password mode (separate login and mailbox passwords), you'll need to switch to single password mode first.
+This tool requires an account in [single password mode](https://proton.me/support/single-password), the default for new Proton accounts. Legacy 2-password accounts (separate login and mailbox passwords) must switch first.
 
-The program supports the following authentication methods:
+**2FA is TOTP-only.** Authenticator apps work; FIDO2/WebAuthn security keys do not, because they need browser or platform APIs for the challenge-response protocol. If a security key is your only second factor, either add TOTP in your [account security settings](https://account.proton.me/u/0/vpn/account-password) or use a key that also does TOTP, such as a YubiKey with Yubico Authenticator.
 
-1. **Username/Password**: Enter your ProtonVPN credentials
-2. **2FA (TOTP only)**: If enabled, you'll be prompted for your 6-digit authenticator code
+### Session persistence
 
-**Important 2FA Limitation:** This tool only supports **TOTP-based 2FA** (authenticator apps like Google Authenticator, Authy, 1Password, etc.). **FIDO2/WebAuthn security keys are NOT supported** because they require browser/platform APIs for the challenge-response protocol.
+Sessions are stored in `~/.protonvpn-session.json` with `0600` permissions, verified before reuse, and tied to the username that created them.
 
-If you use a security key as your only 2FA method, you have two options:
-- Add TOTP as an additional 2FA method in your [Proton account security settings](https://account.proton.me/u/0/vpn/account-password)
-- Use a security key that also supports TOTP (like YubiKey with Yubico Authenticator)
+- Proton sessions expire after 30 days (the API's `ExpiresIn`)
+- `-session-duration` shortens that; values beyond the API's expiration are capped to it
+- Sessions refresh automatically when fewer than 7 days remain
+- `-clear-session`, `-force-refresh`, and `-no-session` override the defaults
 
-### Session Persistence
+## Using the generated configuration
 
-The program saves your authentication session to avoid re-entering credentials:
-- Sessions are stored in `~/.protonvpn-session.json` with secure permissions (0600)
-- ProtonVPN sessions expire after 30 days (from API `ExpiresIn` field)
-- Session duration is configurable with `-session-duration` (default: 0 = use API's 30 days)
-- Custom durations are capped at the API's expiration time
-- Sessions show time until expiration when reused
-- Sessions are automatically verified before use
-- Sessions automatically refresh when less than 7 days remain
-- Use `-clear-session` flag to force re-authentication
-- Use `-force-refresh` flag to force refresh even if not expiring soon
-- Use `-no-session` flag to disable session persistence entirely
-- Sessions are user-specific and won't be used for different usernames
+On Linux and macOS:
 
-## Using the Generated Configuration
-
-Once you have the WireGuard configuration file, you can use it with any WireGuard client:
-
-### Linux
 ```bash
 sudo wg-quick up ./protonvpn.conf
 ```
 
-### macOS (with WireGuard installed)
-```bash
-sudo wg-quick up ./protonvpn.conf
-```
+On Windows or any GUI client, import the file.
 
-### Windows/GUI clients
-Import the configuration file into your WireGuard client.
+## Security notes
 
-## Server Tier Support
+- A fresh WireGuard keypair is generated on every run, except with `-renew-serial`, which reuses the existing key
+- Configuration files hold your private key and are written with `0600` permissions - never share them
+- Persistent configurations can be revoked from the dashboard; session-only ones cannot be revoked at all and simply expire within 7 days
 
-By default, the tool excludes Free tier servers and only uses paid tier servers:
-- **Free tier (tier 0)**: Only selected when `-free-only` is set. Limited server selection, no P2P support
-- **Plus tier (tier 2)**: Default. Full feature support including P2P and Secure Core
-- **Visionary tier (tier 3)**: Default. Returned by the API for accounts on historical/bundle plans
-
-**Important Notes:**
-- When using `-free-only`, P2P filtering is automatically disabled since Free servers don't support P2P
-- Free tier servers have limited availability and may have higher load
-- Secure Core requires Plus or higher subscription
-
-## Requirements
-
-- Go 1.26 or higher
-- ProtonVPN account (Free tier or paid subscription)
-
-## Security Notes
-
-- The program generates a new WireGuard private/public keypair on every generation run (unless using `-renew-serial`, which reuses the existing key)
-- Configuration files contain sensitive information and are saved with 0600 permissions
-- Never share your WireGuard configuration files
-- Persistent configurations appear in your ProtonVPN dashboard and can be revoked there
-- Session-only configurations (with `-no-save`) do not appear in the dashboard and are API-limited to 7 days regardless of requested duration
-- Persistent certificates are valid for the specified duration (default: 365 days, max: 365 days) and can be renewed with `-renew-serial`
-
-## Project Structure
+## Project structure
 
 ```
 .
@@ -293,93 +223,47 @@ By default, the tool excludes Free tier servers and only uses paid tier servers:
 │       └── main.go         # CLI entry point + command dispatch
 ├── internal/
 │   ├── api/
-│   │   └── types.go        # ProtonVPN API request/response types
+│   │   ├── types.go        # ProtonVPN API request/response types
+│   │   └── transport.go    # Shared request building and JSON response handling
 │   ├── auth/
 │   │   ├── auth.go         # SRP authentication
 │   │   ├── errors.go       # API error codes and types
 │   │   └── session.go      # Session persistence, refresh, verify
 │   ├── config/
-│   │   ├── flags.go        # Command-line flag parsing
+│   │   ├── flags.go        # Command-line flag parsing and validation
 │   │   └── types.go        # Config struct
 │   ├── constants/
 │   │   ├── api.go          # API endpoints and version headers
 │   │   ├── defaults.go     # Certificate/selection defaults
 │   │   ├── session.go      # Session persistence constants
 │   │   └── wireguard.go    # WireGuard network defaults
-│   └── vpn/
-│       ├── client.go       # Certificate create + list + server fetch
-│       └── servers.go      # Server selection
-├── pkg/
 │   ├── timeutil/
 │   │   ├── duration.go     # Human-readable duration formatting
 │   │   └── parser.go       # Duration parsing
 │   ├── validation/
 │   │   └── username.go     # Username and country-code validation
+│   ├── vpn/
+│   │   ├── client.go       # Certificate create + list + server fetch
+│   │   └── servers.go      # Server filtering and selection
 │   └── wireguard/
-│       ├── config.go       # .conf file generation
-│       └── config_test.go
+│       └── config.go       # .conf file generation
 ├── Makefile
 ├── go.mod
 ├── go.sum
 └── README.md
 ```
 
+See [API_REFERENCE.md](API_REFERENCE.md) for the reverse-engineered API details: endpoints, request formats, response codes, and the measured certificate duration bounds.
+
 ## Development
 
 ```bash
-# Format code
-make fmt
-
-# Run tests
-make test
-
-# Run linter (requires golangci-lint)
-make lint
-
-# Build for multiple platforms
-make build-all
-
-# Clean build artifacts
-make clean
+make build          # build with the current upstream client version
+make test           # run tests
+make fmt vet lint   # format, vet, lint
+make show-version   # print the ProtonVPN client version that would be stamped in
 ```
-
-## Troubleshooting
-
-### CAPTCHA Verification Required (Error 9001)
-
-If you encounter "CAPTCHA verification required" error:
-
-1. **Login via ProtonVPN website first**: This can help establish your account as legitimate
-2. **Try from a different IP**: VPN or residential IPs may work better than datacenter IPs
-3. **Wait and retry**: Sometimes waiting a few hours helps
-4. **Use saved sessions**: Once authenticated, sessions are saved to avoid repeated CAPTCHA challenges
-
-### App Version Errors (Error 5003)
-
-If you see "This version of the app is no longer supported":
-- The app version is automatically fetched from ProtonVPN's GitHub at build time
-- Rebuild with `make build` to get the latest version
-- Override manually if needed: `make build PROTON_VERSION=X.Y.Z`
-- Check current version: `make show-version`
-
-### Two-Password Mode Error (Code 10013)
-
-If you see "unexpected mailbox password request - account might still be in 2-password mode":
-- Your Proton account is using the legacy 2-password mode (separate login and mailbox passwords)
-- This tool only supports [Single Password Mode](https://proton.me/support/single-password)
-- To switch: Go to Proton account settings → Security → Password mode → Switch to single password
-- Note: Single password mode is the default for all new Proton accounts since ~2020
-
-### Insufficient Scope (Error 9100)
-
-Proton returns code 9100 when an endpoint needs a higher session scope than the current session has. In this tool it only shows up when fetching the VPN certificate during `generate`: the session needs the `vpn` scope, which is granted via 2FA. If your account has 2FA but the initial login didn't prompt for it (e.g. device trust reused a prior session), run with `-clear-session` to force a fresh 2FA-authenticated login.
-
-## API Reference
-
-For detailed API documentation including endpoints, request formats, response codes, and reference implementations, see [API_REFERENCE.md](API_REFERENCE.md).
 
 ## License
 
-This project is licensed under the [GNU General Public License v3.0](LICENSE).
-
-This is required because the project uses [ProtonVPN/go-vpn-lib](https://github.com/ProtonVPN/go-vpn-lib) which is licensed under GPL-3.0.
+GPL-3.0. See [LICENSE](LICENSE).
