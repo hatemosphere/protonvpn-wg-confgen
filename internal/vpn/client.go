@@ -2,17 +2,14 @@
 package vpn
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"time"
 
 	"protonvpn-wg-confgen/internal/api"
 	"protonvpn-wg-confgen/internal/config"
 	"protonvpn-wg-confgen/internal/constants"
-	"protonvpn-wg-confgen/pkg/timeutil"
+	"protonvpn-wg-confgen/internal/timeutil"
 
 	"github.com/ProtonVPN/go-vpn-lib/ed25519"
 )
@@ -33,6 +30,32 @@ func NewClient(cfg *config.Config, session *api.Session) *Client {
 	}
 }
 
+// doJSON performs an authenticated request and decodes the JSON response into out.
+func (c *Client) doJSON(method, url string, body, out any) error {
+	req, err := api.NewRequest(method, url, body, c.session)
+	if err != nil {
+		return err
+	}
+	return api.Do(c.httpClient, req, out)
+}
+
+// requestCertificate posts a certificate request and validates the response code.
+func (c *Client) requestCertificate(certReq map[string]any) (*api.VPNInfo, error) {
+	var vpnInfo api.VPNInfo
+	if err := c.doJSON(http.MethodPost, c.config.APIURL+constants.CertificatePath, certReq, &vpnInfo); err != nil {
+		return nil, err
+	}
+
+	if !constants.IsSuccessCode(vpnInfo.Code) {
+		if vpnInfo.Error != "" {
+			return nil, fmt.Errorf("certificate error (code %d): %s", vpnInfo.Code, vpnInfo.Error)
+		}
+		return nil, fmt.Errorf("certificate request failed, code: %d", vpnInfo.Code)
+	}
+
+	return &vpnInfo, nil
+}
+
 // GetCertificate generates a VPN certificate
 func (c *Client) GetCertificate(keyPair *ed25519.KeyPair) (*api.VPNInfo, error) {
 	publicKeyPEM, err := keyPair.PublicKeyPKIXPem()
@@ -40,13 +63,6 @@ func (c *Client) GetCertificate(keyPair *ed25519.KeyPair) (*api.VPNInfo, error) 
 		return nil, fmt.Errorf("failed to get public key PEM: %w", err)
 	}
 
-	// Use provided device name or generate one
-	deviceName := c.config.DeviceName
-	if deviceName == "" {
-		deviceName = fmt.Sprintf("WireGuard-%s-%d", c.config.Username, time.Now().Unix())
-	}
-
-	// Parse duration
 	durationStr, err := timeutil.ParseToMinutes(c.config.Duration)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse duration: %w", err)
@@ -56,7 +72,7 @@ func (c *Client) GetCertificate(keyPair *ed25519.KeyPair) (*api.VPNInfo, error) 
 	// Feature keys from: python-proton-vpn-api-core/proton/vpn/session/fetcher.py
 	certReq := map[string]any{
 		"ClientPublicKey":     publicKeyPEM,
-		"ClientPublicKeyMode": "EC",
+		"ClientPublicKeyMode": constants.PublicKeyMode,
 		"Duration":            durationStr,
 		"Features":            c.certificateFeatures(),
 	}
@@ -65,70 +81,35 @@ func (c *Client) GetCertificate(keyPair *ed25519.KeyPair) (*api.VPNInfo, error) 
 	// and won't appear in the ProtonVPN dashboard.
 	if !c.config.NoSave {
 		certReq["Mode"] = constants.CertMode // "persistent"
-		certReq["DeviceName"] = deviceName
+		certReq["DeviceName"] = c.deviceName()
 	}
 
-	certJSON, err := json.Marshal(certReq)
+	return c.requestCertificate(certReq)
+}
+
+// RenewCertificate renews an existing persistent certificate by reusing its public key.
+// Unlike GetCertificate, this does not generate a new key pair and sends Renew: true.
+func (c *Client) RenewCertificate(publicKeyPEM, deviceName string) (*api.VPNInfo, error) {
+	durationStr, err := timeutil.ParseToMinutes(c.config.Duration)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to parse duration: %w", err)
 	}
 
-	req, err := http.NewRequest(http.MethodPost, c.config.APIURL+constants.CertificatePath, bytes.NewBuffer(certJSON))
-	if err != nil {
-		return nil, err
-	}
-
-	c.setHeaders(req)
-
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer func() { _ = resp.Body.Close() }()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	var vpnInfo api.VPNInfo
-	if err := json.Unmarshal(body, &vpnInfo); err != nil {
-		return nil, err
-	}
-
-	if !constants.IsSuccessCode(vpnInfo.Code) {
-		// Include the actual API error message if available
-		if vpnInfo.Error != "" {
-			return nil, fmt.Errorf("VPN certificate error (code %d): %s", vpnInfo.Code, vpnInfo.Error)
-		}
-		return nil, fmt.Errorf("failed to get VPN certificate, code: %d", vpnInfo.Code)
-	}
-
-	return &vpnInfo, nil
+	return c.requestCertificate(map[string]any{
+		"ClientPublicKey":     publicKeyPEM,
+		"ClientPublicKeyMode": constants.PublicKeyMode,
+		"Mode":                constants.CertMode,
+		"DeviceName":          deviceName,
+		"Duration":            durationStr,
+		"Features":            c.certificateFeatures(),
+		"Renew":               true,
+	})
 }
 
 // GetServers fetches the list of VPN servers
 func (c *Client) GetServers() ([]api.LogicalServer, error) {
-	req, err := http.NewRequest(http.MethodGet, c.config.APIURL+constants.LogicalsPath, http.NoBody)
-	if err != nil {
-		return nil, err
-	}
-
-	c.setHeaders(req)
-
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer func() { _ = resp.Body.Close() }()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
 	var response api.LogicalsResponse
-	if err := json.Unmarshal(body, &response); err != nil {
+	if err := c.doJSON(http.MethodGet, c.config.APIURL+constants.LogicalsPath, nil, &response); err != nil {
 		return nil, err
 	}
 
@@ -146,30 +127,14 @@ func (c *Client) ListCertificates() ([]api.VPNCertificate, error) {
 	var beginID string
 
 	for {
-		u := fmt.Sprintf("%s%s/all?Mode=persistent&Limit=%d", c.config.APIURL, constants.CertificatePath, pageSize)
+		u := fmt.Sprintf("%s%s/all?Mode=%s&Limit=%d", c.config.APIURL, constants.CertificatePath, constants.CertMode, pageSize)
 		if beginID != "" {
 			u += "&BeginID=" + beginID
 		}
 
-		req, err := http.NewRequest(http.MethodGet, u, http.NoBody)
-		if err != nil {
-			return nil, err
-		}
-		c.setHeaders(req)
-
-		resp, err := c.httpClient.Do(req)
-		if err != nil {
-			return nil, err
-		}
-		body, err := io.ReadAll(resp.Body)
-		_ = resp.Body.Close()
-		if err != nil {
-			return nil, err
-		}
-
 		var page api.CertListResponse
-		if err := json.Unmarshal(body, &page); err != nil {
-			return nil, fmt.Errorf("failed to parse certificate list: %w", err)
+		if err := c.doJSON(http.MethodGet, u, nil, &page); err != nil {
+			return nil, err
 		}
 		if !constants.IsSuccessCode(page.Code) {
 			if page.Error != "" {
@@ -188,60 +153,12 @@ func (c *Client) ListCertificates() ([]api.VPNCertificate, error) {
 	return all, nil
 }
 
-// RenewCertificate renews an existing persistent certificate by reusing its public key.
-// Unlike GetCertificate, this does not generate a new key pair and sends Renew: true.
-func (c *Client) RenewCertificate(publicKeyPEM, deviceName string) (*api.VPNInfo, error) {
-	durationStr, err := timeutil.ParseToMinutes(c.config.Duration)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse duration: %w", err)
+// deviceName returns the configured device name, generating one if unset.
+func (c *Client) deviceName() string {
+	if c.config.DeviceName != "" {
+		return c.config.DeviceName
 	}
-
-	certReq := map[string]any{
-		"ClientPublicKey":     publicKeyPEM,
-		"ClientPublicKeyMode": "EC",
-		"Mode":                constants.CertMode,
-		"DeviceName":          deviceName,
-		"Duration":            durationStr,
-		"Features":            c.certificateFeatures(),
-		"Renew":               true,
-	}
-
-	certJSON, err := json.Marshal(certReq)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest(http.MethodPost, c.config.APIURL+constants.CertificatePath, bytes.NewBuffer(certJSON))
-	if err != nil {
-		return nil, err
-	}
-
-	c.setHeaders(req)
-
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer func() { _ = resp.Body.Close() }()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	var vpnInfo api.VPNInfo
-	if err := json.Unmarshal(body, &vpnInfo); err != nil {
-		return nil, err
-	}
-
-	if !constants.IsSuccessCode(vpnInfo.Code) {
-		if vpnInfo.Error != "" {
-			return nil, fmt.Errorf("renew certificate error (code %d): %s", vpnInfo.Code, vpnInfo.Error)
-		}
-		return nil, fmt.Errorf("failed to renew certificate, code: %d", vpnInfo.Code)
-	}
-
-	return &vpnInfo, nil
+	return fmt.Sprintf("WireGuard-%s-%d", c.config.Username, time.Now().Unix())
 }
 
 func (c *Client) certificateFeatures() map[string]any {
@@ -252,12 +169,4 @@ func (c *Client) certificateFeatures() map[string]any {
 		"PortForwarding": c.config.PortForwarding,
 		"SplitTCP":       c.config.EnableAccelerator,
 	}
-}
-
-func (c *Client) setHeaders(req *http.Request) {
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.session.AccessToken))
-	req.Header.Set("x-pm-uid", c.session.UID)
-	req.Header.Set("x-pm-appversion", constants.AppVersion)
-	req.Header.Set("User-Agent", constants.UserAgent)
 }

@@ -15,15 +15,6 @@ type AuthInfoResponse struct {
 	} `json:"2FA"`
 }
 
-// AuthRequest represents the authentication request payload
-type AuthRequest struct {
-	Username        string `json:"Username"`
-	ClientEphemeral string `json:"ClientEphemeral"`
-	ClientProof     string `json:"ClientProof"`
-	SRPSession      string `json:"SRPSession"`
-	TwoFactorCode   string `json:"TwoFactorCode,omitempty"`
-}
-
 // Session represents a ProtonVPN session
 type Session struct {
 	Code         int      `json:"Code"`
@@ -140,12 +131,6 @@ const (
 	TierFree = 0
 	TierPlus = 2
 	TierPM   = 3
-)
-
-// Password mode constants
-const (
-	PasswordModeSingle = 1
-	PasswordModeTwo    = 2
 )
 
 // GetTierName returns a human-readable name for the server tier

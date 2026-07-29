@@ -135,7 +135,7 @@ func (g *ConfigGenerator) buildMetadata(server *api.LogicalServer, physicalServe
 	// Add secure core routing info if applicable
 	if server.EntryCountry != server.ExitCountry && server.EntryCountry != "" {
 		metadata.WriteString("#\n")
-		fmt.Fprintf(&metadata, "# Secure Core Routing: %s → %s\n",
+		fmt.Fprintf(&metadata, "# Secure Core Routing: %s -> %s\n",
 			server.EntryCountry, server.ExitCountry)
 	}
 

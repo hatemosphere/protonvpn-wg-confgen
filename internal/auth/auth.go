@@ -3,12 +3,9 @@ package auth
 
 import (
 	"bufio"
-	"bytes"
 	"crypto/tls"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
 	"strings"
@@ -17,7 +14,7 @@ import (
 	"protonvpn-wg-confgen/internal/api"
 	"protonvpn-wg-confgen/internal/config"
 	"protonvpn-wg-confgen/internal/constants"
-	"protonvpn-wg-confgen/pkg/timeutil"
+	"protonvpn-wg-confgen/internal/timeutil"
 
 	"github.com/ProtonMail/go-srp"
 	"golang.org/x/term"
@@ -334,38 +331,15 @@ func (c *Client) get2FACode() (string, error) {
 }
 
 func (c *Client) getAuthInfo() (*api.AuthInfoResponse, error) {
-	reqBody := map[string]any{"Username": c.config.Username}
-
-	body, err := json.Marshal(reqBody)
+	req, err := api.NewRequest(http.MethodPost, c.config.APIURL+constants.AuthInfoPath,
+		map[string]any{"Username": c.config.Username}, nil)
 	if err != nil {
 		return nil, err
-	}
-
-	req, err := http.NewRequest(http.MethodPost, c.config.APIURL+constants.AuthInfoPath, bytes.NewBuffer(body))
-	if err != nil {
-		return nil, err
-	}
-
-	c.setHeaders(req)
-
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer func() { _ = resp.Body.Close() }()
-
-	respBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("HTTP error %d: %s", resp.StatusCode, string(respBody))
 	}
 
 	var authInfo api.AuthInfoResponse
-	if err := json.Unmarshal(respBody, &authInfo); err != nil {
-		return nil, fmt.Errorf("failed to parse auth info: %w", err)
+	if err := api.Do(c.httpClient, req, &authInfo); err != nil {
+		return nil, err
 	}
 
 	if authInfo.Code != CodeSuccess {
@@ -384,35 +358,13 @@ func (c *Client) getAuthInfo() (*api.AuthInfoResponse, error) {
 }
 
 func (c *Client) sendAuthRequest(authReq map[string]any) (*api.Session, error) {
-	body, err := json.Marshal(authReq)
+	req, err := api.NewRequest(http.MethodPost, c.config.APIURL+constants.AuthPath, authReq, nil)
 	if err != nil {
 		return nil, err
-	}
-
-	req, err := http.NewRequest(http.MethodPost, c.config.APIURL+constants.AuthPath, bytes.NewBuffer(body))
-	if err != nil {
-		return nil, err
-	}
-
-	c.setHeaders(req)
-
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer func() { _ = resp.Body.Close() }()
-
-	respBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("authentication HTTP error %d: %s", resp.StatusCode, string(respBody))
 	}
 
 	var session api.Session
-	if err := json.Unmarshal(respBody, &session); err != nil {
+	if err := api.Do(c.httpClient, req, &session); err != nil {
 		return nil, err
 	}
 
@@ -423,7 +375,7 @@ func (c *Client) sendAuthRequest(authReq map[string]any) (*api.Session, error) {
 		return nil, fmt.Errorf("your account uses legacy 2-password mode which is not supported.\n" +
 			"Please switch to single-password mode:\n" +
 			"  1. Go to account.proton.me\n" +
-			"  2. Settings → All settings → Account and password → Passwords\n" +
+			"  2. Settings -> All settings -> Account and password -> Passwords\n" +
 			"  3. Switch to 'One-password mode'\n" +
 			"This is recommended by Proton for most users and is required for this tool")
 	}
@@ -435,58 +387,21 @@ func (c *Client) sendAuthRequest(authReq map[string]any) (*api.Session, error) {
 	return &session, nil
 }
 
-func (c *Client) setHeaders(req *http.Request) {
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("x-pm-appversion", constants.AppVersion)
-	req.Header.Set("User-Agent", constants.UserAgent)
-}
-
 // submit2FA submits a 2FA code to upgrade the session with additional scopes (like VPN)
 func (c *Client) submit2FA(session *api.Session, code string) ([]string, error) {
-	reqBody := map[string]any{
-		"TwoFactorCode": code,
-	}
-
-	body, err := json.Marshal(reqBody)
+	req, err := api.NewRequest(http.MethodPost, c.config.APIURL+constants.TwoFAPath,
+		map[string]any{"TwoFactorCode": code}, session)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, c.config.APIURL+constants.TwoFAPath, bytes.NewBuffer(body))
-	if err != nil {
-		return nil, err
-	}
-
-	// Need to include auth headers for 2FA upgrade
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", session.AccessToken))
-	req.Header.Set("x-pm-uid", session.UID)
-	req.Header.Set("x-pm-appversion", constants.AppVersion)
-	req.Header.Set("User-Agent", constants.UserAgent)
-
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer func() { _ = resp.Body.Close() }()
-
-	respBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("2FA HTTP error %d: %s", resp.StatusCode, string(respBody))
-	}
-
-	// Parse response to get updated scopes
 	var twoFAResp struct {
 		Code   int      `json:"Code"`
 		Scopes []string `json:"Scopes"`
 		Error  string   `json:"Error,omitempty"`
 	}
-	if err := json.Unmarshal(respBody, &twoFAResp); err != nil {
-		return nil, fmt.Errorf("failed to parse 2FA response: %w", err)
+	if err := api.Do(c.httpClient, req, &twoFAResp); err != nil {
+		return nil, err
 	}
 
 	if twoFAResp.Code != CodeSuccess {

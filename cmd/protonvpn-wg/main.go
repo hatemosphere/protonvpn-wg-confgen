@@ -2,19 +2,18 @@
 package main
 
 import (
+	"cmp"
 	"fmt"
 	"os"
 	"slices"
-	"sort"
 	"strings"
 	"time"
 
 	"protonvpn-wg-confgen/internal/api"
 	"protonvpn-wg-confgen/internal/auth"
 	"protonvpn-wg-confgen/internal/config"
-	"protonvpn-wg-confgen/internal/constants"
 	"protonvpn-wg-confgen/internal/vpn"
-	"protonvpn-wg-confgen/pkg/wireguard"
+	"protonvpn-wg-confgen/internal/wireguard"
 
 	"github.com/ProtonVPN/go-vpn-lib/ed25519"
 )
@@ -122,7 +121,7 @@ func listServers(cfg *config.Config, vpnClient *vpn.Client) error {
 		return fmt.Errorf("failed to get servers: %w", err)
 	}
 
-	filtered := filterServersForList(cfg, servers)
+	filtered := vpn.EligibleServers(cfg, servers)
 
 	if len(filtered) == 0 {
 		if len(cfg.Countries) > 0 {
@@ -131,11 +130,11 @@ func listServers(cfg *config.Config, vpnClient *vpn.Client) error {
 		return fmt.Errorf("no online servers found")
 	}
 
-	sort.Slice(filtered, func(i, j int) bool {
-		if filtered[i].ExitCountry != filtered[j].ExitCountry {
-			return filtered[i].ExitCountry < filtered[j].ExitCountry
+	slices.SortFunc(filtered, func(a, b api.LogicalServer) int {
+		if c := cmp.Compare(a.ExitCountry, b.ExitCountry); c != 0 {
+			return c
 		}
-		return filtered[i].Score < filtered[j].Score
+		return cmp.Compare(a.Score, b.Score)
 	})
 
 	fmt.Printf("%-7s  %-14s  %-18s  %5s  %6s  %-10s  %s\n",
@@ -166,32 +165,6 @@ func listServers(cfg *config.Config, vpnClient *vpn.Client) error {
 	}
 	fmt.Printf("\n%d servers found across %d countries.\n", len(filtered), len(seen))
 	return nil
-}
-
-func filterServersForList(cfg *config.Config, servers []api.LogicalServer) []api.LogicalServer {
-	filtered := make([]api.LogicalServer, 0, len(servers))
-	for i := range servers {
-		if isServerEligibleForList(cfg, &servers[i]) {
-			filtered = append(filtered, servers[i])
-		}
-	}
-	return filtered
-}
-
-func isServerEligibleForList(cfg *config.Config, server *api.LogicalServer) bool {
-	if server.Status != constants.StatusOnline || len(server.Servers) == 0 {
-		return false
-	}
-	if len(cfg.Countries) > 0 && !slices.Contains(cfg.Countries, server.ExitCountry) {
-		return false
-	}
-	if cfg.FreeOnly != (server.Tier == api.TierFree) {
-		return false
-	}
-	if cfg.P2PServersOnly && !cfg.SecureCoreOnly && !cfg.FreeOnly && server.Features&api.FeatureP2P == 0 {
-		return false
-	}
-	return !cfg.SecureCoreOnly || server.Features&api.FeatureSecureCore != 0
 }
 
 func renewSerial(cfg *config.Config, vpnClient *vpn.Client) error {

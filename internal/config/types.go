@@ -1,7 +1,5 @@
 package config
 
-import "fmt"
-
 // Config holds all configuration options
 type Config struct {
 	// Authentication
@@ -52,12 +50,4 @@ type Config struct {
 
 	// Non-persistent mode (do not register on account)
 	NoSave bool
-}
-
-// ValidateCredentials checks if we have the required credentials
-func (c *Config) ValidateCredentials() error {
-	if c.Username == "" {
-		return fmt.Errorf("username is required")
-	}
-	return nil
 }

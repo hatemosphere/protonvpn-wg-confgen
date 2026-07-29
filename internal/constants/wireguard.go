@@ -3,7 +3,6 @@ package constants
 // WireGuard defaults
 const (
 	WireGuardPort = 51820
-	DefaultMTU    = 1420
 
 	// IPv4 configuration
 	WireGuardIPv4         = "10.2.0.2/32"

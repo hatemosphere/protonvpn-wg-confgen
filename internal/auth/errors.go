@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"errors"
 	"fmt"
 
 	"protonvpn-wg-confgen/internal/constants"
@@ -61,22 +60,4 @@ func getErrorMessage(code int) string {
 	default:
 		return fmt.Sprintf("authentication failed with code: %d", code)
 	}
-}
-
-// IsAccountError checks if the error is an account status error (deleted or disabled)
-func IsAccountError(err error) bool {
-	var authErr Error
-	if !errors.As(err, &authErr) {
-		return false
-	}
-	return authErr.Code == CodeAccountDeleted || authErr.Code == CodeAccountDisabled
-}
-
-// IsCaptchaError checks if the error requires CAPTCHA verification
-func IsCaptchaError(err error) bool {
-	var authErr Error
-	if !errors.As(err, &authErr) {
-		return false
-	}
-	return authErr.Code == CodeCaptchaRequired
 }

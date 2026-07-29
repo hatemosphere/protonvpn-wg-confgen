@@ -1,10 +1,10 @@
 package vpn
 
 import (
+	"cmp"
 	"errors"
 	"fmt"
 	"slices"
-	"sort"
 	"strings"
 
 	"protonvpn-wg-confgen/internal/api"
@@ -22,6 +22,37 @@ func NewServerSelector(cfg *config.Config) *ServerSelector {
 	return &ServerSelector{config: cfg}
 }
 
+// EligibleServers returns the online servers matching the configured filters,
+// preserving input order. An empty country list matches every country, which is
+// what the listing mode uses; selection always has at least one country set.
+func EligibleServers(cfg *config.Config, servers []api.LogicalServer) []api.LogicalServer {
+	filtered := make([]api.LogicalServer, 0, len(servers))
+	for i := range servers {
+		if isEligible(cfg, &servers[i]) {
+			filtered = append(filtered, servers[i])
+		}
+	}
+	return filtered
+}
+
+func isEligible(cfg *config.Config, server *api.LogicalServer) bool {
+	if server.Status != constants.StatusOnline || len(server.Servers) == 0 {
+		return false
+	}
+	// Free tier is opt-in: -free-only selects it exclusively, otherwise it is excluded.
+	if cfg.FreeOnly != (server.Tier == api.TierFree) {
+		return false
+	}
+	if len(cfg.Countries) > 0 && !slices.Contains(cfg.Countries, server.ExitCountry) {
+		return false
+	}
+	// The P2P filter does not apply to Secure Core or Free tier selections.
+	if cfg.P2PServersOnly && !cfg.SecureCoreOnly && !cfg.FreeOnly && server.Features&api.FeatureP2P == 0 {
+		return false
+	}
+	return !cfg.SecureCoreOnly || server.Features&api.FeatureSecureCore != 0
+}
+
 // SelectBest selects the best server based on configuration
 func (s *ServerSelector) SelectBest(servers []api.LogicalServer) (*api.LogicalServer, error) {
 	// If a specific server is requested, find it by exact name match
@@ -34,7 +65,7 @@ func (s *ServerSelector) SelectBest(servers []api.LogicalServer) (*api.LogicalSe
 		return nil, fmt.Errorf("server %q not found or offline", s.config.ServerName)
 	}
 
-	filtered := s.filterServers(servers)
+	filtered := EligibleServers(s.config, servers)
 
 	if s.config.Debug {
 		s.printDebugServerList(filtered)
@@ -46,76 +77,18 @@ func (s *ServerSelector) SelectBest(servers []api.LogicalServer) (*api.LogicalSe
 
 	// Sort servers: lowest score first (Proton API convention: lower = better for Quick Connect),
 	// with lower load as tiebreaker.
-	sort.Slice(filtered, func(i, j int) bool {
-		if filtered[i].Score != filtered[j].Score {
-			return filtered[i].Score < filtered[j].Score
+	slices.SortFunc(filtered, func(a, b api.LogicalServer) int {
+		if c := cmp.Compare(a.Score, b.Score); c != 0 {
+			return c
 		}
-		return filtered[i].Load < filtered[j].Load
+		return cmp.Compare(a.Load, b.Load)
 	})
 
 	return &filtered[0], nil
 }
 
-func (s *ServerSelector) filterServers(servers []api.LogicalServer) []api.LogicalServer {
-	var filtered []api.LogicalServer
-
-	for i := range servers {
-		if s.isServerEligible(&servers[i]) {
-			filtered = append(filtered, servers[i])
-		}
-	}
-
-	return filtered
-}
-
-func (s *ServerSelector) isServerEligible(server *api.LogicalServer) bool {
-	// Skip offline servers
-	if server.Status != constants.StatusOnline {
-		return false
-	}
-
-	// Filter by tier based on -free-only flag
-	if s.config.FreeOnly {
-		// When free-only is enabled, only accept Free tier servers
-		if server.Tier != api.TierFree {
-			return false
-		}
-	} else {
-		// Otherwise, filter out free tier servers
-		if server.Tier == api.TierFree {
-			return false
-		}
-	}
-
-	// Filter by P2P support if requested (but not when using Secure Core or Free tier)
-	if s.config.P2PServersOnly && !s.config.SecureCoreOnly && !s.config.FreeOnly && server.Features&api.FeatureP2P == 0 {
-		return false
-	}
-
-	// Filter by Secure Core if requested
-	if s.config.SecureCoreOnly && server.Features&api.FeatureSecureCore == 0 {
-		return false
-	}
-
-	// Filter by country
-	if !s.isCountryMatch(server) {
-		return false
-	}
-
-	// Skip servers with no physical servers
-	if len(server.Servers) == 0 {
-		return false
-	}
-
-	return true
-}
-
-func (s *ServerSelector) isCountryMatch(server *api.LogicalServer) bool {
-	return slices.Contains(s.config.Countries, server.ExitCountry)
-}
-
 func (s *ServerSelector) buildNoServersError() error {
-	errMsg := fmt.Sprintf("No suitable servers found for countries: %v", s.config.Countries)
+	errMsg := fmt.Sprintf("no suitable servers found for countries: %v", s.config.Countries)
 
 	if s.config.SecureCoreOnly {
 		errMsg += " with Secure Core"
@@ -126,21 +99,16 @@ func (s *ServerSelector) buildNoServersError() error {
 	return errors.New(errMsg)
 }
 
-// GetBestPhysicalServer returns the best physical server from a logical server
+// GetBestPhysicalServer returns the first online physical server, or nil if the
+// logical server has none. Returning an offline server would produce a config
+// pointing at a dead endpoint.
 func GetBestPhysicalServer(server *api.LogicalServer) *api.PhysicalServer {
-	if len(server.Servers) == 0 {
-		return nil
-	}
-
-	// Find the first online physical server
 	for i := range server.Servers {
 		if server.Servers[i].Status == constants.StatusOnline {
 			return &server.Servers[i]
 		}
 	}
-
-	// If no online servers, return the first one
-	return &server.Servers[0]
+	return nil
 }
 
 // printDebugServerList prints a debug list of filtered servers
