@@ -5,6 +5,7 @@ import (
 	"bufio"
 	"crypto/tls"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -380,11 +381,36 @@ func (c *Client) sendAuthRequest(authReq map[string]any) (*api.Session, error) {
 			"This is recommended by Proton for most users and is required for this tool")
 	}
 
+	if session.Code == CodeCaptchaRequired {
+		return nil, captchaError(&session)
+	}
+
 	if session.Code != CodeSuccess {
+		if session.Error != "" {
+			return nil, fmt.Errorf("%s (code %d)", session.Error, session.Code)
+		}
 		return nil, NewError(session.Code)
 	}
 
 	return &session, nil
+}
+
+// captchaError explains a 9001 response. There is no headless way through it:
+// solving the challenge needs Proton's web widget, and the resulting token would
+// have to be replayed via the x-pm-human-verification-token headers.
+func captchaError(session *api.Session) error {
+	msg := "CAPTCHA verification required by Proton (code 9001)"
+	if methods := session.Details.HumanVerificationMethods; len(methods) > 0 {
+		msg += fmt.Sprintf("\nAccepted verification methods: %s", strings.Join(methods, ", "))
+	}
+	return errors.New(msg + "\n" +
+		"This cannot be solved from the terminal. Proton usually challenges logins that\n" +
+		"look automated, most often from datacenter/VPS or already-VPN'd IP addresses.\n" +
+		"Things that help, in order:\n" +
+		"  1. Make sure you are on the latest release - older builds advertised a stale\n" +
+		"     client version, which itself triggers verification\n" +
+		"  2. Sign in once at https://account.proton.me from the same network, then retry\n" +
+		"  3. Retry from a residential connection, or with the VPN turned off")
 }
 
 // submit2FA submits a 2FA code to upgrade the session with additional scopes (like VPN)

@@ -28,10 +28,19 @@ type Session struct {
 	ServerProof  string   `json:"ServerProof"`
 	PasswordMode int      `json:"PasswordMode"`
 	ExpiresIn    int      `json:"ExpiresIn"` // Session expiration in seconds
+	Error        string   `json:"Error,omitempty"`
 	TwoFA        struct {
 		Enabled int `json:"Enabled"`
 		TOTP    int `json:"TOTP"`
 	} `json:"2FA"`
+	Details ErrorDetails `json:"Details"`
+}
+
+// ErrorDetails carries the extra payload the API attaches to some failures,
+// most usefully the human verification challenge behind code 9001.
+type ErrorDetails struct {
+	HumanVerificationToken   string   `json:"HumanVerificationToken"`
+	HumanVerificationMethods []string `json:"HumanVerificationMethods"`
 }
 
 // VPNInfo represents VPN certificate information
