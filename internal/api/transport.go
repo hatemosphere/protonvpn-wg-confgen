@@ -40,6 +40,28 @@ func NewRequest(method, url string, body any, session *Session) (*http.Request, 
 	return req, nil
 }
 
+// Human verification headers, replayed after a code 9001 challenge has been
+// solved. Names and semantics follow Proton's own client, see addHVToRequest in
+// github.com/ProtonMail/go-proton-api.
+const (
+	//nolint:gosec // G101: header names, not credentials
+	hvTokenHeader = "x-pm-human-verification-token"
+	//nolint:gosec // G101: header names, not credentials
+	hvTokenTypeHeader = "x-pm-human-verification-token-type"
+)
+
+// SetHumanVerification attaches a solved human verification token to a request.
+// The token is the HumanVerificationToken handed back in the 9001 response, and
+// method is the verification method used to satisfy it. Does nothing when the
+// token is empty.
+func SetHumanVerification(req *http.Request, token, method string) {
+	if token == "" {
+		return
+	}
+	req.Header.Set(hvTokenHeader, token)
+	req.Header.Set(hvTokenTypeHeader, method)
+}
+
 // Do executes req and decodes the JSON response into out.
 //
 // The response is decoded regardless of status code: the API reports its own

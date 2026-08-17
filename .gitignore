@@ -54,3 +54,6 @@ CLAUDE.md
 
 # goreleaser build output
 dist/
+
+# perplexity search cache
+.px/

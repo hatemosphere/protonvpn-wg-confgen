@@ -50,4 +50,7 @@ type Config struct {
 
 	// Non-persistent mode (do not register on account)
 	NoSave bool
+
+	// Human verification token replayed after solving a CAPTCHA out of band
+	HVToken string
 }

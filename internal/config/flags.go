@@ -57,6 +57,9 @@ func Parse() (*Config, error) {
 	flag.BoolVar(&cfg.ForceRefresh, "force-refresh", false, "Force session refresh even if not expired")
 	flag.StringVar(&cfg.SessionDuration, "session-duration", "0", "Session cache duration (e.g., 12h, 24h, 7d). 0 = no expiration")
 
+	// Human verification
+	flag.StringVar(&cfg.HVToken, "hv-token", "", "Human verification token to replay after solving a CAPTCHA (see the code 9001 error)")
+
 	// Advanced configuration
 	flag.StringVar(&cfg.APIURL, "api-url", constants.DefaultAPIURL, "ProtonVPN API URL")
 	flag.BoolVar(&cfg.Debug, "debug", false, "Enable debug output")

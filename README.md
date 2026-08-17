@@ -96,6 +96,7 @@ protonvpn-wg-confgen -username <username> -renew-serial <serial-number>
 | `-clear-session` | `false` | Clear the saved session and re-authenticate |
 | `-no-session` | `false` | Disable session persistence entirely |
 | `-force-refresh` | `false` | Refresh the session even if it is not expiring soon |
+| `-hv-token` | | Human verification token replayed after solving a CAPTCHA out of band, see below |
 | `-api-url` | `https://vpn-api.proton.me` | ProtonVPN API base URL |
 
 ## Examples
@@ -187,6 +188,27 @@ Configurations are IPv4-only by default. `-ipv6` additionally assigns the IPv6 i
 This tool requires an account in [single password mode](https://proton.me/support/single-password), the default for new Proton accounts. Legacy 2-password accounts (separate login and mailbox passwords) must switch first.
 
 **2FA is TOTP-only.** Authenticator apps work; FIDO2/WebAuthn security keys do not, because they need browser or platform APIs for the challenge-response protocol. If a security key is your only second factor, either add TOTP in your [account security settings](https://account.proton.me/u/0/vpn/account-password) or use a key that also does TOTP, such as a YubiKey with Yubico Authenticator.
+
+### CAPTCHA (error 9001)
+
+Proton challenges logins it considers automated, most often from datacenter/VPS
+addresses or a machine already connected to a VPN. This is not specific to this
+tool - the official clients hit the same challenge and solve it in an embedded
+webview.
+
+The challenge cannot be solved in a terminal, but it can be solved elsewhere and
+replayed. On a 9001 the error prints a verification URL and a token; open the
+URL in a browser, complete the CAPTCHA, then re-run with the same token:
+
+```bash
+protonvpn-wg-confgen -username myusername -countries US -hv-token <token>
+```
+
+The token travels as `x-pm-human-verification-token`, matching Proton's own
+client. Only the `captcha` method is replayable this way; `email` and `sms`
+deliver a code through a separate flow. Signing in once at account.proton.me
+from the same network, or retrying from a residential connection, also clears
+the challenge.
 
 ### Session persistence
 

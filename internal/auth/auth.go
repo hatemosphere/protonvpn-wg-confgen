@@ -363,6 +363,7 @@ func (c *Client) sendAuthRequest(authReq map[string]any) (*api.Session, error) {
 	if err != nil {
 		return nil, err
 	}
+	api.SetHumanVerification(req, c.config.HVToken, constants.HVMethodCaptcha)
 
 	var session api.Session
 	if err := api.Do(c.httpClient, req, &session); err != nil {
@@ -395,22 +396,30 @@ func (c *Client) sendAuthRequest(authReq map[string]any) (*api.Session, error) {
 	return &session, nil
 }
 
-// captchaError explains a 9001 response. There is no headless way through it:
-// solving the challenge needs Proton's web widget, and the resulting token would
-// have to be replayed via the x-pm-human-verification-token headers.
+// captchaError explains a 9001 response and hands back the challenge token, so
+// the CAPTCHA can be solved in a browser and replayed through -hv-token.
 func captchaError(session *api.Session) error {
 	msg := "CAPTCHA verification required by Proton (code 9001)"
 	if methods := session.Details.HumanVerificationMethods; len(methods) > 0 {
 		msg += fmt.Sprintf("\nAccepted verification methods: %s", strings.Join(methods, ", "))
 	}
+
+	if token := session.Details.HumanVerificationToken; token != "" {
+		return errors.New(msg + "\n\n" +
+			"The challenge cannot be solved in a terminal, but it can be solved elsewhere\n" +
+			"and replayed. Open this in a browser, complete the CAPTCHA, then re-run with\n" +
+			"-hv-token set to the same token:\n\n" +
+			"  https://verify.proton.me/?methods=captcha&token=" + token + "\n\n" +
+			"  -hv-token " + token + "\n\n" +
+			"Proton challenges logins that look automated, most often from datacenter/VPS\n" +
+			"or already-VPN'd addresses. Signing in once at https://account.proton.me from\n" +
+			"the same network, or retrying from a residential connection, also clears it.")
+	}
+
 	return errors.New(msg + "\n" +
-		"This cannot be solved from the terminal. Proton usually challenges logins that\n" +
-		"look automated, most often from datacenter/VPS or already-VPN'd IP addresses.\n" +
-		"Things that help, in order:\n" +
-		"  1. Make sure you are on the latest release - older builds advertised a stale\n" +
-		"     client version, which itself triggers verification\n" +
-		"  2. Sign in once at https://account.proton.me from the same network, then retry\n" +
-		"  3. Retry from a residential connection, or with the VPN turned off")
+		"Proton returned no verification token, so the challenge cannot be replayed.\n" +
+		"Sign in once at https://account.proton.me from the same network, then retry,\n" +
+		"or retry from a residential connection with the VPN turned off.")
 }
 
 // submit2FA submits a 2FA code to upgrade the session with additional scopes (like VPN)
