@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"strings"
@@ -293,6 +294,14 @@ func (c *Client) ensureUsername() error {
 }
 
 func (c *Client) ensurePassword() error {
+	if c.config.PasswordStdin {
+		password, err := readPasswordStdin(os.Stdin)
+		if err != nil {
+			return err
+		}
+		c.config.Password = password
+		return nil
+	}
 	if c.config.Password == "" {
 		const stdinFileDescriptor = 0
 		fmt.Print("Password: ")
@@ -306,9 +315,37 @@ func (c *Client) ensurePassword() error {
 	return nil
 }
 
+// readPasswordStdin accepts one password, optionally followed by LF or CRLF.
+// Preserve spaces: trimming them would silently change valid passwords.
+func readPasswordStdin(input io.Reader) (string, error) {
+	data, err := io.ReadAll(input)
+	if err != nil {
+		return "", fmt.Errorf("error reading password from stdin: %w", err)
+	}
+	password := string(data)
+	if strings.HasSuffix(password, "\n") {
+		password = strings.TrimSuffix(strings.TrimSuffix(password, "\n"), "\r")
+	}
+	if password == "" || strings.ContainsAny(password, "\r\n") {
+		return "", fmt.Errorf("stdin must contain one non-empty password, optionally followed by a newline")
+	}
+	return password, nil
+}
+
 func (c *Client) get2FACode() (string, error) {
+	input := os.Stdin
+	if c.config.PasswordStdin {
+		// Stdin belongs to the password producer. Ask for TOTP separately on
+		// the controlling terminal so a password pipe still supports 2FA.
+		tty, err := os.Open("/dev/tty")
+		if err != nil {
+			return "", fmt.Errorf("2FA requires a controlling terminal with --password-stdin; retry using interactive login: %w", err)
+		}
+		defer func() { _ = tty.Close() }()
+		input = tty
+	}
 	fmt.Print("2FA Code: ")
-	reader := bufio.NewReader(os.Stdin)
+	reader := bufio.NewReader(input)
 	code, err := reader.ReadString('\n')
 	if err != nil {
 		return "", fmt.Errorf("error reading 2FA code: %w", err)

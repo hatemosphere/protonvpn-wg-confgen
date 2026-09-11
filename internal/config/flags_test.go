@@ -14,6 +14,14 @@ func TestValidateFeatureFlags(t *testing.T) {
 		cfg     Config
 		wantErr bool
 	}{
+		{name: "NetShield malware", cfg: Config{Duration: constants.DefaultCertDuration, NetShield: 1}},
+		{name: "NetShield ads", cfg: Config{Duration: constants.DefaultCertDuration, NetShield: 2}},
+		{name: "NetShield negative", cfg: Config{Duration: constants.DefaultCertDuration, NetShield: -1}, wantErr: true},
+		{name: "NetShield too high", cfg: Config{Duration: constants.DefaultCertDuration, NetShield: 3}, wantErr: true},
+		{name: "stdin password", cfg: Config{Duration: constants.DefaultCertDuration, Username: "alice", PasswordStdin: true}},
+		{name: "stdin missing username", cfg: Config{Duration: constants.DefaultCertDuration, PasswordStdin: true}, wantErr: true},
+		{name: "stdin blank username", cfg: Config{Duration: constants.DefaultCertDuration, Username: "  ", PasswordStdin: true}, wantErr: true},
+		{name: "stdin with password", cfg: Config{Duration: constants.DefaultCertDuration, Username: "alice", PasswordStdin: true, Password: "example"}, wantErr: true},
 		{name: "defaults", cfg: Config{Duration: constants.DefaultCertDuration}},
 		{name: "port forwarding", cfg: Config{Duration: constants.DefaultCertDuration, PortForwarding: true}},
 		{name: "moderate NAT", cfg: Config{Duration: constants.DefaultCertDuration, ModerateNAT: true}},

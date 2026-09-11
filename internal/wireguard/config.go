@@ -4,7 +4,6 @@ package wireguard
 import (
 	"bytes"
 	"fmt"
-	"os"
 	"strings"
 	"text/template"
 	"time"
@@ -12,6 +11,7 @@ import (
 	"protonvpn-wg-confgen/internal/api"
 	"protonvpn-wg-confgen/internal/config"
 	"protonvpn-wg-confgen/internal/constants"
+	"protonvpn-wg-confgen/internal/securefile"
 )
 
 // wireguardConfigTemplate is the template for generating WireGuard configuration
@@ -59,7 +59,7 @@ func (g *ConfigGenerator) Generate(server *api.LogicalServer, physicalServer *ap
 		return err
 	}
 
-	if err := os.WriteFile(g.config.OutputFile, []byte(content), 0o600); err != nil {
+	if err := securefile.Write(g.config.OutputFile, []byte(content)); err != nil {
 		return fmt.Errorf("failed to write config file: %w", err)
 	}
 

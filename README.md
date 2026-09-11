@@ -12,12 +12,12 @@ I wanted to automatically rotate VPN servers on my private HTPC Linux host runni
 
 ## Features
 
-- Username/password login with SRP, including TOTP 2FA
+- Username/password login with SRP, including TOTP 2FA; password from a prompt, a flag, or stdin for password managers
 - Session persistence and automatic refresh, so headless runs only need the password once
 - Picks the best server using Proton's own Quick Connect metric (lowest `Score`, with `Load` as tiebreaker - lower is better per the official API)
 - Filters by country, tier, P2P, and Secure Core, or targets one server by name
 - Persistent configurations (visible in the ProtonVPN dashboard) or session-only ones that are never registered on the account
-- VPN accelerator, NAT-PMP port forwarding, Moderate NAT, and IPv6
+- VPN accelerator, NAT-PMP port forwarding, Moderate NAT, NetShield, and IPv6
 - Lists servers and registered configurations, and renews certificates without generating a new key pair
 
 ## Installation
@@ -64,7 +64,7 @@ Flags are given as `--name value` or `--name=value`; the two forms are interchan
 | *(default)* | Generate a WireGuard configuration |
 | `list-servers` | List available servers (country, name, city, load, score, tier, features) and exit. Honors `--countries`, `--secure-core`, `--p2p-only`, and `--free-only` |
 | `list-configs` | List persistent configurations on the account (SerialNumber, DeviceName, expiry, key fingerprint) and exit |
-| `renew-serial <serial>` | Renew a persistent certificate by SerialNumber, reusing its existing key. Extends it server-side and writes no `.conf` file |
+| `renew-serial <serial>` | Renew a persistent certificate by SerialNumber, reusing its existing key. Extends it server-side and writes no `.conf` file. Feature flags are not read back from the certificate, so pass `--netshield`, `--port-forwarding` etc. again |
 
 ### Server selection
 
@@ -88,6 +88,7 @@ Flags are given as `--name value` or `--name=value`; the two forms are interchan
 | `allowed-ips` | *(per `--ipv6`)* | Comma-separated allowed IPs |
 | `accelerator` | `true` | VPN accelerator |
 | `port-forwarding` | `false` | NAT-PMP port forwarding (Plus tier, P2P servers) |
+| `netshield` | `0` | `0`: off, `1`: block malware, `2`: block malware, ads and trackers; applies to generation and renewal |
 | `moderate-nat` | `false` | Moderate NAT (paid plans). Cannot be combined with `--port-forwarding` |
 
 ### Certificate and session
@@ -236,6 +237,16 @@ deliver a code through a separate flow. Signing in once at account.proton.me
 from the same network, or retrying from a residential connection, may also clear
 the challenge.
 
+### Password from a password manager
+
+`--password-stdin` reads the password from stdin through EOF, so a password manager can pipe it in without the value landing in shell history or `ps`. Requires `--username` and is mutually exclusive with `--password`:
+
+```bash
+op read 'op://Personal/Proton/password' | protonvpn-wg-confgen --username myusername --password-stdin --countries NL
+```
+
+One trailing LF or CRLF is stripped, spaces are preserved, and empty or multiline input is rejected. With stdin taken by the password, a TOTP code is requested on `/dev/tty` instead; without a controlling terminal, or on Windows, use interactive login.
+
 ### Session persistence
 
 Sessions are stored in `~/.protonvpn-session.json` with `0600` permissions, verified before reuse, and tied to the username that created them.
@@ -258,7 +269,7 @@ On Windows or any GUI client, import the file.
 ## Security notes
 
 - A fresh WireGuard keypair is generated on every run, except with `--renew-serial`, which reuses the existing key
-- Configuration files hold your private key and are written with `0600` permissions - never share them
+- Configuration files hold your private key and the session file holds your tokens. Both are written to a temp file in the destination directory, forced to `0600` regardless of umask (repairing an existing permissive file), then renamed into place - atomic on Unix. Symlinks and non-regular files at the destination are refused, so keep the parent directory trusted. Never share the `.conf`
 - Persistent configurations can be revoked from the dashboard; session-only ones cannot be revoked at all and simply expire within 7 days
 
 ## Project structure

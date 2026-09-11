@@ -1,10 +1,52 @@
 package vpn
 
 import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"testing"
+
+	"github.com/ProtonVPN/go-vpn-lib/ed25519"
 
 	"protonvpn-wg-confgen/internal/config"
 )
+
+func TestCertificateNetShield(t *testing.T) {
+	for level := range 3 {
+		for _, renew := range []bool{false, true} {
+			t.Run(fmt.Sprintf("level=%d/renew=%t", level, renew), func(t *testing.T) {
+				var got struct {
+					Features map[string]any
+					Renew    bool
+				}
+				srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					if err := json.NewDecoder(r.Body).Decode(&got); err != nil {
+						t.Error(err)
+					}
+					_, _ = w.Write([]byte(`{"Code":1000}`))
+				}))
+				defer srv.Close()
+				client := NewClient(&config.Config{APIURL: srv.URL, Duration: "365d", NetShield: level, PortForwarding: true}, nil)
+				key, err := ed25519.NewKeyPair()
+				if err != nil {
+					t.Fatal(err)
+				}
+				if renew {
+					_, err = client.RenewCertificate("test-public-key", "test-device")
+				} else {
+					_, err = client.GetCertificate(key)
+				}
+				if err != nil {
+					t.Fatal(err)
+				}
+				if got.Features["NetShieldLevel"] != float64(level) || got.Features["PortForwarding"] != true || got.Renew != renew {
+					t.Fatalf("unexpected certificate features: %+v", got)
+				}
+			})
+		}
+	}
+}
 
 func TestCertificateFeatures(t *testing.T) {
 	tests := []struct {

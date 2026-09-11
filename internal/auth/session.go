@@ -10,6 +10,7 @@ import (
 
 	"protonvpn-wg-confgen/internal/api"
 	"protonvpn-wg-confgen/internal/constants"
+	"protonvpn-wg-confgen/internal/securefile"
 )
 
 // SessionStore handles persistent session storage
@@ -67,7 +68,7 @@ func (s *SessionStore) Save(session *api.Session, username string, duration time
 		return fmt.Errorf("failed to marshal session: %w", err)
 	}
 
-	err = os.WriteFile(s.filePath, data, constants.SessionFileMode)
+	err = securefile.Write(s.filePath, data)
 	if err != nil {
 		return fmt.Errorf("failed to write session file: %w", err)
 	}

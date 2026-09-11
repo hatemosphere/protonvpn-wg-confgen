@@ -29,6 +29,7 @@ func Parse() (*Config, error) {
 	// Authentication flags
 	flag.StringVar(&cfg.Username, "username", "", "ProtonVPN username")
 	flag.StringVar(&cfg.Password, "password", "", "ProtonVPN password (will prompt if not provided)")
+	flag.BoolVar(&cfg.PasswordStdin, "password-stdin", false, "Read password from stdin through EOF (requires --username; incompatible with --password)")
 
 	// Server selection flags
 	flag.StringVar(&countriesFlag, "countries", "", "Comma-separated list of country codes (e.g., US,NL,CH)")
@@ -48,6 +49,7 @@ func Parse() (*Config, error) {
 	flag.BoolVar(&cfg.EnableAccelerator, "accelerator", true, "Enable VPN accelerator")
 	flag.BoolVar(&cfg.PortForwarding, "port-forwarding", false, "Enable NAT-PMP port forwarding (Plus tier, P2P servers only)")
 	flag.BoolVar(&cfg.ModerateNAT, "moderate-nat", false, "Enable Moderate NAT (paid plans; incompatible with port forwarding)")
+	flag.IntVar(&cfg.NetShield, "netshield", 0, "NetShield: 0 = off, 1 = block malware, 2 = block malware, ads and trackers")
 
 	// Certificate configuration
 	flag.StringVar(&cfg.Duration, "duration", constants.DefaultCertDuration, "Certificate duration (e.g., 30m, 24h, 7d, 1h30m). Min: 10m, max: 365d (7d with --no-save)")
@@ -148,6 +150,17 @@ func Parse() (*Config, error) {
 }
 
 func validateFeatureFlags(cfg *Config) error {
+	if cfg.NetShield < 0 || cfg.NetShield > 2 {
+		return fmt.Errorf("netshield must be 0, 1, or 2")
+	}
+	if cfg.PasswordStdin {
+		if cfg.Password != "" {
+			return fmt.Errorf("password-stdin and password cannot be used together")
+		}
+		if validation.CleanUsername(cfg.Username) == "" {
+			return fmt.Errorf("password-stdin requires username")
+		}
+	}
 	if cfg.PortForwarding && cfg.ModerateNAT {
 		return fmt.Errorf("port-forwarding and moderate-nat cannot be enabled together")
 	}
@@ -221,9 +234,9 @@ var flagGroups = []struct {
 	names []string
 }{
 	{"Modes", []string{"list-servers", "list-configs", "renew-serial"}},
-	{"Authentication", []string{"username", "password"}},
+	{"Authentication", []string{"username", "password", "password-stdin"}},
 	{"Server selection", []string{"countries", "server", "p2p-only", "secure-core", "free-only", "debug"}},
-	{"Output and network", []string{"output", "device-name", "ipv6", "dns", "allowed-ips", "accelerator", "port-forwarding", "moderate-nat"}},
+	{"Output and network", []string{"output", "device-name", "ipv6", "dns", "allowed-ips", "accelerator", "port-forwarding", "moderate-nat", "netshield"}},
 	{"Certificate and session", []string{"duration", "no-save", "session-duration", "clear-session", "no-session", "force-refresh", "hv-token", "api-url"}},
 }
 

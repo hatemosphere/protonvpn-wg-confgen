@@ -3,8 +3,9 @@ package config
 // Config holds all configuration options
 type Config struct {
 	// Authentication
-	Username string
-	Password string
+	Username      string
+	Password      string
+	PasswordStdin bool
 
 	// Server selection
 	Countries      []string
@@ -25,6 +26,7 @@ type Config struct {
 	EnableIPv6        bool
 	PortForwarding    bool
 	ModerateNAT       bool
+	NetShield         int
 
 	// Certificate configuration
 	Duration string

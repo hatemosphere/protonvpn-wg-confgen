@@ -163,7 +163,7 @@ func (c *Client) deviceName() string {
 
 func (c *Client) certificateFeatures() map[string]any {
 	return map[string]any{
-		"NetShieldLevel": 0,
+		"NetShieldLevel": c.config.NetShield,
 		// Proton's API field is inverted: RandomNAT=false enables Moderate NAT.
 		"RandomNAT":      !c.config.ModerateNAT,
 		"PortForwarding": c.config.PortForwarding,
