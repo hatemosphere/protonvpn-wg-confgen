@@ -64,7 +64,7 @@ Flags are given as `--name value` or `--name=value`; the two forms are interchan
 | *(default)* | Generate a WireGuard configuration |
 | `list-servers` | List available servers (country, name, city, load, score, tier, features) and exit. Honors `--countries`, `--secure-core`, `--p2p-only`, and `--free-only` |
 | `list-configs` | List persistent configurations on the account (SerialNumber, DeviceName, expiry, key fingerprint) and exit |
-| `renew-serial <serial>` | Renew a persistent certificate by SerialNumber, reusing its existing key and its current features. Extends it server-side and writes no `.conf` file. Pass a feature flag explicitly to change it on renewal |
+| `renew-serial <serial>` | Renew a persistent certificate by SerialNumber, reusing its existing key and its current features. Writes no `.conf` file. Pass a feature flag explicitly to change it on renewal. The API issues a replacement certificate with a **new serial** and retires the old one, so scripts must read the new serial from the output |
 
 ### Server selection
 

@@ -60,9 +60,9 @@ type VPNInfo struct {
 	Features             CertFeatures `json:"Features"`
 }
 
-// CertFeatures is how the API reports a certificate's features. The keys differ
-// from the request side (NetShieldLevel, RandomNAT, PortForwarding, SplitTCP),
-// and moderate-nat is the inverse of RandomNAT.
+// CertFeatures is how the certificate *create* response reports features. The
+// keys differ from the request side and moderate-nat is the inverse of
+// RandomNAT. The list endpoint uses RequestFeatures instead.
 type CertFeatures struct {
 	Bouncing       bool `json:"bouncing"`
 	ModerateNAT    bool `json:"moderate-nat"`
@@ -73,14 +73,24 @@ type CertFeatures struct {
 
 // VPNCertificate represents a single certificate entry returned by /vpn/v1/certificate/all.
 type VPNCertificate struct {
-	SerialNumber         string        `json:"SerialNumber"`
-	ClientKeyFingerprint string        `json:"ClientKeyFingerprint"`
-	ClientKey            string        `json:"ClientKey"`
-	DeviceName           string        `json:"DeviceName,omitempty"`
-	Mode                 string        `json:"Mode"`
-	ExpirationTime       int64         `json:"ExpirationTime"`
-	RefreshTime          int64         `json:"RefreshTime"`
-	Features             *CertFeatures `json:"Features,omitempty"` // nil when the API omits it
+	SerialNumber         string           `json:"SerialNumber"`
+	ClientKeyFingerprint string           `json:"ClientKeyFingerprint"`
+	ClientKey            string           `json:"ClientKey"`
+	DeviceName           string           `json:"DeviceName,omitempty"`
+	Mode                 string           `json:"Mode"`
+	ExpirationTime       int64            `json:"ExpirationTime"`
+	RefreshTime          int64            `json:"RefreshTime"`
+	Features             *RequestFeatures `json:"Features,omitempty"` // nil when the API omits it
+}
+
+// RequestFeatures is the request-side feature shape. The list endpoint reports
+// each certificate's features in this form (verified against the live API), so
+// they can be resent on renewal without translation.
+type RequestFeatures struct {
+	NetShieldLevel int  `json:"NetShieldLevel"`
+	RandomNAT      bool `json:"RandomNAT"`
+	PortForwarding bool `json:"PortForwarding"`
+	SplitTCP       bool `json:"SplitTCP"`
 }
 
 // CertListResponse is the response body for GET /vpn/v1/certificate/all.

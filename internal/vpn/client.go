@@ -92,7 +92,7 @@ func (c *Client) GetCertificate(keyPair *ed25519.KeyPair) (*api.VPNInfo, error) 
 // current is the certificate's features as reported by the API; they are kept
 // unless the matching flag was given explicitly. A nil current falls back to
 // the flags entirely.
-func (c *Client) RenewCertificate(publicKeyPEM, deviceName string, current *api.CertFeatures) (*api.VPNInfo, error) {
+func (c *Client) RenewCertificate(publicKeyPEM, deviceName string, current *api.RequestFeatures) (*api.VPNInfo, error) {
 	durationStr, err := timeutil.ParseToMinutes(c.config.Duration)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse duration: %w", err)
@@ -117,18 +117,18 @@ const (
 	featSplitTCP       = "SplitTCP"
 )
 
-// renewalFeatures translates the API's reported features back into request
-// form, then lets explicitly passed flags override individual values.
-func (c *Client) renewalFeatures(current *api.CertFeatures) map[string]any {
+// renewalFeatures starts from the certificate's reported features and lets
+// explicitly passed flags override individual values.
+func (c *Client) renewalFeatures(current *api.RequestFeatures) map[string]any {
 	flags := c.certificateFeatures()
 	if current == nil {
 		return flags
 	}
 	features := map[string]any{
-		featNetShield:      current.NetshieldLevel,
-		featRandomNAT:      !current.ModerateNAT,
+		featNetShield:      current.NetShieldLevel,
+		featRandomNAT:      current.RandomNAT,
 		featPortForwarding: current.PortForwarding,
-		featSplitTCP:       current.VPNAccelerator,
+		featSplitTCP:       current.SplitTCP,
 	}
 	for flagName, key := range map[string]string{
 		"netshield":       featNetShield,

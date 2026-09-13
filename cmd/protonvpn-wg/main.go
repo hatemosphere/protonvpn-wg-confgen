@@ -199,7 +199,9 @@ func renewSerial(cfg *config.Config, vpnClient *vpn.Client) error {
 		return fmt.Errorf("failed to renew certificate: %w", err)
 	}
 
-	fmt.Printf("Certificate renewed: %s\n", cfg.RenewSerial)
+	// Renewal issues a replacement certificate: the old serial disappears from
+	// the account and any future renewal must use the new one.
+	fmt.Printf("Certificate renewed: %s -> %s\n", cfg.RenewSerial, vpnInfo.SerialNumber)
 	fmt.Printf("Device name: %s\n", deviceName)
 	fmt.Printf("New expiry: %s\n", time.Unix(vpnInfo.ExpirationTime, 0).UTC().Format("2006-01-02 15:04 UTC"))
 	return nil

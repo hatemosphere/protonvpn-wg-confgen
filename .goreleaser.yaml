@@ -11,7 +11,7 @@ before:
 # PROTON_VERSION; the default must track proton-vpn-gtk-app's versions.yml,
 # since an outdated value is rejected by the API with code 5003.
 env:
-  - PROTON_VERSION={{ envOrDefault "PROTON_VERSION" "4.17.2" }}
+  - PROTON_VERSION={{ envOrDefault "PROTON_VERSION" "4.18.1" }}
 
 builds:
   - id: protonvpn-wg-confgen

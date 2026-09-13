@@ -18,8 +18,8 @@ const (
 // API version headers - can be overridden at build time via ldflags:
 // go build -ldflags "-X .../internal/constants.AppVersion=linux-vpn@X.Y.Z"
 var (
-	AppVersion = "linux-vpn@4.17.2"
-	UserAgent  = "ProtonVPN/4.17.2 (Linux; Ubuntu)"
+	AppVersion = "linux-vpn@4.18.1"
+	UserAgent  = "ProtonVPN/4.18.1 (Linux; Ubuntu)"
 )
 
 // API response codes

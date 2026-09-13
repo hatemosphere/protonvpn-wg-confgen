@@ -92,14 +92,14 @@ func TestCertificateFeatures(t *testing.T) {
 // reported features are kept and translated back into request form, and only
 // flags given explicitly on the command line override them.
 func TestRenewalPreservesFeatures(t *testing.T) {
-	// A cert created with NetShield 2, Moderate NAT on, port forwarding on,
-	// accelerator off. Note moderate-nat reports as the inverse of RandomNAT.
-	current := &api.CertFeatures{NetshieldLevel: 2, ModerateNAT: true, PortForwarding: true, VPNAccelerator: false}
+	// A cert created with NetShield 2, Moderate NAT on (RandomNAT false), port
+	// forwarding on, accelerator off - every value differs from the flag default.
+	current := &api.RequestFeatures{NetShieldLevel: 2, RandomNAT: false, PortForwarding: true, SplitTCP: false}
 
 	tests := []struct {
 		name    string
 		cfg     config.Config
-		current *api.CertFeatures
+		current *api.RequestFeatures
 		want    map[string]any
 	}{
 		{
