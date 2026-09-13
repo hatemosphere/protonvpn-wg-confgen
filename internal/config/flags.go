@@ -61,7 +61,7 @@ func Parse() (*Config, error) {
 	flag.StringVar(&cfg.SessionDuration, "session-duration", "0", "Session cache duration (e.g., 12h, 24h, 7d). 0 = no expiration")
 
 	// Human verification
-	flag.StringVar(&cfg.HVToken, "hv-token", "", "Human verification token to replay after solving a CAPTCHA (see the code 9001 error)")
+	flag.StringVar(&cfg.HVToken, "hv-token", "", "Human verification token to replay after solving a CAPTCHA (see the code 9001 error); or set "+constants.HVTokenEnv)
 
 	// Advanced configuration
 	flag.StringVar(&cfg.APIURL, "api-url", constants.DefaultAPIURL, "ProtonVPN API URL")
@@ -82,9 +82,18 @@ func Parse() (*Config, error) {
 	flag.Usage = PrintUsage
 	flag.Parse()
 
+	cfg.Explicit = map[string]bool{}
+	flag.Visit(func(f *flag.Flag) { cfg.Explicit[f.Name] = true })
+
+	// The token is long and pasted from a browser; the env var keeps it out of
+	// shell history and ps. The flag wins when both are set.
+	if cfg.HVToken == "" {
+		cfg.HVToken = os.Getenv(constants.HVTokenEnv)
+	}
+
 	// Session certificates max out at 7 days, so fall back to that instead of
 	// the 365d persistent default when --duration was not given explicitly.
-	if cfg.NoSave && !isFlagSet("duration") {
+	if cfg.NoSave && !cfg.Explicit["duration"] {
 		cfg.Duration = constants.DefaultSessionCertDuration
 	}
 
@@ -92,30 +101,15 @@ func Parse() (*Config, error) {
 		return nil, err
 	}
 
-	// Parse and validate country codes (needed by most modes)
-	if countriesFlag != "" {
-		cfg.Countries = parseCountries(countriesFlag)
-		for _, country := range cfg.Countries {
-			if !validation.IsValidCountryCode(country) {
-				return nil, fmt.Errorf("invalid country code: %s", country)
-			}
-		}
+	countries, err := validatedCountries(countriesFlag)
+	if err != nil {
+		return nil, err
 	}
+	cfg.Countries = countries
 
-	// --list-configs does not need a country filter.
-	if cfg.ListConfigs {
-		cfg.Username = validation.CleanUsername(cfg.Username)
-		return cfg, nil
-	}
-
-	// --list-servers does not need a country filter either.
-	if cfg.ListServers {
-		cfg.Username = validation.CleanUsername(cfg.Username)
-		return cfg, nil
-	}
-
-	// --renew-serial may optionally filter by country, but doesn't require it.
-	if cfg.RenewSerial != "" {
+	// The listing and renew modes take an optional country filter but never
+	// require one, and need none of the network defaults below.
+	if cfg.ListConfigs || cfg.ListServers || cfg.RenewSerial != "" {
 		cfg.Username = validation.CleanUsername(cfg.Username)
 		return cfg, nil
 	}
@@ -188,17 +182,6 @@ func validateDuration(cfg *Config) error {
 	return nil
 }
 
-// isFlagSet reports whether the named flag was provided on the command line.
-func isFlagSet(name string) bool {
-	found := false
-	flag.Visit(func(f *flag.Flag) {
-		if f.Name == name {
-			found = true
-		}
-	})
-	return found
-}
-
 // parseCommaSeparatedList parses a comma-separated string into a trimmed slice
 func parseCommaSeparatedList(input string) []string {
 	parts := strings.Split(input, ",")
@@ -210,6 +193,21 @@ func parseCommaSeparatedList(input string) []string {
 		}
 	}
 	return result
+}
+
+// validatedCountries parses a comma-separated country list and rejects
+// anything that is not a two-letter code. Empty input yields nil.
+func validatedCountries(raw string) ([]string, error) {
+	if raw == "" {
+		return nil, nil
+	}
+	countries := parseCountries(raw)
+	for _, c := range countries {
+		if !validation.IsValidCountryCode(c) {
+			return nil, fmt.Errorf("invalid country code: %s", c)
+		}
+	}
+	return countries, nil
 }
 
 // parseCountries parses and normalizes country codes (deduplicated)

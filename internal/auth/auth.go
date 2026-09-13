@@ -459,7 +459,8 @@ func captchaError(session *api.Session, apiURL string) error {
 			"  3. Solve the CAPTCHA. The logged token looks like\n" +
 			"       " + token + ":<long-response>\n" +
 			"     that is, the challenge above, a colon, then the solved response.\n" +
-			"  4. Re-run with the whole string, quoted, as --hv-token:\n" +
+			"  4. Re-run with the whole string, quoted, as --hv-token, or export it as\n" +
+			"     " + constants.HVTokenEnv + " to keep it out of shell history:\n" +
 			"       --hv-token '" + token + ":<long-response>'\n\n" +
 			"Challenge tokens expire, so if step 4 reports 9001 again, start over\n" +
 			"from the fresh token in the new error.\n\n" +

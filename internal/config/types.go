@@ -55,4 +55,8 @@ type Config struct {
 
 	// Human verification token replayed after solving a CAPTCHA out of band
 	HVToken string
+
+	// Explicit records which flags were given on the command line, so callers
+	// can tell "--netshield 0" apart from the default.
+	Explicit map[string]bool
 }

@@ -3,6 +3,7 @@ package config
 import (
 	"flag"
 	"io"
+	"os"
 	"testing"
 
 	"protonvpn-wg-confgen/internal/constants"
@@ -86,5 +87,38 @@ func TestFlagGroupsCoverAllFlags(t *testing.T) {
 		default:
 			t.Errorf("flag %q appears in %d groups", name, seen[name])
 		}
+	}
+}
+
+// TestHVTokenEnvFallback checks the env var fills --hv-token only when the
+// flag is absent.
+func TestHVTokenEnvFallback(t *testing.T) {
+	const fromEnv = "from-env"
+	for _, tt := range []struct{ name, flag, env, want string }{
+		{"env only", "", fromEnv, fromEnv},
+		{"flag wins over env", "from-flag", fromEnv, "from-flag"},
+		{"neither", "", "", ""},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			old := flag.CommandLine
+			flag.CommandLine = flag.NewFlagSet("test", flag.ContinueOnError)
+			flag.CommandLine.SetOutput(io.Discard)
+			defer func() { flag.CommandLine = old }()
+			t.Setenv(constants.HVTokenEnv, tt.env)
+
+			args := []string{"--list-configs"}
+			if tt.flag != "" {
+				args = append(args, "--hv-token", tt.flag)
+			}
+			os.Args = append([]string{"test"}, args...)
+
+			cfg, err := Parse()
+			if err != nil {
+				t.Fatal(err)
+			}
+			if cfg.HVToken != tt.want {
+				t.Errorf("HVToken = %q, want %q", cfg.HVToken, tt.want)
+			}
+		})
 	}
 }

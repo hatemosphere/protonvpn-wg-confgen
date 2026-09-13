@@ -194,7 +194,7 @@ func renewSerial(cfg *config.Config, vpnClient *vpn.Client) error {
 		return fmt.Errorf("certificate %s has no device name", cfg.RenewSerial)
 	}
 
-	vpnInfo, err := vpnClient.RenewCertificate(target.ClientKey, deviceName)
+	vpnInfo, err := vpnClient.RenewCertificate(target.ClientKey, deviceName, target.Features)
 	if err != nil {
 		return fmt.Errorf("failed to renew certificate: %w", err)
 	}

@@ -45,36 +45,42 @@ type ErrorDetails struct {
 
 // VPNInfo represents VPN certificate information
 type VPNInfo struct {
-	Code                 int    `json:"Code"`
-	Error                string `json:"Error,omitempty"`
-	SerialNumber         string `json:"SerialNumber"`
-	ClientKeyFingerprint string `json:"ClientKeyFingerprint"`
-	ClientKey            string `json:"ClientKey"`
-	Certificate          string `json:"Certificate"`
-	ExpirationTime       int64  `json:"ExpirationTime"`
-	RefreshTime          int64  `json:"RefreshTime"`
-	Mode                 string `json:"Mode"`
-	DeviceName           string `json:"DeviceName"`
-	ServerPublicKeyMode  string `json:"ServerPublicKeyMode"`
-	ServerPublicKey      string `json:"ServerPublicKey"`
-	Features             struct {
-		Bouncing       bool `json:"bouncing"`
-		ModerateNAT    bool `json:"moderate-nat"`
-		NetshieldLevel int  `json:"netshield-level"`
-		PortForwarding bool `json:"port-forwarding"`
-		VPNAccelerator bool `json:"vpn-accelerator"`
-	} `json:"Features"`
+	Code                 int          `json:"Code"`
+	Error                string       `json:"Error,omitempty"`
+	SerialNumber         string       `json:"SerialNumber"`
+	ClientKeyFingerprint string       `json:"ClientKeyFingerprint"`
+	ClientKey            string       `json:"ClientKey"`
+	Certificate          string       `json:"Certificate"`
+	ExpirationTime       int64        `json:"ExpirationTime"`
+	RefreshTime          int64        `json:"RefreshTime"`
+	Mode                 string       `json:"Mode"`
+	DeviceName           string       `json:"DeviceName"`
+	ServerPublicKeyMode  string       `json:"ServerPublicKeyMode"`
+	ServerPublicKey      string       `json:"ServerPublicKey"`
+	Features             CertFeatures `json:"Features"`
+}
+
+// CertFeatures is how the API reports a certificate's features. The keys differ
+// from the request side (NetShieldLevel, RandomNAT, PortForwarding, SplitTCP),
+// and moderate-nat is the inverse of RandomNAT.
+type CertFeatures struct {
+	Bouncing       bool `json:"bouncing"`
+	ModerateNAT    bool `json:"moderate-nat"`
+	NetshieldLevel int  `json:"netshield-level"`
+	PortForwarding bool `json:"port-forwarding"`
+	VPNAccelerator bool `json:"vpn-accelerator"`
 }
 
 // VPNCertificate represents a single certificate entry returned by /vpn/v1/certificate/all.
 type VPNCertificate struct {
-	SerialNumber         string `json:"SerialNumber"`
-	ClientKeyFingerprint string `json:"ClientKeyFingerprint"`
-	ClientKey            string `json:"ClientKey"`
-	DeviceName           string `json:"DeviceName,omitempty"`
-	Mode                 string `json:"Mode"`
-	ExpirationTime       int64  `json:"ExpirationTime"`
-	RefreshTime          int64  `json:"RefreshTime"`
+	SerialNumber         string        `json:"SerialNumber"`
+	ClientKeyFingerprint string        `json:"ClientKeyFingerprint"`
+	ClientKey            string        `json:"ClientKey"`
+	DeviceName           string        `json:"DeviceName,omitempty"`
+	Mode                 string        `json:"Mode"`
+	ExpirationTime       int64         `json:"ExpirationTime"`
+	RefreshTime          int64         `json:"RefreshTime"`
+	Features             *CertFeatures `json:"Features,omitempty"` // nil when the API omits it
 }
 
 // CertListResponse is the response body for GET /vpn/v1/certificate/all.

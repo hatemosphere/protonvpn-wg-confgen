@@ -89,7 +89,10 @@ func (c *Client) GetCertificate(keyPair *ed25519.KeyPair) (*api.VPNInfo, error) 
 
 // RenewCertificate renews an existing persistent certificate by reusing its public key.
 // Unlike GetCertificate, this does not generate a new key pair and sends Renew: true.
-func (c *Client) RenewCertificate(publicKeyPEM, deviceName string) (*api.VPNInfo, error) {
+// current is the certificate's features as reported by the API; they are kept
+// unless the matching flag was given explicitly. A nil current falls back to
+// the flags entirely.
+func (c *Client) RenewCertificate(publicKeyPEM, deviceName string, current *api.CertFeatures) (*api.VPNInfo, error) {
 	durationStr, err := timeutil.ParseToMinutes(c.config.Duration)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse duration: %w", err)
@@ -101,9 +104,43 @@ func (c *Client) RenewCertificate(publicKeyPEM, deviceName string) (*api.VPNInfo
 		"Mode":                constants.CertMode,
 		"DeviceName":          deviceName,
 		"Duration":            durationStr,
-		"Features":            c.certificateFeatures(),
+		"Features":            c.renewalFeatures(current),
 		"Renew":               true,
 	})
+}
+
+// Request-side feature keys, from python-proton-vpn-api-core's fetcher.py.
+const (
+	featNetShield      = "NetShieldLevel"
+	featRandomNAT      = "RandomNAT"
+	featPortForwarding = "PortForwarding"
+	featSplitTCP       = "SplitTCP"
+)
+
+// renewalFeatures translates the API's reported features back into request
+// form, then lets explicitly passed flags override individual values.
+func (c *Client) renewalFeatures(current *api.CertFeatures) map[string]any {
+	flags := c.certificateFeatures()
+	if current == nil {
+		return flags
+	}
+	features := map[string]any{
+		featNetShield:      current.NetshieldLevel,
+		featRandomNAT:      !current.ModerateNAT,
+		featPortForwarding: current.PortForwarding,
+		featSplitTCP:       current.VPNAccelerator,
+	}
+	for flagName, key := range map[string]string{
+		"netshield":       featNetShield,
+		"moderate-nat":    featRandomNAT,
+		"port-forwarding": featPortForwarding,
+		"accelerator":     featSplitTCP,
+	} {
+		if c.config.Explicit[flagName] {
+			features[key] = flags[key]
+		}
+	}
+	return features
 }
 
 // GetServers fetches the list of VPN servers
@@ -163,10 +200,10 @@ func (c *Client) deviceName() string {
 
 func (c *Client) certificateFeatures() map[string]any {
 	return map[string]any{
-		"NetShieldLevel": c.config.NetShield,
+		featNetShield: c.config.NetShield,
 		// Proton's API field is inverted: RandomNAT=false enables Moderate NAT.
-		"RandomNAT":      !c.config.ModerateNAT,
-		"PortForwarding": c.config.PortForwarding,
-		"SplitTCP":       c.config.EnableAccelerator,
+		featRandomNAT:      !c.config.ModerateNAT,
+		featPortForwarding: c.config.PortForwarding,
+		featSplitTCP:       c.config.EnableAccelerator,
 	}
 }

@@ -64,7 +64,7 @@ Flags are given as `--name value` or `--name=value`; the two forms are interchan
 | *(default)* | Generate a WireGuard configuration |
 | `list-servers` | List available servers (country, name, city, load, score, tier, features) and exit. Honors `--countries`, `--secure-core`, `--p2p-only`, and `--free-only` |
 | `list-configs` | List persistent configurations on the account (SerialNumber, DeviceName, expiry, key fingerprint) and exit |
-| `renew-serial <serial>` | Renew a persistent certificate by SerialNumber, reusing its existing key. Extends it server-side and writes no `.conf` file. Feature flags are not read back from the certificate, so pass `--netshield`, `--port-forwarding` etc. again |
+| `renew-serial <serial>` | Renew a persistent certificate by SerialNumber, reusing its existing key and its current features. Extends it server-side and writes no `.conf` file. Pass a feature flag explicitly to change it on renewal |
 
 ### Server selection
 
@@ -88,7 +88,7 @@ Flags are given as `--name value` or `--name=value`; the two forms are interchan
 | `allowed-ips` | *(per `--ipv6`)* | Comma-separated allowed IPs |
 | `accelerator` | `true` | VPN accelerator |
 | `port-forwarding` | `false` | NAT-PMP port forwarding (Plus tier, P2P servers) |
-| `netshield` | `0` | `0`: off, `1`: block malware, `2`: block malware, ads and trackers; applies to generation and renewal |
+| `netshield` | `0` | `0`: off, `1`: block malware, `2`: block malware, ads and trackers |
 | `moderate-nat` | `false` | Moderate NAT (paid plans). Cannot be combined with `--port-forwarding` |
 
 ### Certificate and session
@@ -101,7 +101,7 @@ Flags are given as `--name value` or `--name=value`; the two forms are interchan
 | `clear-session` | `false` | Clear the saved session and re-authenticate |
 | `no-session` | `false` | Disable session persistence entirely |
 | `force-refresh` | `false` | Refresh the session even if it is not expiring soon |
-| `hv-token` | | Human verification token replayed after solving a CAPTCHA out of band, see below |
+| `hv-token` | | Human verification token replayed after solving a CAPTCHA out of band, see below. Falls back to `PROTONVPN_HV_TOKEN` |
 | `api-url` | `https://vpn-api.proton.me` | ProtonVPN API base URL |
 
 ## Examples
@@ -222,10 +222,12 @@ whole colon-joined string is what the API accepts.
    ```
 
 3. Solve the CAPTCHA. The logged token looks like `zB2tiSsS...:RoIAZ83v...`
-4. Re-run with the whole string, quoted - the response can contain `/`:
+4. Re-run with the whole string, quoted - the response can contain `/`. Or export it as `PROTONVPN_HV_TOKEN`, which keeps it out of shell history and `ps`:
 
 ```bash
 protonvpn-wg-confgen --username myusername --countries US --hv-token '<challenge>:<response>'
+# or
+PROTONVPN_HV_TOKEN='<challenge>:<response>' protonvpn-wg-confgen --username myusername --countries US
 ```
 
 Challenge tokens expire, so if step 4 reports 9001 again, restart from the fresh
