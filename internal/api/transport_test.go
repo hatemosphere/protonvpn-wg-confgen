@@ -64,29 +64,29 @@ func TestNewRequestHeaders(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	post, err := NewRequest(http.MethodPost, "https://example.invalid", map[string]any{"a": 1}, &Session{UID: "uid", AccessToken: "tok"})
+	post, err := NewRequest(http.MethodPost, "https://example.invalid", Body{{Key: "a", Value: 1}}, &Session{UID: "uid", AccessToken: "tok"})
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	for _, req := range []*http.Request{get, post} {
-		if got := req.Header.Get("Accept"); got != "*/*" {
+		if got := first(req, "Accept"); got != "*/*" {
 			t.Errorf("Accept = %q", got)
 		}
-		if got := req.Header.Get("Accept-Encoding"); got != "gzip, deflate" {
+		if got := first(req, "Accept-Encoding"); got != "gzip, deflate" {
 			t.Errorf("Accept-Encoding = %q", got)
 		}
 	}
-	if got := get.Header.Get("Content-Type"); got != "" {
+	if got := first(get, "Content-Type"); got != "" {
 		t.Errorf("bodyless request has Content-Type %q", got)
 	}
-	if got := get.Header.Get("Authorization"); got != "" {
+	if got := first(get, "Authorization"); got != "" {
 		t.Errorf("unauthenticated request has Authorization %q", got)
 	}
-	if got := post.Header.Get("Content-Type"); got != "application/json" {
+	if got := first(post, "Content-Type"); got != "application/json" {
 		t.Errorf("Content-Type = %q", got)
 	}
-	if post.Header.Get("Authorization") != "Bearer tok" || first(post, "x-pm-uid") != "uid" {
+	if first(post, "Authorization") != "Bearer tok" || first(post, "x-pm-uid") != "uid" {
 		t.Errorf("credentials not set: %v", post.Header)
 	}
 }

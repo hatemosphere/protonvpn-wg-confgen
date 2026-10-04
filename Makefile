@@ -1,4 +1,4 @@
-.PHONY: build build-all clean test fmt vet lint install vendor run dev show-version
+.PHONY: parity-goldens build build-all clean test fmt vet lint install vendor run dev show-version
 
 BINARY_NAME=protonvpn-wg-confgen
 BUILD_DIR=build
@@ -96,3 +96,13 @@ dev:
 # Show current ProtonVPN version that would be used
 show-version:
 	@echo "ProtonVPN client version: $(PROTON_VERSION)"
+
+# Re-record the wire-parity goldens from the official ProtonVPN Linux client.
+# Builds an Ubuntu 24.04 image with Proton's own packages, drives them against
+# a recording server, and refreshes test/parity/testdata plus the embedded TLS
+# ClientHello. Needs docker. Run this when Proton ships a new client, then
+# `go test ./...`: a failure there is a real divergence from the official client.
+parity-goldens:
+	docker build -q -t pwg-parity test/parity
+	docker run --rm -v "$(CURDIR)/test/parity":/parity pwg-parity python3 official.py
+	mv test/parity/clienthello.bin internal/api/clienthello_ubuntu2404.bin

@@ -129,21 +129,38 @@ Note that the "the API does not allow intervals shorter than 1 day" comment in `
 
 **Note:** Codes 9100 and 10013 were observed during VPN operations but are not documented in the official protoncore_android library. Their meanings may vary by context.
 
-## Required Headers
+## Request Format
 
-All authenticated requests require these headers:
+Requests reproduce the official Linux client byte for byte. Recorded from Proton's own packages on Ubuntu 24.04 (api-core 5.8.3, aiohttp 3.9.1, OpenSSL 3.0.13):
 
 ```
-Authorization: Bearer <access_token>
-x-pm-uid: <session_uid>
-x-pm-appversion: linux-vpn-gui@X.Y.Z+x86-64
-User-Agent: ProtonVPN/X.Y.Z (Linux; ubuntu/24.04)
+POST /auth/2fa HTTP/1.1
+Host: vpn-api.proton.me
+x-pm-appversion: linux-vpn-gui@5.8.3+x86-64
+User-Agent: ProtonVPN/5.8.3 (Linux; ubuntu/24.04)
+x-pm-uid: <session uid>
+Authorization: Bearer <access token>
+x-pm-timezone: Europe/Zurich
+Accept: */*
+Accept-Encoding: gzip, deflate
+Content-Length: 27
 Content-Type: application/json
+
+{"TwoFactorCode": "123456"}
 ```
 
-`X.Y.Z` is the version of `python-proton-vpn-api-core`, not of the GTK app: the official client builds both headers in `SessionHolder` (`proton/vpn/core/session_holder.py`) from the library version, appending the CPU architecture as semver build metadata. Until v0.14.0 this tool sent `linux-vpn@<GTK app version>`, an identifier the official client does not use.
+- **`x-pm-appversion`** is `linux-vpn-gui@<version>+<arch>`. The version is `python-proton-vpn-api-core`'s, not the GTK app's, and the architecture is `platform.machine()` with underscores as hyphens. Both headers are built in `SessionHolder` (`proton/vpn/core/session_holder.py`). Until v0.14.0 this tool sent `linux-vpn@<GTK app version>`, which the official client does not use.
+- **Order and spelling** are aiohttp's: session headers, per-request headers, aiohttp defaults, then body headers. Custom headers are lowercase.
+- **`x-pm-uid` and `Authorization`** appear only on authenticated requests, `Content-Length` and `Content-Type` only with a body.
+- **`x-pm-timezone`** is the IANA name `/etc/localtime` points to, omitted when unresolvable. python-proton-core's own calls, the `/tests/ping` transport probe and `/auth/refresh`, do not carry it.
+- **`x-pm-locale`** is sent by the official client only with a non-English catalog active, so it is not sent here.
+- **Bodies** are Python `json.dumps` output: `", "` and `": "` separators, keys in insertion order, non-ASCII escaped.
+- **Connection**: HTTP/1.1, one connection per request, TLS ClientHello as OpenSSL 3.0.13 produces it under aiohttp's certificate-pinning path.
+- **2FA** is always a separate `POST /auth/2fa` after `/auth`, never a field of the `/auth` body.
 
-**Important**: Using a web client version (like `web-vpn-settings@X.Y.Z`) may trigger CAPTCHA challenges. Always use the Linux client version format.
+`make parity-goldens` re-records all of this from the official client; `go test` fails on any divergence.
+
+**Important**: Using a web client version (like `web-vpn-settings@X.Y.Z`) may trigger CAPTCHA challenges.
 
 ## Token Refresh
 

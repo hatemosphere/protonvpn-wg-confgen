@@ -135,7 +135,7 @@ func (c *Client) Authenticate() (*api.Session, error) {
 // pick a transport before its first real request. The result is irrelevant
 // here; only the request pattern matters.
 func (c *Client) ping() {
-	req, err := api.NewRequest(http.MethodGet, c.config.APIURL+constants.PingPath, nil, nil)
+	req, err := api.NewCoreRequest(http.MethodGet, c.config.APIURL+constants.PingPath, nil, nil)
 	if err != nil {
 		return
 	}
@@ -214,12 +214,12 @@ func (c *Client) generateSRPProofs(authInfo *api.AuthInfoResponse) (*srp.Proofs,
 }
 
 // buildAuthRequest builds the authentication request payload
-func (c *Client) buildAuthRequest(authInfo *api.AuthInfoResponse, proofs *srp.Proofs) map[string]any {
-	return map[string]any{
-		"Username":        c.config.Username,
-		"ClientEphemeral": base64.StdEncoding.EncodeToString(proofs.ClientEphemeral),
-		"ClientProof":     base64.StdEncoding.EncodeToString(proofs.ClientProof),
-		"SRPSession":      authInfo.SRPSession,
+func (c *Client) buildAuthRequest(authInfo *api.AuthInfoResponse, proofs *srp.Proofs) api.Body {
+	return api.Body{
+		{Key: "Username", Value: c.config.Username},
+		{Key: "ClientEphemeral", Value: base64.StdEncoding.EncodeToString(proofs.ClientEphemeral)},
+		{Key: "ClientProof", Value: base64.StdEncoding.EncodeToString(proofs.ClientProof)},
+		{Key: "SRPSession", Value: authInfo.SRPSession},
 	}
 }
 
@@ -369,7 +369,7 @@ func (c *Client) get2FACode() (string, error) {
 
 func (c *Client) getAuthInfo() (*api.AuthInfoResponse, error) {
 	req, err := api.NewRequest(http.MethodPost, c.config.APIURL+constants.AuthInfoPath,
-		map[string]any{"Username": c.config.Username}, nil)
+		api.Body{{Key: "Username", Value: c.config.Username}}, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -394,7 +394,7 @@ func (c *Client) getAuthInfo() (*api.AuthInfoResponse, error) {
 	return &authInfo, nil
 }
 
-func (c *Client) sendAuthRequest(authReq map[string]any) (*api.Session, error) {
+func (c *Client) sendAuthRequest(authReq api.Body) (*api.Session, error) {
 	req, err := api.NewRequest(http.MethodPost, c.config.APIURL+constants.AuthPath, authReq, nil)
 	if err != nil {
 		return nil, err
@@ -477,7 +477,7 @@ func captchaError(session *api.Session, apiURL string) error {
 // submit2FA submits a 2FA code to upgrade the session with additional scopes (like VPN)
 func (c *Client) submit2FA(session *api.Session, code string) ([]string, error) {
 	req, err := api.NewRequest(http.MethodPost, c.config.APIURL+constants.TwoFAPath,
-		map[string]any{"TwoFactorCode": code}, session)
+		api.Body{{Key: "TwoFactorCode", Value: code}}, session)
 	if err != nil {
 		return nil, err
 	}

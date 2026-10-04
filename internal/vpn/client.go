@@ -31,7 +31,7 @@ func NewClient(cfg *config.Config, session *api.Session) *Client {
 }
 
 // doJSON performs an authenticated request and decodes the JSON response into out.
-func (c *Client) doJSON(method, url string, body, out any) error {
+func (c *Client) doJSON(method, url string, body api.Body, out any) error {
 	req, err := api.NewRequest(method, url, body, c.session)
 	if err != nil {
 		return err
@@ -40,7 +40,7 @@ func (c *Client) doJSON(method, url string, body, out any) error {
 }
 
 // requestCertificate posts a certificate request and validates the response code.
-func (c *Client) requestCertificate(certReq map[string]any) (*api.VPNInfo, error) {
+func (c *Client) requestCertificate(certReq api.Body) (*api.VPNInfo, error) {
 	var vpnInfo api.VPNInfo
 	if err := c.doJSON(http.MethodPost, c.config.APIURL+constants.CertificatePath, certReq, &vpnInfo); err != nil {
 		return nil, err
@@ -68,20 +68,21 @@ func (c *Client) GetCertificate(keyPair *ed25519.KeyPair) (*api.VPNInfo, error) 
 		return nil, fmt.Errorf("failed to parse duration: %w", err)
 	}
 
-	// Build certificate request matching official ProtonVPN API format
-	// Feature keys from: python-proton-vpn-api-core/proton/vpn/session/fetcher.py
-	certReq := map[string]any{
-		"ClientPublicKey":     publicKeyPEM,
-		"ClientPublicKeyMode": constants.PublicKeyMode,
-		"Duration":            durationStr,
-		"Features":            c.certificateFeatures(),
+	// The official client sends exactly ClientPublicKey, Duration and Features,
+	// in that order (fetcher.py). A session certificate adds only the key mode.
+	certReq := api.Body{
+		{Key: "ClientPublicKey", Value: publicKeyPEM},
+		{Key: "Duration", Value: durationStr},
+		{Key: "Features", Value: featuresBody(c.certificateFeatures())},
+		{Key: "ClientPublicKeyMode", Value: constants.PublicKeyMode},
 	}
 
-	// When NoSave is set, omit Mode and DeviceName so the cert is session-only
-	// and won't appear in the ProtonVPN dashboard.
+	// Mode and DeviceName register the certificate on the account, which is the
+	// dashboard's flow rather than the Linux client's. NoSave omits them.
 	if !c.config.NoSave {
-		certReq["Mode"] = constants.CertMode // "persistent"
-		certReq["DeviceName"] = c.deviceName()
+		certReq = append(certReq,
+			api.Field{Key: "Mode", Value: constants.CertMode},
+			api.Field{Key: "DeviceName", Value: c.deviceName()})
 	}
 
 	return c.requestCertificate(certReq)
@@ -98,15 +99,26 @@ func (c *Client) RenewCertificate(publicKeyPEM, deviceName string, current *api.
 		return nil, fmt.Errorf("failed to parse duration: %w", err)
 	}
 
-	return c.requestCertificate(map[string]any{
-		"ClientPublicKey":     publicKeyPEM,
-		"ClientPublicKeyMode": constants.PublicKeyMode,
-		"Mode":                constants.CertMode,
-		"DeviceName":          deviceName,
-		"Duration":            durationStr,
-		"Features":            c.renewalFeatures(current),
-		"Renew":               true,
+	return c.requestCertificate(api.Body{
+		{Key: "ClientPublicKey", Value: publicKeyPEM},
+		{Key: "Duration", Value: durationStr},
+		{Key: "Features", Value: featuresBody(c.renewalFeatures(current))},
+		{Key: "ClientPublicKeyMode", Value: constants.PublicKeyMode},
+		{Key: "Mode", Value: constants.CertMode},
+		{Key: "DeviceName", Value: deviceName},
+		{Key: "Renew", Value: true},
 	})
+}
+
+// featuresBody orders the features as fetcher.py's _convert_features does.
+func featuresBody(features map[string]any) api.Body {
+	body := make(api.Body, 0, len(features))
+	for _, key := range []string{featRandomNAT, featSplitTCP, featPortForwarding, featNetShield} {
+		if value, ok := features[key]; ok {
+			body = append(body, api.Field{Key: key, Value: value})
+		}
+	}
+	return body
 }
 
 // Request-side feature keys, from python-proton-vpn-api-core's fetcher.py.

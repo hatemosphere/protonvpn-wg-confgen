@@ -4,30 +4,15 @@ import (
 	"bytes"
 	"compress/gzip"
 	"compress/zlib"
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"protonvpn-wg-confgen/internal/constants"
 )
-
-// NewHTTPClient returns a client that speaks HTTP/1.1 only. The official Linux
-// client uses aiohttp, which has no HTTP/2 support, so negotiating h2 would be
-// a visible difference. An empty TLSNextProto map is how net/http disables it.
-func NewHTTPClient(timeout time.Duration) *http.Client {
-	return &http.Client{
-		Timeout: timeout,
-		Transport: &http.Transport{
-			Proxy:        http.ProxyFromEnvironment,
-			TLSNextProto: map[string]func(string, *tls.Conn) http.RoundTripper{},
-		},
-	}
-}
 
 // localTimezone returns the IANA name of the system timezone, e.g.
 // "Europe/Zurich", or "" when it cannot be resolved. It mirrors the official
@@ -46,23 +31,33 @@ func localTimezone() string {
 	return strings.TrimPrefix(strings.TrimPrefix(name, "posix/"), "right/")
 }
 
-// setRaw sets a header without canonicalizing its name. Header.Set would send
-// "X-Pm-Appversion"; the official client sends these lowercase.
+const timezoneHeader = "x-pm-timezone"
+
+// setRaw sets a header under its exact name. Header.Set would canonicalize it,
+// and the wire transport looks headers up by the spelling it sends.
 func setRaw(req *http.Request, name, value string) {
 	req.Header[name] = []string{value}
+}
+
+// NewCoreRequest builds a request the way python-proton-core issues its own
+// internal calls, the transport probe and the token refresh: without the client
+// description headers that the VPN session layer adds to everything else.
+func NewCoreRequest(method, url string, body Body, session *Session) (*http.Request, error) {
+	req, err := NewRequest(method, url, body, session)
+	if err != nil {
+		return nil, err
+	}
+	delete(req.Header, timezoneHeader)
+	return req, nil
 }
 
 // NewRequest builds a Proton API request with the headers every endpoint expects.
 // A nil body sends no payload. A nil session omits the credentials, which is
 // what the pre-authentication endpoints need.
-func NewRequest(method, url string, body any, session *Session) (*http.Request, error) {
+func NewRequest(method, url string, body Body, session *Session) (*http.Request, error) {
 	var payload io.Reader = http.NoBody
 	if body != nil {
-		encoded, err := json.Marshal(body)
-		if err != nil {
-			return nil, err
-		}
-		payload = bytes.NewReader(encoded)
+		payload = bytes.NewReader(body.encode())
 	}
 
 	req, err := http.NewRequest(method, url, payload)
@@ -70,23 +65,22 @@ func NewRequest(method, url string, body any, session *Session) (*http.Request, 
 		return nil, err
 	}
 
-	// The header set follows the official Linux client: aiohttp's defaults
-	// (Accept, Accept-Encoding, and Content-Type only when there is a body)
-	// plus what python-proton-core and python-proton-vpn-api-core add. The
-	// client also sends x-pm-locale, but only with a non-English catalog active.
-	req.Header.Set("Accept", "*/*")
-	req.Header.Set("Accept-Encoding", "gzip, deflate")
+	// The set and spelling follow the official Linux client; wire.go fixes the
+	// order. The client also sends x-pm-locale, but only with a non-English
+	// catalog active.
+	setRaw(req, "Accept", "*/*")
+	setRaw(req, "Accept-Encoding", "gzip, deflate")
 	if body != nil {
-		req.Header.Set("Content-Type", "application/json")
+		setRaw(req, "Content-Type", "application/json")
 	}
 	setRaw(req, "x-pm-appversion", constants.AppVersion())
-	req.Header.Set("User-Agent", constants.UserAgent())
+	setRaw(req, "User-Agent", constants.UserAgent())
 	if tz := localTimezone(); tz != "" {
-		setRaw(req, "x-pm-timezone", tz)
+		setRaw(req, timezoneHeader, tz)
 	}
 
 	if session != nil {
-		req.Header.Set("Authorization", "Bearer "+session.AccessToken)
+		setRaw(req, "Authorization", "Bearer "+session.AccessToken)
 		setRaw(req, "x-pm-uid", session.UID)
 	}
 

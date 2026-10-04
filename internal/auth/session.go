@@ -124,14 +124,14 @@ func (s *SessionStore) Delete() error {
 // It returns a new session with updated tokens if successful.
 func RefreshSession(httpClient *http.Client, apiURL string, oldSession *api.Session) (*api.Session, error) {
 	// Based on proton-python-client/proton/api.py refresh() method
-	reqBody := map[string]any{
-		"ResponseType": "token",
-		"GrantType":    "refresh_token",
-		"RefreshToken": oldSession.RefreshToken,
-		"RedirectURI":  "http://protonmail.ch",
+	reqBody := api.Body{
+		{Key: "ResponseType", Value: "token"},
+		{Key: "GrantType", Value: "refresh_token"},
+		{Key: "RefreshToken", Value: oldSession.RefreshToken},
+		{Key: "RedirectURI", Value: "http://protonmail.ch"},
 	}
 
-	req, err := api.NewRequest(http.MethodPost, apiURL+constants.RefreshPath, reqBody, oldSession)
+	req, err := api.NewCoreRequest(http.MethodPost, apiURL+constants.RefreshPath, reqBody, oldSession)
 	if err != nil {
 		return nil, err
 	}

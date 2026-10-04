@@ -38,7 +38,7 @@ func TestSendAuthRequestHumanVerification(t *testing.T) {
 			defer srv.Close()
 
 			c := NewClient(&config.Config{APIURL: srv.URL, HVToken: tt.hvToken})
-			if _, err := c.sendAuthRequest(map[string]any{usernameField: "u"}); err != nil {
+			if _, err := c.sendAuthRequest(api.Body{{Key: usernameField, Value: "u"}}); err != nil {
 				t.Fatalf("sendAuthRequest: %v", err)
 			}
 
