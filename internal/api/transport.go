@@ -29,8 +29,8 @@ func NewRequest(method, url string, body any, session *Session) (*http.Request, 
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("x-pm-appversion", constants.AppVersion)
-	req.Header.Set("User-Agent", constants.UserAgent)
+	req.Header.Set("x-pm-appversion", constants.AppVersion())
+	req.Header.Set("User-Agent", constants.UserAgent())
 
 	if session != nil {
 		req.Header.Set("Authorization", "Bearer "+session.AccessToken)

@@ -1,6 +1,8 @@
 // Package constants defines constants used throughout the application.
 package constants
 
+import "runtime"
+
 // API endpoints
 // Paths match the ProtonVPN Linux reference client (python-proton-core/python-proton-vpn-api-core).
 const (
@@ -15,12 +17,36 @@ const (
 	CaptchaPath = "/core/v4/captcha"
 )
 
-// API version headers - can be overridden at build time via ldflags:
-// go build -ldflags "-X .../internal/constants.AppVersion=linux-vpn@X.Y.Z"
-var (
-	AppVersion = "linux-vpn@4.18.1"
-	UserAgent  = "ProtonVPN/4.18.1 (Linux; Ubuntu)"
-)
+// ClientVersion is the version of python-proton-vpn-api-core being imitated.
+// Override at build time:
+// go build -ldflags "-X .../internal/constants.ClientVersion=X.Y.Z"
+//
+// The official Linux client stamps its headers with this library's version,
+// not the GTK app's, see SessionHolder in proton/vpn/core/session_holder.py.
+var ClientVersion = "5.8.3"
+
+// AppVersion returns the x-pm-appversion value the official Linux client sends:
+// linux-vpn-gui@<api-core version>+<cpu architecture>. The architecture rides
+// in the semver build metadata, formatted as Python's platform.machine() with
+// underscores turned into hyphens.
+func AppVersion() string {
+	arch := runtime.GOARCH
+	switch arch {
+	case "amd64":
+		arch = "x86-64"
+	case "arm64":
+		arch = "aarch64"
+	case "arm":
+		arch = "armv7l"
+	}
+	return "linux-vpn-gui@" + ClientVersion + "+" + arch
+}
+
+// UserAgent returns the User-Agent the official Linux client sends, which
+// names the distribution as "<id>/<version>".
+func UserAgent() string {
+	return "ProtonVPN/" + ClientVersion + " (Linux; ubuntu/24.04)"
+}
 
 // API response codes
 // Reference: proton-python-client/proton/api.py checks for codes 1000 and 1001

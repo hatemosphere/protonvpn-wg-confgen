@@ -37,7 +37,7 @@ cd protonvpn-wg-confgen
 make build          # produces ./build/protonvpn-wg-confgen
 ```
 
-`make build` stamps the binary with the current ProtonVPN Linux client version, fetched from upstream at build time. A plain `go build` falls back to the version compiled into `internal/constants`. Advertising an outdated client version gets rejected by the API with code 5003, so prefer `make build`.
+`make build` stamps the binary with the version the official ProtonVPN Linux client currently identifies as, fetched from upstream at build time. A plain `go build` falls back to the version compiled into `internal/constants`. Proton rejects or blocks logins from clients it does not recognize, so prefer `make build`.
 
 You will need a ProtonVPN account; a free one works, with the tier caveats noted below.
 

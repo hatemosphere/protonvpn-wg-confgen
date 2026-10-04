@@ -136,10 +136,12 @@ All authenticated requests require these headers:
 ```
 Authorization: Bearer <access_token>
 x-pm-uid: <session_uid>
-x-pm-appversion: linux-vpn@X.Y.Z
-User-Agent: ProtonVPN/X.Y.Z (Linux; Ubuntu)
+x-pm-appversion: linux-vpn-gui@X.Y.Z+x86-64
+User-Agent: ProtonVPN/X.Y.Z (Linux; ubuntu/24.04)
 Content-Type: application/json
 ```
+
+`X.Y.Z` is the version of `python-proton-vpn-api-core`, not of the GTK app: the official client builds both headers in `SessionHolder` (`proton/vpn/core/session_holder.py`) from the library version, appending the CPU architecture as semver build metadata. Until v0.14.0 this tool sent `linux-vpn@<GTK app version>`, an identifier the official client does not use.
 
 **Important**: Using a web client version (like `web-vpn-settings@X.Y.Z`) may trigger CAPTCHA challenges. Always use the Linux client version format.
 
