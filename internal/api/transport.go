@@ -32,7 +32,9 @@ func localTimezone() string {
 }
 
 const (
-	timezoneHeader = "x-pm-timezone"
+	timezoneHeader      = "x-pm-timezone"
+	netzoneHeader       = "X-PM-netzone"
+	modifiedSinceHeader = "If-Modified-Since"
 
 	// Content encodings aiohttp advertises without optional codecs installed.
 	encodingGzip    = "gzip"
@@ -102,6 +104,14 @@ const (
 	//nolint:gosec // G101: header names, not credentials
 	hvTokenTypeHeader = "x-pm-human-verification-token-type"
 )
+
+// SetServerListHeaders adds what the official client sends when listing
+// servers: the caller's network with the last octet zeroed, and a cache
+// validator, which is the epoch when nothing is cached.
+func SetServerListHeaders(req *http.Request, netzone string) {
+	setRaw(req, netzoneHeader, netzone)
+	setRaw(req, modifiedSinceHeader, "Thu, 01 Jan 1970 00:00:00 GMT")
+}
 
 // SetHumanVerification attaches a solved human verification token to a request.
 // The token is the HumanVerificationToken handed back in the 9001 response, and

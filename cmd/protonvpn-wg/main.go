@@ -40,6 +40,10 @@ func run() error {
 	fmt.Println("Authentication successful!")
 
 	vpnClient := vpn.NewClient(cfg, session)
+	if authClient.FreshLogin {
+		// The official client loads its session data right after signing in.
+		vpnClient.SyncSession()
+	}
 
 	switch {
 	case cfg.ListConfigs:

@@ -336,7 +336,11 @@ This is tested against the real thing. `test/parity/official.py` drives Proton's
 make parity-goldens   # re-record from the official client (needs docker), then run go test
 ```
 
-Covered: the transport probe, SRP info and proof, an authenticated GET, 2FA submission, token refresh, and the TLS handshake. Not covered: certificate requests carry `Mode` and `DeviceName` for persistent configurations, which the Linux client never sends, so those bodies cannot match by design.
+Covered: the transport probe, SRP info and proof, 2FA submission, token refresh, the seven requests the official client makes after a login (in its order), the server listing, and the TLS handshake. The post-login goldens need real API responses to record, so `make parity-goldens` only refreshes them when `PARITY_UID` and `PARITY_TOKEN` hold a valid session.
+
+Not covered, because it cannot match: a persistent configuration is registered with `Mode` and `DeviceName`, which the Linux client never sends. A session-only certificate (`--no-save`) uses the official body.
+
+`HTTP_PROXY` and `HTTPS_PROXY` are honoured (HTTP proxies only), which is one deliberate difference from the official client; HTTPS is tunnelled, so the API sees identical bytes.
 
 ## License
 

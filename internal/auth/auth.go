@@ -26,6 +26,10 @@ type Client struct {
 	config       *config.Config
 	httpClient   *http.Client
 	sessionStore *SessionStore
+
+	// FreshLogin is set when Authenticate signed in with the password rather
+	// than reusing a saved session.
+	FreshLogin bool
 }
 
 // NewClient creates a new authentication client
@@ -128,6 +132,7 @@ func (c *Client) Authenticate() (*api.Session, error) {
 	}
 
 	c.saveSessionIfEnabled(session)
+	c.FreshLogin = true
 	return session, nil
 }
 

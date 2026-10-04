@@ -10,7 +10,6 @@ const (
 	DefaultCertDuration = "365d"
 	MaxCertDuration     = 365 // days
 	CertMode            = "persistent"
-	PublicKeyMode       = "EC"
 
 	// HVMethodCaptcha is the human verification method -hv-token satisfies.
 	// Proton's other methods (email, sms) hand back a code through a different

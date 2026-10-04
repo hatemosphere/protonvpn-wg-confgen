@@ -100,9 +100,11 @@ show-version:
 # Re-record the wire-parity goldens from the official ProtonVPN Linux client.
 # Builds an Ubuntu 24.04 image with Proton's own packages, drives them against
 # a recording server, and refreshes test/parity/testdata plus the embedded TLS
-# ClientHello. Needs docker. Run this when Proton ships a new client, then
+# ClientHello. Needs docker. The post-login requests need real API responses,
+# so they are only re-recorded when PARITY_UID and PARITY_TOKEN hold a valid
+# session (the UID and AccessToken from ~/.protonvpn-session.json). Run this when Proton ships a new client, then
 # `go test ./...`: a failure there is a real divergence from the official client.
 parity-goldens:
 	docker build -q -t pwg-parity test/parity
-	docker run --rm -v "$(CURDIR)/test/parity":/parity pwg-parity python3 official.py
+	docker run --rm -e PARITY_UID -e PARITY_TOKEN -v "$(CURDIR)/test/parity":/parity pwg-parity python3 official.py
 	mv test/parity/clienthello.bin internal/api/clienthello_ubuntu2404.bin

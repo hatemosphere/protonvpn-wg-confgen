@@ -1,0 +1,7 @@
+sync_certificate
+sync_clientconfig
+sync_location
+sync_vpn_info
+sync_features
+sync_logicals
+sync_notifications

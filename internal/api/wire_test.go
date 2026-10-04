@@ -93,7 +93,7 @@ func TestWriteRequestMatchesAiohttp(t *testing.T) {
 				t.Fatal(err)
 			}
 			var buf bytes.Buffer
-			if err := writeRequest(&buf, req); err != nil {
+			if err := writeRequest(&buf, req, req.URL.RequestURI(), ""); err != nil {
 				t.Fatal(err)
 			}
 			if got := buf.String(); got != tt.want {

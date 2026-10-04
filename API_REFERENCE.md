@@ -39,7 +39,6 @@ The certificate request to `/vpn/v1/certificate` uses the following format:
 ```json
 {
   "ClientPublicKey": "<PEM-encoded public key>",
-  "ClientPublicKeyMode": "EC",
   "Mode": "persistent",
   "DeviceName": "<device name>",
   "Duration": "<duration in minutes> min",
@@ -72,9 +71,26 @@ Note that the "the API does not allow intervals shorter than 1 day" comment in `
 | Key | Type | Description |
 |-----|------|-------------|
 | `NetShieldLevel` | int | NetShield ad/malware blocking (0=off, 1=malware, 2=ads+malware) |
-| `RandomNAT` | bool | Moderate NAT / Random NAT for gaming |
+| `RandomNAT` | bool | `true` is the default strict NAT; `false` enables Moderate NAT |
 | `PortForwarding` | bool | Port forwarding support |
 | `SplitTCP` | bool | VPN Accelerator (performance optimization) |
+
+`RandomNAT` is the inverse of the Moderate NAT setting: the Android client models it as `randomizedNat`, on by default and labelled "Restricted NAT", and the GTK toggle describes Moderate NAT as disabling the randomization. The Linux client's `_convert_features` sends `RandomNAT: false` when its Moderate NAT setting is *off*, which reads as inverted; this tool follows the other two.
+
+The official Linux client sends only `ClientPublicKey`, `Duration` and `Features`, in that order, and a session certificate from this tool is exactly that. `Mode` and `DeviceName` are appended for persistent configurations.
+
+## Post-login requests
+
+After a successful login the official client loads its session data, and so does this tool (`SyncSession`), discarding everything but the location and the server list:
+
+| Order | Request |
+|-------|---------|
+| concurrent | `GET /vpn/v2`, `POST /vpn/v1/certificate`, `GET /vpn/v1/location`, `GET /vpn/v2/clientconfig` |
+| then | `GET /feature/v2/frontend` |
+| then | `GET /vpn/v1/logicals?SecureCoreFilter=all&WithState=true` |
+| then | `GET /core/v4/notifications` |
+
+The certificate is a 7-day session certificate for a throwaway key, as the official client requests at every login. The server list carries `X-PM-netzone` (the caller's IPv4 address from `/vpn/v1/location` with the last octet zeroed) and `If-Modified-Since`, the epoch when nothing is cached.
 
 ## API Response Codes
 

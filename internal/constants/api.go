@@ -14,6 +14,16 @@ const (
 	RefreshPath     = "/auth/refresh"
 	CertificatePath = "/vpn/v1/certificate"
 	LogicalsPath    = "/vpn/v1/logicals"
+	// LogicalsQuery is the query the official client always lists servers with.
+	LogicalsQuery     = "?SecureCoreFilter=all&WithState=true"
+	LocationPath      = "/vpn/v1/location"
+	VPNInfoPath       = "/vpn/v2"
+	ClientConfigPath  = "/vpn/v2/clientconfig"
+	FeatureFlagsPath  = "/feature/v2/frontend"
+	NotificationsPath = "/core/v4/notifications"
+	// LoginCertDuration is what the official client requests for the session
+	// certificate it fetches at login: 7 days, its refresh interval.
+	LoginCertDuration = "10080 min"
 	// CaptchaPath serves the human verification widget for this API entry point.
 	CaptchaPath = "/core/v4/captcha"
 )

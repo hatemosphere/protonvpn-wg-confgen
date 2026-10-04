@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -23,7 +24,10 @@ import (
 // The goldens are raw requests recorded from Proton's own packages, see
 // test/parity/official.py. These tests run the same calls through this client
 // against a raw socket and require the bytes to match.
-const goldenDir = "../../test/parity/testdata"
+const (
+	goldenDir  = "../../test/parity/testdata"
+	parityUser = "parityuser"
+)
 
 // recorder is a raw TCP server: it keeps every request exactly as received and
 // answers like the mock the goldens were recorded against.
@@ -82,6 +86,10 @@ func (r *recorder) serve(conn net.Conn, authInfo []byte) {
 		status, payload = "422 Unprocessable Entity", []byte(`{"Code": 8002, "Error": "Incorrect login credentials. Please try again"}`)
 	case "/auth/2fa":
 		payload = []byte(`{"Code": 1000, "Scopes": ["vpn"]}`)
+	case "/vpn/v1/location":
+		// A documentation address: the netzone header derived from it then
+		// matches the scrubbed value in the goldens.
+		payload = []byte(`{"Code": 1000, "IP": "192.0.2.77"}`)
 	case "/auth/refresh":
 		payload = []byte(`{"Code": 1000, "AccessToken": "TOKEN2", "RefreshToken": "REFRESH2", "Scopes": ["vpn"]}`)
 	}
@@ -106,12 +114,12 @@ var (
 	hostLine     = regexp.MustCompile(`(?m)^Host: 127\.0\.0\.1:\d+\r$`)
 	timezoneLine = regexp.MustCompile(`(?m)^x-pm-timezone: [^\r]*\r\n`)
 	archSuffix   = regexp.MustCompile(`(?m)^(x-pm-appversion: [^+\r]+\+)[^\r]+\r$`)
-	srpValue     = regexp.MustCompile(`"(ClientEphemeral|ClientProof)": "([^"]*)"`)
+	srpValue     = regexp.MustCompile(`"(ClientEphemeral|ClientProof|ClientPublicKey)": "([^"]*)"`)
 )
 
 // normalize removes what legitimately differs between two runs: the port, the
-// machine's timezone and CPU, and the random SRP values. SRP values keep their
-// length, so Content-Length is still compared.
+// machine's timezone and CPU, and freshly generated SRP values and keys. Those
+// keep their length, so Content-Length is still compared.
 func normalize(raw []byte, hasTimezone bool) string {
 	s := hostLine.ReplaceAllString(string(raw), "Host: 127.0.0.1:PORT\r")
 	s = archSuffix.ReplaceAllString(s, "${1}ARCH\r")
@@ -149,7 +157,7 @@ func assertGolden(t *testing.T, name string, got []byte) {
 // probe, the SRP parameters request and the SRP proof.
 func TestLoginMatchesOfficialClient(t *testing.T) {
 	rec := newRecorder(t)
-	cfg := &config.Config{APIURL: rec.url(), Username: "parityuser", Password: "parity-password", NoSession: true}
+	cfg := &config.Config{APIURL: rec.url(), Username: parityUser, Password: "parity-password", NoSession: true}
 
 	if _, err := NewClient(cfg).Authenticate(); err == nil {
 		t.Fatal("the mock rejects the password, login should fail")
@@ -162,10 +170,11 @@ func TestLoginMatchesOfficialClient(t *testing.T) {
 }
 
 // TestAuthenticatedRequestsMatchOfficialClient covers an established session:
-// a plain GET, the 2FA submission and the token refresh.
+// the server listing with its location lookup, the 2FA submission and the
+// token refresh.
 func TestAuthenticatedRequestsMatchOfficialClient(t *testing.T) {
 	rec := newRecorder(t)
-	cfg := &config.Config{APIURL: rec.url(), Username: "parityuser", NoSession: true}
+	cfg := &config.Config{APIURL: rec.url(), Username: parityUser, NoSession: true}
 	session := &api.Session{UID: "UIDVALUE", AccessToken: "TOKENVALUE", RefreshToken: "REFRESHVALUE"}
 	client := NewClient(cfg)
 
@@ -179,8 +188,54 @@ func TestAuthenticatedRequestsMatchOfficialClient(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	requests := rec.take(t, 3)
-	for i, name := range []string{"logicals", "auth_2fa", "auth_refresh"} {
+	requests := rec.take(t, 4)
+	for i, name := range []string{"sync_location", "sync_logicals", "auth_2fa", "auth_refresh"} {
 		assertGolden(t, name, requests[i])
+	}
+}
+
+// TestPostLoginSyncMatchesOfficialClient covers what follows a successful
+// login. The official client issues four requests concurrently and then three
+// in a fixed order; sync_order.txt records that.
+func TestPostLoginSyncMatchesOfficialClient(t *testing.T) {
+	rec := newRecorder(t)
+	cfg := &config.Config{APIURL: rec.url(), Username: parityUser, NoSession: true}
+	session := &api.Session{UID: "UIDVALUE", AccessToken: "TOKENVALUE", RefreshToken: "REFRESHVALUE"}
+
+	vpn.NewClient(cfg, session).SyncSession()
+
+	order, err := os.ReadFile(filepath.Join(goldenDir, "sync_order.txt"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	names := strings.Fields(string(order))
+	requests := rec.take(t, len(names))
+
+	byPath := map[string]string{
+		"/vpn/v2":                "sync_vpn_info",
+		"/vpn/v1/certificate":    "sync_certificate",
+		"/vpn/v1/location":       "sync_location",
+		"/vpn/v2/clientconfig":   "sync_clientconfig",
+		"/feature/v2/frontend":   "sync_features",
+		"/vpn/v1/logicals":       "sync_logicals",
+		"/core/v4/notifications": "sync_notifications",
+	}
+	const concurrent = 4
+	got := make([]string, 0, len(requests))
+	for _, raw := range requests {
+		target := strings.Fields(string(raw))[1]
+		path, _, _ := strings.Cut(target, "?")
+		name, ok := byPath[path]
+		if !ok {
+			t.Fatalf("unexpected request to %s", target)
+		}
+		assertGolden(t, name, raw)
+		got = append(got, name)
+	}
+
+	// The concurrent batch may arrive in any order; what follows may not.
+	slices.Sort(got[:concurrent])
+	if !slices.Equal(got, names) {
+		t.Errorf("request order\n got: %v\nwant: %v", got, names)
 	}
 }

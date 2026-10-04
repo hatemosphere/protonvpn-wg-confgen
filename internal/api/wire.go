@@ -4,12 +4,15 @@ import (
 	"bufio"
 	"bytes"
 	_ "embed" // for the captured ClientHello
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net"
 	"net/http"
+	"net/url"
 	"strconv"
+	"strings"
 	"time"
 	"unicode/utf16"
 
@@ -109,6 +112,8 @@ var headerOrder = []string{
 	"x-pm-uid",
 	"Authorization",
 	timezoneHeader,
+	netzoneHeader,
+	modifiedSinceHeader,
 	hvTokenHeader,
 	hvTokenTypeHeader,
 	"Accept",
@@ -124,44 +129,27 @@ var headerOrder = []string{
 var clientHello []byte
 
 // wireTransport sends each request on its own connection, as the official
-// client does: it opens a new aiohttp ClientSession per API call. Proxies from
-// the environment are not used, since aiohttp ignores them by default too.
-type wireTransport struct{}
-
-// NewHTTPClient returns a client whose requests are indistinguishable on the
-// wire from the official Linux client's.
-func NewHTTPClient(timeout time.Duration) *http.Client {
-	return &http.Client{Timeout: timeout, Transport: wireTransport{}}
+// client does: it opens a new aiohttp ClientSession per API call.
+type wireTransport struct {
+	// proxy picks the proxy for a request, nil for a direct connection.
+	proxy func(*http.Request) (*url.URL, error)
 }
 
-func (wireTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	secure := req.URL.Scheme == "https"
-	addr := req.URL.Host
-	if req.URL.Port() == "" {
-		port := "80"
-		if secure {
-			port = "443"
-		}
-		addr = net.JoinHostPort(req.URL.Hostname(), port)
-	}
+// NewHTTPClient returns a client whose requests are indistinguishable on the
+// wire from the official Linux client's. HTTP_PROXY and HTTPS_PROXY are
+// honoured, which the official client does not do; someone who sets them needs
+// them, and the API sees the same bytes either way.
+func NewHTTPClient(timeout time.Duration) *http.Client {
+	return &http.Client{Timeout: timeout, Transport: wireTransport{proxy: http.ProxyFromEnvironment}}
+}
 
-	var dialer net.Dialer
-	conn, err := dialer.DialContext(req.Context(), "tcp", addr)
+func (t wireTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	conn, requestURI, proxyAuth, err := t.open(req)
 	if err != nil {
 		return nil, err
 	}
-	if deadline, ok := req.Context().Deadline(); ok {
-		_ = conn.SetDeadline(deadline)
-	}
 
-	if secure {
-		conn, err = handshake(req, conn)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	if err := writeRequest(conn, req); err != nil {
+	if err := writeRequest(conn, req, requestURI, proxyAuth); err != nil {
 		_ = conn.Close()
 		return nil, err
 	}
@@ -173,6 +161,103 @@ func (wireTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	}
 	resp.Body = &connBody{ReadCloser: resp.Body, conn: conn}
 	return resp, nil
+}
+
+// open returns a connection ready for the request to be written on, together
+// with the request URI and proxy credentials to write it with.
+func (t wireTransport) open(req *http.Request) (conn net.Conn, requestURI, proxyAuth string, err error) {
+	secure := req.URL.Scheme == "https"
+
+	var proxy *url.URL
+	if t.proxy != nil {
+		if proxy, err = t.proxy(req); err != nil {
+			return nil, "", "", err
+		}
+	}
+	if proxy != nil && proxy.Scheme != "http" {
+		return nil, "", "", fmt.Errorf("unsupported proxy scheme %q, only http proxies are supported", proxy.Scheme)
+	}
+
+	target := hostPort(req.URL, secure)
+	addr := target
+	if proxy != nil {
+		addr = hostPort(proxy, false)
+	}
+
+	var dialer net.Dialer
+	if conn, err = dialer.DialContext(req.Context(), "tcp", addr); err != nil {
+		return nil, "", "", err
+	}
+	if deadline, ok := req.Context().Deadline(); ok {
+		_ = conn.SetDeadline(deadline)
+	}
+
+	// Through a proxy, HTTPS is tunnelled with CONNECT and looks the same to
+	// the API. Plain HTTP is sent to the proxy with an absolute request URI.
+	requestURI = req.URL.RequestURI()
+	switch {
+	case proxy != nil && secure:
+		if err = connect(conn, target, basicAuth(proxy)); err != nil {
+			_ = conn.Close()
+			return nil, "", "", err
+		}
+	case proxy != nil:
+		requestURI = req.URL.String()
+		proxyAuth = basicAuth(proxy)
+	}
+
+	if secure {
+		if conn, err = handshake(req, conn); err != nil {
+			return nil, "", "", err
+		}
+	}
+	return conn, requestURI, proxyAuth, nil
+}
+
+func hostPort(u *url.URL, secure bool) string {
+	if u.Port() != "" {
+		return u.Host
+	}
+	if secure {
+		return net.JoinHostPort(u.Hostname(), "443")
+	}
+	return net.JoinHostPort(u.Hostname(), "80")
+}
+
+func basicAuth(proxy *url.URL) string {
+	if proxy.User == nil {
+		return ""
+	}
+	password, _ := proxy.User.Password()
+	return "Basic " + base64.StdEncoding.EncodeToString([]byte(proxy.User.Username()+":"+password))
+}
+
+// connect opens a tunnel to target through an HTTP proxy.
+func connect(conn net.Conn, target, proxyAuth string) error {
+	request := "CONNECT " + target + " HTTP/1.1\r\nHost: " + target + "\r\n"
+	if proxyAuth != "" {
+		request += "Proxy-Authorization: " + proxyAuth + "\r\n"
+	}
+	if _, err := io.WriteString(conn, request+"\r\n"); err != nil {
+		return err
+	}
+	// Read byte by byte up to the blank line: a buffered reader could swallow
+	// the first bytes of the TLS handshake that follows.
+	var head []byte
+	one := make([]byte, 1)
+	for !bytes.HasSuffix(head, []byte("\r\n\r\n")) {
+		if _, err := conn.Read(one); err != nil {
+			return fmt.Errorf("proxy closed the connection during CONNECT: %w", err)
+		}
+		if head = append(head, one[0]); len(head) > 8192 {
+			return fmt.Errorf("proxy sent an oversized CONNECT response")
+		}
+	}
+	status, _, _ := strings.Cut(string(head), "\r\n")
+	if fields := strings.Fields(status); len(fields) < 2 || fields[1] != "200" {
+		return fmt.Errorf("proxy refused CONNECT: %s", status)
+	}
+	return nil
 }
 
 // handshake performs TLS with the recorded OpenSSL ClientHello. Certificate
@@ -196,7 +281,7 @@ func handshake(req *http.Request, conn net.Conn) (net.Conn, error) {
 	return tlsConn, nil
 }
 
-func writeRequest(w io.Writer, req *http.Request) error {
+func writeRequest(w io.Writer, req *http.Request, requestURI, proxyAuth string) error {
 	var body []byte
 	if req.Body != nil && req.Body != http.NoBody {
 		var err error
@@ -206,7 +291,10 @@ func writeRequest(w io.Writer, req *http.Request) error {
 	}
 
 	var buf bytes.Buffer
-	fmt.Fprintf(&buf, "%s %s HTTP/1.1\r\nHost: %s\r\n", req.Method, req.URL.RequestURI(), req.URL.Host)
+	fmt.Fprintf(&buf, "%s %s HTTP/1.1\r\nHost: %s\r\n", req.Method, requestURI, req.URL.Host)
+	if proxyAuth != "" {
+		fmt.Fprintf(&buf, "Proxy-Authorization: %s\r\n", proxyAuth)
+	}
 	for _, name := range headerOrder {
 		if name == "Content-Length" {
 			if body != nil {
