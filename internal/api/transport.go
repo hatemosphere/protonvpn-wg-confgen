@@ -31,7 +31,13 @@ func localTimezone() string {
 	return strings.TrimPrefix(strings.TrimPrefix(name, "posix/"), "right/")
 }
 
-const timezoneHeader = "x-pm-timezone"
+const (
+	timezoneHeader = "x-pm-timezone"
+
+	// Content encodings aiohttp advertises without optional codecs installed.
+	encodingGzip    = "gzip"
+	encodingDeflate = "deflate"
+)
 
 // setRaw sets a header under its exact name. Header.Set would canonicalize it,
 // and the wire transport looks headers up by the spelling it sends.
@@ -69,7 +75,7 @@ func NewRequest(method, url string, body Body, session *Session) (*http.Request,
 	// order. The client also sends x-pm-locale, but only with a non-English
 	// catalog active.
 	setRaw(req, "Accept", "*/*")
-	setRaw(req, "Accept-Encoding", "gzip, deflate")
+	setRaw(req, "Accept-Encoding", encodingGzip+", "+encodingDeflate)
 	if body != nil {
 		setRaw(req, "Content-Type", "application/json")
 	}
@@ -128,11 +134,11 @@ func Do(client *http.Client, req *http.Request, out any) error {
 	// decompression, so undo the encoding here.
 	var reader io.Reader = resp.Body
 	switch resp.Header.Get("Content-Encoding") {
-	case "gzip":
+	case encodingGzip:
 		if reader, err = gzip.NewReader(resp.Body); err != nil {
 			return err
 		}
-	case "deflate":
+	case encodingDeflate:
 		if reader, err = zlib.NewReader(resp.Body); err != nil {
 			return err
 		}

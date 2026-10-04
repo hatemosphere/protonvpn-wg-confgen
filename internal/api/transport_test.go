@@ -94,15 +94,15 @@ func TestNewRequestHeaders(t *testing.T) {
 // TestDoDecodesCompressedBodies covers the consequence of setting
 // Accept-Encoding by hand: net/http no longer decompresses for us.
 func TestDoDecodesCompressedBodies(t *testing.T) {
-	for _, enc := range []string{"gzip", "deflate", ""} {
+	for _, enc := range []string{encodingGzip, encodingDeflate, ""} {
 		t.Run("encoding="+enc, func(t *testing.T) {
 			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 				var buf bytes.Buffer
 				var wc io.WriteCloser
 				switch enc {
-				case "gzip":
+				case encodingGzip:
 					wc = gzip.NewWriter(&buf)
-				case "deflate":
+				case encodingDeflate:
 					wc = zlib.NewWriter(&buf)
 				}
 				if wc == nil {
