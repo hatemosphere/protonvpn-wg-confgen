@@ -26,7 +26,7 @@ func NewClient(cfg *config.Config, session *api.Session) *Client {
 	return &Client{
 		config:     cfg,
 		session:    session,
-		httpClient: &http.Client{Timeout: 10 * time.Second},
+		httpClient: api.NewHTTPClient(10 * time.Second),
 	}
 }
 

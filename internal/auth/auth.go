@@ -3,7 +3,6 @@ package auth
 
 import (
 	"bufio"
-	"crypto/tls"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -34,15 +33,7 @@ func NewClient(cfg *config.Config) *Client {
 	return &Client{
 		config:       cfg,
 		sessionStore: NewSessionStore(),
-		httpClient: &http.Client{
-			Timeout: 30 * time.Second,
-			Transport: &http.Transport{
-				TLSClientConfig: &tls.Config{
-					InsecureSkipVerify: false,
-					MinVersion:         tls.VersionTLS12,
-				},
-			},
-		},
+		httpClient:   api.NewHTTPClient(30 * time.Second),
 	}
 }
 
@@ -114,6 +105,8 @@ func (c *Client) Authenticate() (*api.Session, error) {
 		return nil, err
 	}
 
+	c.ping()
+
 	// Try existing session unless clearing or disabled
 	if session := c.handleExistingSession(); session != nil {
 		return session, nil
@@ -136,6 +129,21 @@ func (c *Client) Authenticate() (*api.Session, error) {
 
 	c.saveSessionIfEnabled(session)
 	return session, nil
+}
+
+// ping mirrors the official client, whose AutoTransport probes /tests/ping to
+// pick a transport before its first real request. The result is irrelevant
+// here; only the request pattern matters.
+func (c *Client) ping() {
+	req, err := api.NewRequest(http.MethodGet, c.config.APIURL+constants.PingPath, nil, nil)
+	if err != nil {
+		return
+	}
+	resp, err := c.httpClient.Do(req) //nolint:gosec // G704: URL is operator-supplied, not remote input
+	if err != nil {
+		return
+	}
+	_ = resp.Body.Close()
 }
 
 // handleExistingSession handles session clearing or reuse
@@ -169,18 +177,9 @@ func (c *Client) performFreshAuth() (*api.Session, error) {
 		return nil, err
 	}
 
-	authReq := c.buildAuthRequest(authInfo, clientProofs)
-
-	// Handle 2FA if needed
-	if authInfo.TwoFA.Enabled == constants.EnabledTrue && authInfo.TwoFA.TOTP == constants.EnabledTrue {
-		code, err := c.get2FACode()
-		if err != nil {
-			return nil, err
-		}
-		authReq["TwoFactorCode"] = code
-	}
-
-	session, err := c.sendAuthRequest(authReq)
+	// The second factor is never sent here. Like the official client, 2FA is
+	// submitted afterwards through /auth/2fa, see upgradeSessionIfNeeded.
+	session, err := c.sendAuthRequest(c.buildAuthRequest(authInfo, clientProofs))
 	if err != nil {
 		return nil, err
 	}

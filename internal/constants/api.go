@@ -7,6 +7,7 @@ import "runtime"
 // Paths match the ProtonVPN Linux reference client (python-proton-core/python-proton-vpn-api-core).
 const (
 	DefaultAPIURL   = "https://vpn-api.proton.me"
+	PingPath        = "/tests/ping"
 	AuthInfoPath    = "/auth/info"
 	AuthPath        = "/auth"
 	TwoFAPath       = "/auth/2fa"

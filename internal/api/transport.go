@@ -2,13 +2,55 @@ package api
 
 import (
 	"bytes"
+	"compress/gzip"
+	"compress/zlib"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"path/filepath"
+	"strings"
+	"time"
 
 	"protonvpn-wg-confgen/internal/constants"
 )
+
+// NewHTTPClient returns a client that speaks HTTP/1.1 only. The official Linux
+// client uses aiohttp, which has no HTTP/2 support, so negotiating h2 would be
+// a visible difference. An empty TLSNextProto map is how net/http disables it.
+func NewHTTPClient(timeout time.Duration) *http.Client {
+	return &http.Client{
+		Timeout: timeout,
+		Transport: &http.Transport{
+			Proxy:        http.ProxyFromEnvironment,
+			TLSNextProto: map[string]func(string, *tls.Conn) http.RoundTripper{},
+		},
+	}
+}
+
+// localTimezone returns the IANA name of the system timezone, e.g.
+// "Europe/Zurich", or "" when it cannot be resolved. It mirrors the official
+// client's get_local_timezone: the name is read from where /etc/localtime
+// points, and nothing is guessed, since a wrong zone is worse than none.
+func localTimezone() string {
+	path, err := filepath.EvalSymlinks("/etc/localtime")
+	if err != nil {
+		return ""
+	}
+	_, name, found := strings.Cut(filepath.ToSlash(path), "zoneinfo/")
+	if !found {
+		return ""
+	}
+	// tzdata ships copies of the database under posix/ and right/.
+	return strings.TrimPrefix(strings.TrimPrefix(name, "posix/"), "right/")
+}
+
+// setRaw sets a header without canonicalizing its name. Header.Set would send
+// "X-Pm-Appversion"; the official client sends these lowercase.
+func setRaw(req *http.Request, name, value string) {
+	req.Header[name] = []string{value}
+}
 
 // NewRequest builds a Proton API request with the headers every endpoint expects.
 // A nil body sends no payload. A nil session omits the credentials, which is
@@ -28,13 +70,24 @@ func NewRequest(method, url string, body any, session *Session) (*http.Request, 
 		return nil, err
 	}
 
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("x-pm-appversion", constants.AppVersion())
+	// The header set follows the official Linux client: aiohttp's defaults
+	// (Accept, Accept-Encoding, and Content-Type only when there is a body)
+	// plus what python-proton-core and python-proton-vpn-api-core add. The
+	// client also sends x-pm-locale, but only with a non-English catalog active.
+	req.Header.Set("Accept", "*/*")
+	req.Header.Set("Accept-Encoding", "gzip, deflate")
+	if body != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
+	setRaw(req, "x-pm-appversion", constants.AppVersion())
 	req.Header.Set("User-Agent", constants.UserAgent())
+	if tz := localTimezone(); tz != "" {
+		setRaw(req, "x-pm-timezone", tz)
+	}
 
 	if session != nil {
 		req.Header.Set("Authorization", "Bearer "+session.AccessToken)
-		req.Header.Set("x-pm-uid", session.UID)
+		setRaw(req, "x-pm-uid", session.UID)
 	}
 
 	return req, nil
@@ -58,8 +111,8 @@ func SetHumanVerification(req *http.Request, token, method string) {
 	if token == "" {
 		return
 	}
-	req.Header.Set(hvTokenHeader, token)
-	req.Header.Set(hvTokenTypeHeader, method)
+	setRaw(req, hvTokenHeader, token)
+	setRaw(req, hvTokenTypeHeader, method)
 }
 
 // Do executes req and decodes the JSON response into out.
@@ -77,7 +130,21 @@ func Do(client *http.Client, req *http.Request, out any) error {
 	}
 	defer func() { _ = resp.Body.Close() }()
 
-	body, err := io.ReadAll(resp.Body)
+	// Accept-Encoding is set explicitly, which turns off net/http's transparent
+	// decompression, so undo the encoding here.
+	var reader io.Reader = resp.Body
+	switch resp.Header.Get("Content-Encoding") {
+	case "gzip":
+		if reader, err = gzip.NewReader(resp.Body); err != nil {
+			return err
+		}
+	case "deflate":
+		if reader, err = zlib.NewReader(resp.Body); err != nil {
+			return err
+		}
+	}
+
+	body, err := io.ReadAll(reader)
 	if err != nil {
 		return err
 	}
