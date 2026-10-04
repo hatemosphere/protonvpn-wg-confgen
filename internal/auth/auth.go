@@ -139,7 +139,7 @@ func (c *Client) ping() {
 	if err != nil {
 		return
 	}
-	resp, err := c.httpClient.Do(req) //nolint:gosec // G704: URL is operator-supplied, not remote input
+	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return
 	}
