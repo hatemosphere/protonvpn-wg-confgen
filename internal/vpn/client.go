@@ -3,8 +3,10 @@ package vpn
 
 import (
 	"fmt"
+	"maps"
 	"net"
 	"net/http"
+	"slices"
 	"sync"
 	"time"
 
@@ -98,7 +100,7 @@ func (c *Client) GetCertificate(keyPair *ed25519.KeyPair) (*api.VPNInfo, error) 
 // current is the certificate's features as reported by the API; they are kept
 // unless the matching flag was given explicitly. A nil current falls back to
 // the flags entirely.
-func (c *Client) RenewCertificate(publicKeyPEM, deviceName string, current *api.RequestFeatures) (*api.VPNInfo, error) {
+func (c *Client) RenewCertificate(publicKeyPEM, deviceName string, current api.CertFeaturesSent) (*api.VPNInfo, error) {
 	durationStr, err := timeutil.ParseToMinutes(c.config.Duration)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse duration: %w", err)
@@ -114,12 +116,19 @@ func (c *Client) RenewCertificate(publicKeyPEM, deviceName string, current *api.
 	})
 }
 
-// featuresBody orders the features as fetcher.py's _convert_features does.
+// featuresBody orders the features as fetcher.py's _convert_features does,
+// followed by any keys this tool does not know about.
 func featuresBody(features map[string]any) api.Body {
+	known := []string{featRandomNAT, featSplitTCP, featPortForwarding, featNetShield}
 	body := make(api.Body, 0, len(features))
-	for _, key := range []string{featRandomNAT, featSplitTCP, featPortForwarding, featNetShield} {
+	for _, key := range known {
 		if value, ok := features[key]; ok {
 			body = append(body, api.Field{Key: key, Value: value})
+		}
+	}
+	for _, key := range slices.Sorted(maps.Keys(features)) {
+		if !slices.Contains(known, key) {
+			body = append(body, api.Field{Key: key, Value: features[key]})
 		}
 	}
 	return body
@@ -139,19 +148,16 @@ const (
 	featSplitTCP       = "SplitTCP"
 )
 
-// renewalFeatures starts from the certificate's reported features and lets
-// explicitly passed flags override individual values.
-func (c *Client) renewalFeatures(current *api.RequestFeatures) map[string]any {
+// renewalFeatures starts from the certificate's features exactly as the API
+// reports them, unknown keys and odd value types included, and lets explicitly
+// passed flags override individual values. A certificate with no recorded
+// features gets the flags as a whole.
+func (c *Client) renewalFeatures(current api.CertFeaturesSent) map[string]any {
 	flags := c.certificateFeatures()
 	if current == nil {
 		return flags
 	}
-	features := map[string]any{
-		featNetShield:      current.NetShieldLevel,
-		featRandomNAT:      current.RandomNAT,
-		featPortForwarding: current.PortForwarding,
-		featSplitTCP:       current.SplitTCP,
-	}
+	features := maps.Clone(map[string]any(current))
 	for flagName, key := range map[string]string{
 		"netshield":       featNetShield,
 		"moderate-nat":    featRandomNAT,
@@ -266,14 +272,20 @@ func (c *Client) SyncSession() {
 	_ = c.doJSON(http.MethodGet, c.config.APIURL+constants.NotificationsPath, nil, &discard)
 }
 
-// ListCertificates fetches all persistent certificates on the account, paginating via BeginID.
-func (c *Client) ListCertificates() ([]api.VPNCertificate, error) {
+// ListCertificates fetches the certificates on the account, paginating via
+// BeginID: the persistent ones, or with withSessions every live certificate,
+// session ones included.
+func (c *Client) ListCertificates(withSessions bool) ([]api.VPNCertificate, error) {
 	const pageSize = 50
 	var all []api.VPNCertificate
 	var beginID string
 
 	for {
-		u := fmt.Sprintf("%s%s/all?Mode=%s&Limit=%d", c.config.APIURL, constants.CertificatePath, constants.CertMode, pageSize)
+		filter := "Mode=" + constants.CertMode
+		if withSessions {
+			filter = "WithSessions=1"
+		}
+		u := fmt.Sprintf("%s%s/all?%s&Limit=%d", c.config.APIURL, constants.CertificatePath, filter, pageSize)
 		if beginID != "" {
 			u += "&BeginID=" + beginID
 		}
@@ -297,6 +309,31 @@ func (c *Client) ListCertificates() ([]api.VPNCertificate, error) {
 	}
 
 	return all, nil
+}
+
+// RevokeCertificate revokes the certificate with the given serial number. It
+// works for persistent and session certificates alike. The API answers success
+// even when nothing matched, so a zero count is reported as an error.
+func (c *Client) RevokeCertificate(serial string) error {
+	var result struct {
+		Code  int    `json:"Code"`
+		Error string `json:"Error,omitempty"`
+		Count int    `json:"Count"`
+	}
+	body := api.Body{{Key: "SerialNumber", Value: serial}}
+	if err := c.doJSON(http.MethodDelete, c.config.APIURL+constants.CertificatePath, body, &result); err != nil {
+		return err
+	}
+	if !constants.IsSuccessCode(result.Code) {
+		if result.Error != "" {
+			return fmt.Errorf("revoke error (code %d): %s", result.Code, result.Error)
+		}
+		return fmt.Errorf("revoke failed, code: %d", result.Code)
+	}
+	if result.Count == 0 {
+		return fmt.Errorf("no certificate with SerialNumber %s (use --list-configs --with-sessions to see them)", serial)
+	}
+	return nil
 }
 
 // deviceName returns the configured device name, generating one if unset.

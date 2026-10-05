@@ -71,7 +71,9 @@ func Parse() (*Config, error) {
 	flag.BoolVar(&cfg.NoSave, "no-save", false, "Generate config without registering on the account (session-only, max 7 days)")
 
 	// List mode (enumerates persistent configurations registered on the account)
-	flag.BoolVar(&cfg.ListConfigs, "list-configs", false, "List all persistent WireGuard configurations on the account and exit")
+	flag.BoolVar(&cfg.ListConfigs, "list-configs", false, "List the persistent WireGuard configurations on the account and exit")
+	flag.BoolVar(&cfg.WithSessions, "with-sessions", false, "With --list-configs: also list session certificates (those made with --no-save or by Proton apps)")
+	flag.StringVar(&cfg.RevokeSerial, "revoke-serial", "", "Revoke a certificate by SerialNumber, persistent or session, and exit")
 
 	// Server listing mode
 	flag.BoolVar(&cfg.ListServers, "list-servers", false, "List available servers and exit (optionally filter by --countries)")
@@ -110,7 +112,7 @@ func Parse() (*Config, error) {
 
 	// The listing and renew modes take an optional country filter but never
 	// require one, and need none of the network defaults below.
-	if cfg.ListConfigs || cfg.ListServers || cfg.RenewSerial != "" {
+	if cfg.ListConfigs || cfg.ListServers || cfg.RenewSerial != "" || cfg.RevokeSerial != "" {
 		cfg.Username = validation.CleanUsername(cfg.Username)
 		return cfg, nil
 	}
@@ -147,6 +149,12 @@ func Parse() (*Config, error) {
 func validateFeatureFlags(cfg *Config) error {
 	if cfg.JSON && !cfg.ListServers && !cfg.ListConfigs {
 		return fmt.Errorf("json requires list-servers or list-configs")
+	}
+	if cfg.WithSessions && !cfg.ListConfigs {
+		return fmt.Errorf("with-sessions requires list-configs")
+	}
+	if cfg.RevokeSerial != "" && cfg.RenewSerial != "" {
+		return fmt.Errorf("revoke-serial and renew-serial cannot be used together")
 	}
 	if cfg.NetShield < 0 || cfg.NetShield > 2 {
 		return fmt.Errorf("netshield must be 0, 1, or 2")
@@ -235,7 +243,7 @@ var flagGroups = []struct {
 	title string
 	names []string
 }{
-	{"Modes", []string{"list-servers", "list-configs", "json", "renew-serial"}},
+	{"Modes", []string{"list-servers", "list-configs", "with-sessions", "json", "renew-serial", "revoke-serial"}},
 	{"Authentication", []string{"username", "password", "password-stdin"}},
 	{"Server selection", []string{"countries", "server", "p2p-only", "secure-core", "free-only", "debug"}},
 	{"Output and network", []string{"output", "device-name", "ipv6", "dns", "allowed-ips", "accelerator", "port-forwarding", "moderate-nat", "netshield"}},
@@ -252,7 +260,8 @@ func PrintUsage() {
 	out("  %s --username <user> --server <name> [flags]\n", bin)
 	out("  %s --username <user> --list-servers [--countries <codes>]\n", bin)
 	out("  %s --username <user> --list-configs\n", bin)
-	out("  %s --username <user> --renew-serial <serial>\n\n", bin)
+	out("  %s --username <user> --renew-serial <serial>\n", bin)
+	out("  %s --username <user> --revoke-serial <serial>\n\n", bin)
 
 	out("Flags take --name value or --name=value. Booleans are switches: --ipv6 turns\n")
 	out("one on, --accelerator=false turns one off. A single dash (-name) also works.\n")

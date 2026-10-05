@@ -12,7 +12,7 @@ MODULE=protonvpn-wg-confgen
 # at the end of the pipeline succeeds even when curl fails, so a `||` here
 # would never fire and would stamp an empty version.
 PROTON_VERSION_URL=https://raw.githubusercontent.com/ProtonVPN/python-proton-vpn-api-core/stable/versions.yml
-PROTON_VERSION_FALLBACK=5.8.3
+PROTON_VERSION_FALLBACK=5.8.7
 PROTON_VERSION ?= $(shell curl -sf "$(PROTON_VERSION_URL)" 2>/dev/null | head -1 | cut -d' ' -f2)
 ifeq ($(strip $(PROTON_VERSION)),)
 PROTON_VERSION=$(PROTON_VERSION_FALLBACK)
@@ -105,6 +105,6 @@ show-version:
 # session (the UID and AccessToken from ~/.protonvpn-session.json). Run this when Proton ships a new client, then
 # `go test ./...`: a failure there is a real divergence from the official client.
 parity-goldens:
-	docker build -q -t pwg-parity test/parity
+	docker build -q --pull --no-cache -t pwg-parity test/parity
 	docker run --rm -e PARITY_UID -e PARITY_TOKEN -v "$(CURDIR)/test/parity":/parity pwg-parity python3 official.py
 	mv test/parity/clienthello.bin internal/api/clienthello_ubuntu2404.bin

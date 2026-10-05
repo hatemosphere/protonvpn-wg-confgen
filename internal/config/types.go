@@ -53,6 +53,12 @@ type Config struct {
 	// Renew certificate by serial number
 	RenewSerial string
 
+	// Revoke certificate by serial number
+	RevokeSerial string
+
+	// WithSessions makes the configuration listing include session certificates
+	WithSessions bool
+
 	// Non-persistent mode (do not register on account)
 	NoSave bool
 

@@ -3,6 +3,7 @@ package vpn
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -94,12 +95,12 @@ func TestCertificateFeatures(t *testing.T) {
 func TestRenewalPreservesFeatures(t *testing.T) {
 	// A cert created with NetShield 2, Moderate NAT on (RandomNAT false), port
 	// forwarding on, accelerator off - every value differs from the flag default.
-	current := &api.RequestFeatures{NetShieldLevel: 2, RandomNAT: false, PortForwarding: true, SplitTCP: false}
+	current := api.CertFeaturesSent{featNetShield: float64(2), featRandomNAT: false, featPortForwarding: true, featSplitTCP: false}
 
 	tests := []struct {
 		name    string
 		cfg     config.Config
-		current *api.RequestFeatures
+		current api.CertFeaturesSent
 		want    map[string]any
 	}{
 		{
@@ -108,7 +109,7 @@ func TestRenewalPreservesFeatures(t *testing.T) {
 			name:    "nothing explicit keeps the certificate as is",
 			cfg:     config.Config{EnableAccelerator: true},
 			current: current,
-			want:    map[string]any{featNetShield: 2, featRandomNAT: false, featPortForwarding: true, featSplitTCP: false},
+			want:    map[string]any{featNetShield: float64(2), featRandomNAT: false, featPortForwarding: true, featSplitTCP: false},
 		},
 		{
 			name:    "explicit flag overrides only that feature",
@@ -120,7 +121,7 @@ func TestRenewalPreservesFeatures(t *testing.T) {
 			name:    "explicit moderate-nat off flips RandomNAT back on",
 			cfg:     config.Config{EnableAccelerator: true, ModerateNAT: false, Explicit: map[string]bool{"moderate-nat": true}},
 			current: current,
-			want:    map[string]any{featNetShield: 2, featRandomNAT: true, featPortForwarding: true, featSplitTCP: false},
+			want:    map[string]any{featNetShield: float64(2), featRandomNAT: true, featPortForwarding: true, featSplitTCP: false},
 		},
 		{
 			name:    "no reported features falls back to flags",
@@ -142,5 +143,55 @@ func TestRenewalPreservesFeatures(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+// TestRevokeCertificate pins the request and the one trap in the response: the
+// API reports success with a zero count when no certificate matched.
+func TestRevokeCertificate(t *testing.T) {
+	for _, tt := range []struct {
+		name    string
+		reply   string
+		wantErr bool
+	}{
+		{"revoked", `{"Code":1000,"Count":1}`, false},
+		{"nothing matched", `{"Code":1000,"Count":0}`, true},
+		{"api error", `{"Code":2000,"Error":"nope"}`, true},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			var method, path, body string
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				raw, _ := io.ReadAll(r.Body)
+				method, path, body = r.Method, r.URL.Path, string(raw)
+				_, _ = w.Write([]byte(tt.reply))
+			}))
+			defer srv.Close()
+
+			err := NewClient(&config.Config{APIURL: srv.URL}, &api.Session{}).RevokeCertificate("12345")
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if method != http.MethodDelete || path != "/vpn/v1/certificate" || body != `{"SerialNumber": "12345"}` {
+				t.Errorf("request = %s %s %s", method, path, body)
+			}
+		})
+	}
+}
+
+// TestListCertificatesFilter checks which certificates each listing asks for.
+func TestListCertificatesFilter(t *testing.T) {
+	for withSessions, want := range map[bool]string{false: "Mode=persistent&Limit=50", true: "WithSessions=1&Limit=50"} {
+		var query string
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			query = r.URL.RawQuery
+			_, _ = w.Write([]byte(`{"Code":1000,"Certificates":[]}`))
+		}))
+		if _, err := NewClient(&config.Config{APIURL: srv.URL}, &api.Session{}).ListCertificates(withSessions); err != nil {
+			t.Fatal(err)
+		}
+		srv.Close()
+		if query != want {
+			t.Errorf("withSessions=%v: query = %q, want %q", withSessions, query, want)
+		}
 	}
 }

@@ -18,7 +18,8 @@ I wanted to automatically rotate VPN servers on my private HTPC Linux host runni
 - Filters by country, tier, P2P, and Secure Core, or targets one server by name
 - Persistent configurations (visible in the ProtonVPN dashboard) or session-only ones that are never registered on the account
 - VPN accelerator, NAT-PMP port forwarding, Moderate NAT, NetShield, and IPv6
-- Lists servers and registered configurations, as a table or as JSON for scripting, and renews certificates without generating a new key pair
+- Lists servers and registered configurations, as a table or as JSON for scripting
+- Renews certificates without generating a new key pair, and revokes them
 
 ## Installation
 
@@ -49,6 +50,7 @@ protonvpn-wg-confgen --username <user> --server <name> [flags]
 protonvpn-wg-confgen --username <user> --list-servers [--countries <codes>]
 protonvpn-wg-confgen --username <user> --list-configs
 protonvpn-wg-confgen --username <user> --renew-serial <serial>
+protonvpn-wg-confgen --username <user> --revoke-serial <serial>
 ```
 
 `username` is optional and prompted for when omitted, as is the password. Either `countries` or `server` is required when generating a configuration.
@@ -63,9 +65,11 @@ Flags are given as `--name value` or `--name=value`; the two forms are interchan
 |------|-------------|
 | *(default)* | Generate a WireGuard configuration |
 | `list-servers` | List available servers (country, name, city, load, score, tier, features) and exit. Honors `--countries`, `--secure-core`, `--p2p-only`, and `--free-only` |
-| `list-configs` | List persistent configurations on the account (SerialNumber, DeviceName, expiry, key fingerprint) and exit |
+| `list-configs` | List persistent configurations on the account (SerialNumber, mode, DeviceName, expiry, key fingerprint) and exit |
+| `with-sessions` | With `list-configs`: also list session certificates, yours from `--no-save` and those of Proton's own apps on your devices |
 | `json` | With `list-servers` or `list-configs`: print JSON on stdout for scripting. See [JSON output](#json-output) |
 | `renew-serial <serial>` | Renew a persistent certificate by SerialNumber, reusing its existing key and its current features. Writes no `.conf` file. Pass a feature flag explicitly to change it on renewal. The API issues a replacement certificate with a **new serial** and retires the old one, so scripts must read the new serial from the output |
+| `revoke-serial <serial>` | Revoke a certificate by SerialNumber, persistent or session. Fails if no certificate has that serial |
 
 ### Server selection
 
@@ -137,7 +141,9 @@ Listing and maintenance:
 protonvpn-wg-confgen --username myusername --list-servers --countries US,PL
 protonvpn-wg-confgen --username myusername --list-servers --secure-core
 protonvpn-wg-confgen --username myusername --list-configs
+protonvpn-wg-confgen --username myusername --list-configs --with-sessions
 protonvpn-wg-confgen --username myusername --renew-serial "SERIAL12345"
+protonvpn-wg-confgen --username myusername --revoke-serial "SERIAL12345"
 ```
 
 ## JSON output
@@ -208,7 +214,7 @@ server=$(jq -r 'map(select(.country=="CH")) | min_by(.load) | .name' servers.jso
 protonvpn-wg-confgen --username myusername --server "$server"
 ```
 
-Registered configurations work the same way. `expires` is RFC 3339 and `features` reads back what the certificate has:
+Registered configurations work the same way. `mode` is `persistent` or `session`, and `expires` is RFC 3339. `features` reports what the certificate records, which depends on the client that created it: a key that is missing was not set and the server default applies, and a certificate created without any features has no `features` at all.
 
 ```bash
 # Serial, name and expiry
@@ -220,6 +226,15 @@ cutoff=$(date -u -d '+30 days' +%Y-%m-%dT%H:%M:%SZ)
 protonvpn-wg-confgen --username myusername --list-configs --json \
   | jq -r --arg cutoff "$cutoff" '.[] | select(.expires < $cutoff) | .serial' \
   | while read -r serial; do protonvpn-wg-confgen --username myusername --renew-serial "$serial"; done
+
+# Session certificates, with the device that holds each
+protonvpn-wg-confgen --username myusername --list-configs --with-sessions --json \
+  | jq -r '.[] | select(.mode=="session") | "\(.serial)\t\(.device_name)\t\(.expires)"'
+
+# Revoke every persistent configuration whose name starts with "test-"
+protonvpn-wg-confgen --username myusername --list-configs --json \
+  | jq -r '.[] | select(.device_name | startswith("test-")) | .serial' \
+  | while read -r serial; do protonvpn-wg-confgen --username myusername --revoke-serial "$serial"; done
 ```
 
 ## Persistent vs session-only configurations
@@ -230,20 +245,30 @@ Proton issues certificates in one of two modes.
 
 **Session-only** (`--no-save`) omits `Mode` and `DeviceName` from the request, which is what the official ProtonVPN clients do for an ordinary connection. The `.conf` file is written normally; only the account-side registration is skipped. Consequences:
 
-- Absent from the dashboard and from `--list-configs`, which queries `Mode=persistent` only
-- Cannot be renewed - generate a new configuration instead
+- Absent from the dashboard and from a plain `--list-configs`. `--list-configs --with-sessions` shows them
+- `--renew-serial` does not handle them - generate a new configuration instead
 - `--device-name` is ignored
 - Capped at 7 days, which is also the default when `--duration` is omitted. Anything between `10m` and `7d` is honored exactly; longer values are rejected up front, because the API would otherwise silently clamp them to 7 days
 
-Either way, the output reports what was actually issued and the expiry the API granted:
+Either way, the output reports what was actually issued, its serial, and the expiry the API granted:
 
 ```
-Certificate: session, expires 2026-08-05 11:13 UTC
+Certificate: session, serial 17323870995, expires 2026-08-05 11:13 UTC
 ```
 
 ### Revoking
 
-Revoking is only possible through the [ProtonVPN web dashboard](https://account.proton.me/u/0/vpn/WireGuard). The API gates `DELETE /vpn/v1/certificate` behind the `full` session scope, which is granted to `account.proton.me` web and desktop logins but not to VPN API clients. Session-only certificates never appear there at all, so they can only be left to expire.
+`--revoke-serial <serial>` revokes a certificate of either mode. The serial is printed when a configuration is generated or renewed, and listed by `--list-configs` (add `--with-sessions` for session certificates).
+
+```bash
+protonvpn-wg-confgen --username myusername --revoke-serial 17323870995
+```
+
+This is the same API call the dashboard's delete button makes. The API answers success even when no certificate matches, so the tool checks the count and fails on an unknown or already revoked serial.
+
+Be careful with `--with-sessions`: the list includes the session certificates of Proton's own apps on your devices (they show a device name such as `iPhone18,2`), and can include expired ones. Revoking one of those is revoking that device's credential, so pick serials deliberately instead of revoking every session certificate.
+
+Persistent configurations can also still be deleted from the [ProtonVPN web dashboard](https://account.proton.me/u/0/vpn/WireGuard).
 
 ## Server tiers
 
@@ -355,7 +380,7 @@ On Windows or any GUI client, import the file.
 
 - A fresh WireGuard keypair is generated on every run, except with `--renew-serial`, which reuses the existing key
 - Configuration files hold your private key and the session file holds your tokens. Both are written to a temp file in the destination directory, forced to `0600` regardless of umask (repairing an existing permissive file), then renamed into place - atomic on Unix. Symlinks and non-regular files at the destination are refused, so keep the parent directory trusted. Never share the `.conf`
-- Persistent configurations can be revoked from the dashboard; session-only ones cannot be revoked at all and simply expire within 7 days
+- Any certificate can be revoked with `--revoke-serial`. Session-only ones also expire on their own within 7 days
 
 ## Project structure
 

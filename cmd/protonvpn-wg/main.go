@@ -63,6 +63,12 @@ func run() error {
 		return listServers(cfg, vpnClient, stdout)
 	case cfg.RenewSerial != "":
 		return renewSerial(cfg, vpnClient)
+	case cfg.RevokeSerial != "":
+		if err := vpnClient.RevokeCertificate(cfg.RevokeSerial); err != nil {
+			return fmt.Errorf("failed to revoke certificate: %w", err)
+		}
+		fmt.Printf("Certificate revoked: %s\n", cfg.RevokeSerial)
+		return nil
 	default:
 		return generateConfig(cfg, vpnClient)
 	}
@@ -124,8 +130,8 @@ func generateConfig(cfg *config.Config, vpnClient *vpn.Client) error {
 	if mode == "" {
 		mode = "session"
 	}
-	fmt.Printf("Certificate: %s, expires %s\n",
-		mode, time.Unix(vpnInfo.ExpirationTime, 0).UTC().Format("2006-01-02 15:04 UTC"))
+	fmt.Printf("Certificate: %s, serial %s, expires %s\n",
+		mode, vpnInfo.SerialNumber, time.Unix(vpnInfo.ExpirationTime, 0).UTC().Format("2006-01-02 15:04 UTC"))
 	fmt.Printf("\nSuccessfully generated config for %s\n", server.ExitCountry)
 	return nil
 }
@@ -187,7 +193,7 @@ func listServers(cfg *config.Config, vpnClient *vpn.Client, stdout io.Writer) er
 }
 
 func renewSerial(cfg *config.Config, vpnClient *vpn.Client) error {
-	certs, err := vpnClient.ListCertificates()
+	certs, err := vpnClient.ListCertificates(false)
 	if err != nil {
 		return fmt.Errorf("failed to list certificates: %w", err)
 	}
@@ -227,7 +233,7 @@ func renewSerial(cfg *config.Config, vpnClient *vpn.Client) error {
 }
 
 func listConfigs(cfg *config.Config, vpnClient *vpn.Client, stdout io.Writer) error {
-	certs, err := vpnClient.ListCertificates()
+	certs, err := vpnClient.ListCertificates(cfg.WithSessions)
 	if err != nil {
 		return fmt.Errorf("failed to list configurations: %w", err)
 	}
@@ -235,11 +241,11 @@ func listConfigs(cfg *config.Config, vpnClient *vpn.Client, stdout io.Writer) er
 		return writeJSON(stdout, configsJSON(certs))
 	}
 	if len(certs) == 0 {
-		fmt.Println("No persistent configurations found.")
+		fmt.Println("No configurations found.")
 		return nil
 	}
 
-	fmt.Printf("%-40s  %-30s  %-20s  %s\n", "SerialNumber", "DeviceName", "Expires", "Fingerprint")
+	fmt.Printf("%-14s  %-10s  %-34s  %-20s  %s\n", "SerialNumber", "Mode", "DeviceName", "Expires", "Fingerprint")
 	fmt.Println(strings.Repeat("-", 120))
 	for _, c := range certs {
 		exp := time.Unix(c.ExpirationTime, 0).UTC().Format("2006-01-02 15:04 UTC")
@@ -247,7 +253,7 @@ func listConfigs(cfg *config.Config, vpnClient *vpn.Client, stdout io.Writer) er
 		if name == "" {
 			name = "-"
 		}
-		fmt.Printf("%-40s  %-30s  %-20s  %s\n", c.SerialNumber, name, exp, c.ClientKeyFingerprint)
+		fmt.Printf("%-14s  %-10s  %-34s  %-20s  %s\n", c.SerialNumber, c.Mode, name, exp, c.ClientKeyFingerprint)
 	}
 	fmt.Printf("\nTotal: %d\n", len(certs))
 	return nil
@@ -280,17 +286,20 @@ type endpointJSON struct {
 
 type configJSON struct {
 	Serial      string        `json:"serial"`
+	Mode        string        `json:"mode"`
 	DeviceName  string        `json:"device_name"`
 	Expires     time.Time     `json:"expires"`
 	Fingerprint string        `json:"fingerprint"`
 	Features    *featuresJSON `json:"features,omitempty"`
 }
 
+// featuresJSON omits what the certificate does not record: an absent key means
+// the server default applies, which is not the same as false.
 type featuresJSON struct {
-	NetShield      int  `json:"netshield"`
-	ModerateNAT    bool `json:"moderate_nat"`
-	PortForwarding bool `json:"port_forwarding"`
-	Accelerator    bool `json:"accelerator"`
+	NetShield      *int  `json:"netshield,omitempty"`
+	ModerateNAT    *bool `json:"moderate_nat,omitempty"`
+	PortForwarding *bool `json:"port_forwarding,omitempty"`
+	Accelerator    *bool `json:"accelerator,omitempty"`
 }
 
 func serversJSON(servers []api.LogicalServer) []serverJSON {
@@ -331,18 +340,34 @@ func configsJSON(certs []api.VPNCertificate) []configJSON {
 		c := &certs[i]
 		row := configJSON{
 			Serial:      c.SerialNumber,
+			Mode:        c.Mode,
 			DeviceName:  c.DeviceName,
 			Expires:     time.Unix(c.ExpirationTime, 0).UTC(),
 			Fingerprint: c.ClientKeyFingerprint,
 		}
-		if f := c.Features; f != nil {
-			// RandomNAT is the inverse of Moderate NAT.
-			row.Features = &featuresJSON{
-				NetShield: f.NetShieldLevel, ModerateNAT: !f.RandomNAT,
-				PortForwarding: f.PortForwarding, Accelerator: f.SplitTCP,
-			}
-		}
+		row.Features = certFeaturesJSON(c.Features)
 		out = append(out, row)
+	}
+	return out
+}
+
+func certFeaturesJSON(f api.CertFeaturesSent) *featuresJSON {
+	if f == nil {
+		return nil
+	}
+	out := &featuresJSON{}
+	if level, ok := f.Int("NetShieldLevel"); ok {
+		out.NetShield = &level
+	}
+	if random, ok := f.Bool("RandomNAT"); ok {
+		moderate := !random // RandomNAT is the inverse of Moderate NAT
+		out.ModerateNAT = &moderate
+	}
+	if value, ok := f.Bool("PortForwarding"); ok {
+		out.PortForwarding = &value
+	}
+	if value, ok := f.Bool("SplitTCP"); ok {
+		out.Accelerator = &value
 	}
 	return out
 }

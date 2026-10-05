@@ -10,7 +10,7 @@ before:
 # Version the official Linux client identifies as: python-proton-vpn-api-core's
 # versions.yml, not the GTK app's. Override by exporting PROTON_VERSION.
 env:
-  - PROTON_VERSION={{ envOrDefault "PROTON_VERSION" "5.8.3" }}
+  - PROTON_VERSION={{ envOrDefault "PROTON_VERSION" "5.8.7" }}
 
 builds:
   - id: protonvpn-wg-confgen

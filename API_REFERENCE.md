@@ -23,14 +23,23 @@ This project's API integration was developed by reverse-engineering ProtonVPN's 
 
 ## API Endpoints Used
 
+Paths are relative to `https://vpn-api.proton.me` and match python-proton-core, which uses the unversioned auth routes.
+
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/core/v4/auth/info` | POST | Get SRP authentication parameters |
-| `/core/v4/auth` | POST | Authenticate with SRP proofs |
-| `/core/v4/auth/2fa` | POST | Submit 2FA code for session upgrade |
+| `/tests/ping` | GET | Transport probe before the first request |
+| `/auth/info` | POST | Get SRP authentication parameters |
+| `/auth` | POST | Authenticate with SRP proofs |
+| `/auth/2fa` | POST | Submit 2FA code for session upgrade |
 | `/auth/refresh` | POST | Refresh session tokens |
-| `/vpn/v1/certificate` | POST | Generate WireGuard certificate |
+| `/vpn/v1/certificate` | POST | Create or renew a certificate |
+| `/vpn/v1/certificate` | DELETE | Revoke a certificate |
+| `/vpn/v1/certificate/all` | GET | List certificates |
+| `/vpn/v1/location` | GET | Caller's location, for `X-PM-netzone` |
 | `/vpn/v1/logicals` | GET | List available VPN servers |
+| `/core/v4/captcha` | GET | Human verification widget (opened in a browser) |
+
+The post-login requests listed further down are issued as well, to match the official client.
 
 ## Certificate Request Format
 
@@ -51,7 +60,27 @@ The certificate request to `/vpn/v1/certificate` uses the following format:
 }
 ```
 
-`Mode` is one of `session` or `persistent` (see `WireGuardConfigurationSection/Certificate.ts` in WebClients). Omitting it - as the official Linux client does for every connection - yields a session certificate: not registered on the account and absent from `GET /vpn/v1/certificate/all?Mode=persistent`. `persistent` backs the dashboard's saved configuration list, which is the only place such configs can be revoked.
+`Mode` is one of `session` or `persistent` (see `WireGuardConfigurationSection/Certificate.ts` in WebClients). Omitting it - as the official Linux client does for every connection - yields a session certificate. `persistent` backs the dashboard's saved configuration list.
+
+### Listing
+
+`GET /vpn/v1/certificate/all` paginates with `Limit` and `BeginID` (the last serial of the previous page) and filters by mode:
+
+| Query | Returns |
+|-------|---------|
+| `Mode=persistent` | Persistent configurations, what the dashboard shows |
+| `Mode=session` | Session certificates only |
+| `WithSessions=1` | Both |
+
+Session certificates include those of Proton's own apps, with the device as `DeviceName`, and expired ones can still be listed.
+
+`Features` in the list is an echo of what the creating client sent, in request-side keys, so it is loose data. Observed on one account: a full object, `{"RandomNAT": false}` alone, `{"RandomNAT": 0}` with a number for the flag (from a Proton mobile app), and `[]`, an empty array, for a certificate created without features. A missing key means the server default applies.
+
+### Revoking
+
+`DELETE /vpn/v1/certificate` with a JSON body selecting the certificate by one of `SerialNumber`, `ClientPublicKey` or `ClientPublicKeyFingerprint`, as the dashboard does. It works for both modes with an ordinary VPN session (scopes `self, parent, user, loggedin, vpn, verified, settings`; verified 2026-10-05). An earlier version of this document said it required a `full` scope; that is not the case.
+
+The response is `{"Code": 1000, "Count": n}` with HTTP 200 even when nothing matched, so `Count` has to be checked: an unknown or already revoked serial gives `Count: 0`.
 
 `Duration` is a request, not a guarantee; the granted expiry is returned as `ExpirationTime`. Observed against the live API (2026-07-29):
 

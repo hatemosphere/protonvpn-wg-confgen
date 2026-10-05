@@ -34,7 +34,7 @@ const (
 //
 // The official Linux client stamps its headers with this library's version,
 // not the GTK app's, see SessionHolder in proton/vpn/core/session_holder.py.
-var ClientVersion = "5.8.3"
+var ClientVersion = "5.8.7"
 
 // AppVersion returns the x-pm-appversion value the official Linux client sends:
 // linux-vpn-gui@<api-core version>+<cpu architecture>. The architecture rides

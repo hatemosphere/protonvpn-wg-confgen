@@ -64,6 +64,9 @@ func writePyValue(buf *bytes.Buffer, v any) {
 		buf.WriteString(strconv.FormatBool(v))
 	case int:
 		buf.WriteString(strconv.Itoa(v))
+	case float64:
+		// Numbers decoded from JSON; integral ones print as Python ints do.
+		buf.WriteString(strconv.FormatFloat(v, 'f', -1, 64))
 	default:
 		// Not a type any request uses; fall back rather than drop the value.
 		raw, _ := json.Marshal(v)

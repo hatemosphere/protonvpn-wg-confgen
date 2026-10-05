@@ -1,6 +1,11 @@
 // Package api defines the data structures for ProtonVPN API responses.
 package api
 
+import (
+	"bytes"
+	"encoding/json"
+)
+
 // AuthInfoResponse represents the response from the auth info endpoint
 type AuthInfoResponse struct {
 	Code            int    `json:"Code"`
@@ -62,7 +67,7 @@ type VPNInfo struct {
 
 // CertFeatures is how the certificate *create* response reports features. The
 // keys differ from the request side and moderate-nat is the inverse of
-// RandomNAT. The list endpoint uses RequestFeatures instead.
+// RandomNAT. The list endpoint reports CertFeaturesSent instead.
 type CertFeatures struct {
 	Bouncing       bool `json:"bouncing"`
 	ModerateNAT    bool `json:"moderate-nat"`
@@ -80,17 +85,54 @@ type VPNCertificate struct {
 	Mode                 string           `json:"Mode"`
 	ExpirationTime       int64            `json:"ExpirationTime"`
 	RefreshTime          int64            `json:"RefreshTime"`
-	Features             *RequestFeatures `json:"Features,omitempty"` // nil when the API omits it
+	Features             CertFeaturesSent `json:"Features,omitempty"` // nil when none were sent
 }
 
-// RequestFeatures is the request-side feature shape. The list endpoint reports
-// each certificate's features in this form (verified against the live API), so
-// they can be resent on renewal without translation.
-type RequestFeatures struct {
-	NetShieldLevel int  `json:"NetShieldLevel"`
-	RandomNAT      bool `json:"RandomNAT"`
-	PortForwarding bool `json:"PortForwarding"`
-	SplitTCP       bool `json:"SplitTCP"`
+// CertFeaturesSent is a certificate's features as the list endpoint reports
+// them: an echo of whatever the creating client sent, in request-side keys.
+// That makes it loose data. Clients differ in which keys they send and how:
+// the same account can hold {"RandomNAT": false}, {"RandomNAT": 0} from another
+// Proton app, and a full set of four. Unknown keys are kept so that a renewal
+// can send everything back unchanged.
+type CertFeaturesSent map[string]any
+
+// Bool reads a flag, accepting booleans and the 0/1 some clients send. ok is
+// false when the certificate does not carry the key.
+func (f CertFeaturesSent) Bool(key string) (value, ok bool) {
+	switch v := f[key].(type) {
+	case bool:
+		return v, true
+	case float64:
+		return v != 0, true
+	}
+	return false, false
+}
+
+// Int reads a numeric feature such as the NetShield level.
+func (f CertFeaturesSent) Int(key string) (value int, ok bool) {
+	if v, isNumber := f[key].(float64); isNumber {
+		return int(v), true
+	}
+	return 0, false
+}
+
+// UnmarshalJSON exists because a certificate issued without features reports
+// them as an empty array, [], where every other one has an object.
+func (c *VPNCertificate) UnmarshalJSON(data []byte) error {
+	type plain VPNCertificate // drops this method, avoiding recursion
+	aux := struct {
+		*plain
+		Features json.RawMessage `json:"Features"`
+	}{plain: (*plain)(c)}
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	c.Features = nil
+	if trimmed := bytes.TrimSpace(aux.Features); len(trimmed) > 0 && trimmed[0] == '{' {
+		return json.Unmarshal(trimmed, &c.Features)
+	}
+	return nil
 }
 
 // CertListResponse is the response body for GET /vpn/v1/certificate/all.
