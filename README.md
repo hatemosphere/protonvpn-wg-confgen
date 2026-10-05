@@ -18,7 +18,7 @@ I wanted to automatically rotate VPN servers on my private HTPC Linux host runni
 - Filters by country, tier, P2P, and Secure Core, or targets one server by name
 - Persistent configurations (visible in the ProtonVPN dashboard) or session-only ones that are never registered on the account
 - VPN accelerator, NAT-PMP port forwarding, Moderate NAT, NetShield, and IPv6
-- Lists servers and registered configurations, and renews certificates without generating a new key pair
+- Lists servers and registered configurations, as a table or as JSON for scripting, and renews certificates without generating a new key pair
 
 ## Installation
 
@@ -64,6 +64,7 @@ Flags are given as `--name value` or `--name=value`; the two forms are interchan
 | *(default)* | Generate a WireGuard configuration |
 | `list-servers` | List available servers (country, name, city, load, score, tier, features) and exit. Honors `--countries`, `--secure-core`, `--p2p-only`, and `--free-only` |
 | `list-configs` | List persistent configurations on the account (SerialNumber, DeviceName, expiry, key fingerprint) and exit |
+| `json` | With `list-servers` or `list-configs`: print JSON on stdout for scripting. See [JSON output](#json-output) |
 | `renew-serial <serial>` | Renew a persistent certificate by SerialNumber, reusing its existing key and its current features. Writes no `.conf` file. Pass a feature flag explicitly to change it on renewal. The API issues a replacement certificate with a **new serial** and retires the old one, so scripts must read the new serial from the output |
 
 ### Server selection
@@ -137,6 +138,88 @@ protonvpn-wg-confgen --username myusername --list-servers --countries US,PL
 protonvpn-wg-confgen --username myusername --list-servers --secure-core
 protonvpn-wg-confgen --username myusername --list-configs
 protonvpn-wg-confgen --username myusername --renew-serial "SERIAL12345"
+```
+
+## JSON output
+
+`--json` turns either listing mode into a JSON array on stdout. Status lines and prompts go to stderr, so the output pipes cleanly into [`jq`](https://jqlang.org). Sorting, filtering and picking columns are all done there instead of through more flags.
+
+A server looks like this:
+
+```json
+{
+  "name": "IS-NL#1",
+  "hostname": "is-nl-01.protonvpn.net",
+  "country": "NL",
+  "entry_country": "IS",
+  "city": "Amsterdam",
+  "tier": "Plus",
+  "load": 27,
+  "score": 1.52,
+  "features": ["SecureCore"],
+  "endpoints": [
+    {"hostname": "node-nl-01.protonvpn.net", "entry_ip": "185.159.158.55", "exit_ip": "185.159.158.55", "public_key": "...", "online": true}
+  ]
+}
+```
+
+`country` is the exit country. `host_country` appears only when the server is physically elsewhere. The same filters apply as for the table, so P2P-only is the default: add `--p2p-only=false` for every server.
+
+The examples assume the list is saved once, which also avoids hitting the API per query:
+
+```bash
+protonvpn-wg-confgen --username myusername --list-servers --json > servers.json
+```
+
+```bash
+# Five least loaded servers in the Netherlands, with hostnames
+jq -r 'map(select(.country=="NL")) | sort_by(.load) | .[:5][] | "\(.name)\t\(.load)%\t\(.hostname)"' servers.json
+
+# Sort by any field, or several: city, then load
+jq -r 'sort_by(.city, .load) | .[] | [.country, .name, .city, .load] | @tsv' servers.json
+
+# Descending: highest load first
+jq -r 'sort_by(-.load) | .[:10][] | "\(.name)\t\(.load)%"' servers.json
+
+# Name and hostname for one country
+jq -r '.[] | select(.country=="IS") | "\(.name)\t\(.hostname)"' servers.json
+
+# Servers with a feature: SecureCore, Tor, P2P, Streaming, IPv6
+jq -r '.[] | select(.features | index("Streaming")) | .name' servers.json
+
+# Server count per country, largest first
+jq -r 'group_by(.country) | map({country: .[0].country, servers: length}) | sort_by(-.servers)[] | "\(.country)\t\(.servers)"' servers.json
+
+# Entry IPs of one server
+jq -r '.[] | select(.name=="NL#830") | .endpoints[].entry_ip' servers.json
+
+# CSV export
+jq -r '.[] | [.country, .name, .city, .load, .score, .tier, (.features | join("+"))] | @csv' servers.json > servers.csv
+
+# Secure Core routes entering through Iceland
+protonvpn-wg-confgen --username myusername --list-servers --secure-core --json \
+  | jq -r '.[] | select(.entry_country=="IS") | "\(.name)\t\(.entry_country) -> \(.country)"'
+```
+
+Pick a server by your own rule and generate a config for it:
+
+```bash
+server=$(jq -r 'map(select(.country=="CH")) | min_by(.load) | .name' servers.json)
+protonvpn-wg-confgen --username myusername --server "$server"
+```
+
+Registered configurations work the same way. `expires` is RFC 3339 and `features` reads back what the certificate has:
+
+```bash
+# Serial, name and expiry
+protonvpn-wg-confgen --username myusername --list-configs --json \
+  | jq -r '.[] | "\(.serial)\t\(.device_name)\t\(.expires)"'
+
+# Renew everything expiring in the next 30 days (GNU date; on macOS use `date -u -v+30d`)
+cutoff=$(date -u -d '+30 days' +%Y-%m-%dT%H:%M:%SZ)
+protonvpn-wg-confgen --username myusername --list-configs --json \
+  | jq -r --arg cutoff "$cutoff" '.[] | select(.expires < $cutoff) | .serial' \
+  | while read -r serial; do protonvpn-wg-confgen --username myusername --renew-serial "$serial"; done
 ```
 
 ## Persistent vs session-only configurations

@@ -47,6 +47,9 @@ type Config struct {
 	// List servers mode
 	ListServers bool
 
+	// JSON switches the listing modes to machine-readable output
+	JSON bool
+
 	// Renew certificate by serial number
 	RenewSerial string
 

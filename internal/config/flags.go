@@ -75,6 +75,7 @@ func Parse() (*Config, error) {
 
 	// Server listing mode
 	flag.BoolVar(&cfg.ListServers, "list-servers", false, "List available servers and exit (optionally filter by --countries)")
+	flag.BoolVar(&cfg.JSON, "json", false, "Print --list-servers or --list-configs as JSON on stdout, for piping to jq")
 
 	// Renew mode
 	flag.StringVar(&cfg.RenewSerial, "renew-serial", "", "Renew a persistent configuration by SerialNumber (reuses existing key, no config file generated)")
@@ -144,6 +145,9 @@ func Parse() (*Config, error) {
 }
 
 func validateFeatureFlags(cfg *Config) error {
+	if cfg.JSON && !cfg.ListServers && !cfg.ListConfigs {
+		return fmt.Errorf("json requires list-servers or list-configs")
+	}
 	if cfg.NetShield < 0 || cfg.NetShield > 2 {
 		return fmt.Errorf("netshield must be 0, 1, or 2")
 	}
@@ -231,7 +235,7 @@ var flagGroups = []struct {
 	title string
 	names []string
 }{
-	{"Modes", []string{"list-servers", "list-configs", "renew-serial"}},
+	{"Modes", []string{"list-servers", "list-configs", "json", "renew-serial"}},
 	{"Authentication", []string{"username", "password", "password-stdin"}},
 	{"Server selection", []string{"countries", "server", "p2p-only", "secure-core", "free-only", "debug"}},
 	{"Output and network", []string{"output", "device-name", "ipv6", "dns", "allowed-ips", "accelerator", "port-forwarding", "moderate-nat", "netshield"}},

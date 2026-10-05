@@ -3,7 +3,9 @@ package main
 
 import (
 	"cmp"
+	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"slices"
 	"strings"
@@ -12,6 +14,7 @@ import (
 	"protonvpn-wg-confgen/internal/api"
 	"protonvpn-wg-confgen/internal/auth"
 	"protonvpn-wg-confgen/internal/config"
+	"protonvpn-wg-confgen/internal/constants"
 	"protonvpn-wg-confgen/internal/vpn"
 	"protonvpn-wg-confgen/internal/wireguard"
 
@@ -32,6 +35,14 @@ func run() error {
 		return err
 	}
 
+	// With --json, stdout carries the JSON document and nothing else. Status
+	// lines and prompts all print through os.Stdout, so point that at stderr
+	// and keep the real one for the document.
+	stdout := os.Stdout
+	if cfg.JSON {
+		os.Stdout = os.Stderr
+	}
+
 	authClient := auth.NewClient(cfg)
 	session, err := authClient.Authenticate()
 	if err != nil {
@@ -47,9 +58,9 @@ func run() error {
 
 	switch {
 	case cfg.ListConfigs:
-		return listConfigs(vpnClient)
+		return listConfigs(cfg, vpnClient, stdout)
 	case cfg.ListServers:
-		return listServers(cfg, vpnClient)
+		return listServers(cfg, vpnClient, stdout)
 	case cfg.RenewSerial != "":
 		return renewSerial(cfg, vpnClient)
 	default:
@@ -119,7 +130,7 @@ func generateConfig(cfg *config.Config, vpnClient *vpn.Client) error {
 	return nil
 }
 
-func listServers(cfg *config.Config, vpnClient *vpn.Client) error {
+func listServers(cfg *config.Config, vpnClient *vpn.Client, stdout io.Writer) error {
 	servers, err := vpnClient.GetServers()
 	if err != nil {
 		return fmt.Errorf("failed to get servers: %w", err)
@@ -140,6 +151,10 @@ func listServers(cfg *config.Config, vpnClient *vpn.Client) error {
 		}
 		return cmp.Compare(a.Score, b.Score)
 	})
+
+	if cfg.JSON {
+		return writeJSON(stdout, serversJSON(filtered))
+	}
 
 	fmt.Printf("%-7s  %-14s  %-18s  %5s  %6s  %-10s  %s\n",
 		"Country", "Server", "City", "Load", "Score", "Tier", "Features")
@@ -211,10 +226,13 @@ func renewSerial(cfg *config.Config, vpnClient *vpn.Client) error {
 	return nil
 }
 
-func listConfigs(vpnClient *vpn.Client) error {
+func listConfigs(cfg *config.Config, vpnClient *vpn.Client, stdout io.Writer) error {
 	certs, err := vpnClient.ListCertificates()
 	if err != nil {
 		return fmt.Errorf("failed to list configurations: %w", err)
+	}
+	if cfg.JSON {
+		return writeJSON(stdout, configsJSON(certs))
 	}
 	if len(certs) == 0 {
 		fmt.Println("No persistent configurations found.")
@@ -233,4 +251,104 @@ func listConfigs(vpnClient *vpn.Client) error {
 	}
 	fmt.Printf("\nTotal: %d\n", len(certs))
 	return nil
+}
+
+// The JSON shapes below are this tool's own, not the API's: field names are
+// stable across Proton API changes, and bit masks and Unix times are decoded.
+
+type serverJSON struct {
+	Name         string         `json:"name"`
+	Hostname     string         `json:"hostname"`
+	Country      string         `json:"country"`
+	EntryCountry string         `json:"entry_country"`
+	HostCountry  string         `json:"host_country,omitempty"`
+	City         string         `json:"city"`
+	Tier         string         `json:"tier"`
+	Load         int            `json:"load"`
+	Score        float64        `json:"score"`
+	Features     []string       `json:"features"`
+	Endpoints    []endpointJSON `json:"endpoints"`
+}
+
+type endpointJSON struct {
+	Hostname  string `json:"hostname"`
+	EntryIP   string `json:"entry_ip"`
+	ExitIP    string `json:"exit_ip"`
+	PublicKey string `json:"public_key"`
+	Online    bool   `json:"online"`
+}
+
+type configJSON struct {
+	Serial      string        `json:"serial"`
+	DeviceName  string        `json:"device_name"`
+	Expires     time.Time     `json:"expires"`
+	Fingerprint string        `json:"fingerprint"`
+	Features    *featuresJSON `json:"features,omitempty"`
+}
+
+type featuresJSON struct {
+	NetShield      int  `json:"netshield"`
+	ModerateNAT    bool `json:"moderate_nat"`
+	PortForwarding bool `json:"port_forwarding"`
+	Accelerator    bool `json:"accelerator"`
+}
+
+func serversJSON(servers []api.LogicalServer) []serverJSON {
+	out := make([]serverJSON, 0, len(servers))
+	for i := range servers {
+		s := &servers[i]
+		features := api.GetFeatureNames(s.Features)
+		if features == nil {
+			features = []string{} // [] rather than null, so jq filters need no guard
+		}
+		endpoints := make([]endpointJSON, 0, len(s.Servers))
+		for j := range s.Servers {
+			p := &s.Servers[j]
+			endpoints = append(endpoints, endpointJSON{
+				Hostname:  p.Domain,
+				EntryIP:   p.EntryIP,
+				ExitIP:    p.ExitIP,
+				PublicKey: p.X25519PublicKey,
+				Online:    p.Status == constants.StatusOnline,
+			})
+		}
+		host := s.HostCountry
+		if host == s.ExitCountry {
+			host = ""
+		}
+		out = append(out, serverJSON{
+			Name: s.Name, Hostname: s.Domain, Country: s.ExitCountry, EntryCountry: s.EntryCountry,
+			HostCountry: host, City: s.City, Tier: api.GetTierName(s.Tier), Load: s.Load, Score: s.Score,
+			Features: features, Endpoints: endpoints,
+		})
+	}
+	return out
+}
+
+func configsJSON(certs []api.VPNCertificate) []configJSON {
+	out := make([]configJSON, 0, len(certs))
+	for i := range certs {
+		c := &certs[i]
+		row := configJSON{
+			Serial:      c.SerialNumber,
+			DeviceName:  c.DeviceName,
+			Expires:     time.Unix(c.ExpirationTime, 0).UTC(),
+			Fingerprint: c.ClientKeyFingerprint,
+		}
+		if f := c.Features; f != nil {
+			// RandomNAT is the inverse of Moderate NAT.
+			row.Features = &featuresJSON{
+				NetShield: f.NetShieldLevel, ModerateNAT: !f.RandomNAT,
+				PortForwarding: f.PortForwarding, Accelerator: f.SplitTCP,
+			}
+		}
+		out = append(out, row)
+	}
+	return out
+}
+
+func writeJSON(w io.Writer, v any) error {
+	enc := json.NewEncoder(w)
+	enc.SetIndent("", "  ")
+	return enc.Encode(v)
 }
