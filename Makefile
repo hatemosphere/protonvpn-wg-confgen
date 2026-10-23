@@ -98,7 +98,7 @@ show-version:
 	@echo "ProtonVPN client version: $(PROTON_VERSION)"
 
 # Re-record the wire-parity goldens from the official ProtonVPN Linux client.
-# Builds an Ubuntu 24.04 image with Proton's own packages, drives them against
+# Builds an Ubuntu 26.04 image with Proton's own packages, drives them against
 # a recording server, and refreshes test/parity/testdata plus the embedded TLS
 # ClientHello. Needs docker. The post-login requests need real API responses,
 # so they are only re-recorded when PARITY_UID and PARITY_TOKEN hold a valid

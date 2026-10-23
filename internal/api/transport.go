@@ -136,11 +136,46 @@ func SetHumanVerification(req *http.Request, token, method string) {
 // useful than the HTTP status. Callers are expected to check the decoded Code.
 // The status is only surfaced when the body is not JSON at all.
 func Do(client *http.Client, req *http.Request, out any) error {
+	body, status, err := read(client, req)
+	if err != nil {
+		return err
+	}
+	if err := json.Unmarshal(body, out); err != nil {
+		return unexpected(status, body)
+	}
+	return nil
+}
+
+// DoBinary executes req and returns the response body, which must come with
+// a 200 status. It is for the few endpoints that do not answer in JSON.
+func DoBinary(client *http.Client, req *http.Request) ([]byte, error) {
+	body, status, err := read(client, req)
+	if err != nil {
+		return nil, err
+	}
+	if status != http.StatusOK {
+		return nil, unexpected(status, body)
+	}
+	return body, nil
+}
+
+// unexpected reports a response that is not what the endpoint should return,
+// a gateway error page or similar, with a snippet so that it does not surface
+// as an opaque "invalid character '<'".
+func unexpected(status int, body []byte) error {
+	snippet := string(body)
+	if len(snippet) > 200 {
+		snippet = snippet[:200] + "..."
+	}
+	return fmt.Errorf("unexpected response (HTTP %d): %s", status, snippet)
+}
+
+func read(client *http.Client, req *http.Request) (body []byte, status int, err error) {
 	// The request URL is built from the operator's own -api-url flag, so it is
 	// not attacker-controlled input.
 	resp, err := client.Do(req) //nolint:gosec // G704: URL is operator-supplied, not remote input
 	if err != nil {
-		return err
+		return nil, 0, err
 	}
 	defer func() { _ = resp.Body.Close() }()
 
@@ -150,34 +185,21 @@ func Do(client *http.Client, req *http.Request, out any) error {
 	switch resp.Header.Get("Content-Encoding") {
 	case encodingGzip:
 		if reader, err = gzip.NewReader(resp.Body); err != nil {
-			return err
+			return nil, 0, err
 		}
 	case encodingDeflate:
 		if reader, err = zlib.NewReader(resp.Body); err != nil {
-			return err
+			return nil, 0, err
 		}
 	case encodingZstd:
 		decoder, err := zstd.NewReader(resp.Body)
 		if err != nil {
-			return err
+			return nil, 0, err
 		}
 		defer decoder.Close()
 		reader = decoder
 	}
 
-	body, err := io.ReadAll(reader)
-	if err != nil {
-		return err
-	}
-
-	if err := json.Unmarshal(body, out); err != nil {
-		// Not JSON - a gateway error page or similar. Echo a snippet, otherwise
-		// this surfaces as an opaque "invalid character '<'".
-		snippet := string(body)
-		if len(snippet) > 200 {
-			snippet = snippet[:200] + "..."
-		}
-		return fmt.Errorf("unexpected response (HTTP %d): %s", resp.StatusCode, snippet)
-	}
-	return nil
+	body, err = io.ReadAll(reader)
+	return body, resp.StatusCode, err
 }

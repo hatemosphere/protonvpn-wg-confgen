@@ -264,7 +264,7 @@ func listConfigs(cfg *config.Config, vpnClient *vpn.Client, stdout io.Writer) er
 
 type serverJSON struct {
 	Name         string         `json:"name"`
-	Hostname     string         `json:"hostname"`
+	Hostname     string         `json:"hostname,omitempty"` // absent from the v2 server list
 	Country      string         `json:"country"`
 	EntryCountry string         `json:"entry_country"`
 	HostCountry  string         `json:"host_country,omitempty"`

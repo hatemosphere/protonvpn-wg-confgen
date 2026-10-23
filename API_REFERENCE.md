@@ -37,6 +37,9 @@ Paths are relative to `https://vpn-api.proton.me` and match python-proton-core, 
 | `/vpn/v1/certificate/all` | GET | List certificates |
 | `/vpn/v1/location` | GET | Caller's location, for `X-PM-netzone` |
 | `/vpn/v1/logicals` | GET | List available VPN servers |
+| `/vpn/v2/logicals` | GET | List available VPN servers, without loads or scores |
+| `/vpn/v2/status/{StatusID}/binary` | GET | Server status file for the v2 list |
+| `/feature/v2/frontend` | GET | Feature flags, for `BinaryServerStatus` |
 | `/core/v4/captcha` | GET | Human verification widget (opened in a browser) |
 
 The post-login requests listed further down are issued as well, to match the official client.
@@ -110,16 +113,16 @@ The official Linux client sends only `ClientPublicKey`, `Duration` and `Features
 
 ## Post-login requests
 
-After a successful login the official client loads its session data, and so does this tool (`SyncSession`), discarding everything but the location and the server list:
+After a successful login the official client loads its session data, and so does this tool (`SyncSession`), discarding everything but the location, the feature flags and the server list:
 
 | Order | Request |
 |-------|---------|
 | concurrent | `GET /vpn/v2`, `POST /vpn/v1/certificate`, `GET /vpn/v1/location`, `GET /vpn/v2/clientconfig` |
 | then | `GET /feature/v2/frontend` |
-| then | `GET /vpn/v1/logicals?SecureCoreFilter=all&WithState=true` |
+| then | `GET /vpn/v1/logicals?SecureCoreFilter=all&WithState=true`, or with the v2 list `GET /vpn/v2/logicals?SecureCoreFilter=all&WithState=true` and `GET /vpn/v2/status/{StatusID}/binary` |
 | then | `GET /core/v4/notifications` |
 
-The certificate is a 7-day session certificate for a throwaway key, as the official client requests at every login. The server list carries `X-PM-netzone` (the caller's IPv4 address from `/vpn/v1/location` with the last octet zeroed) and `If-Modified-Since`, the epoch when nothing is cached.
+The certificate is a 7-day session certificate for a throwaway key, as the official client requests at every login. The server list requests carry `X-PM-netzone` (the caller's IPv4 address from `/vpn/v1/location` with the last octet zeroed) and `If-Modified-Since`, the epoch when nothing is cached. With a saved session there is no login, and listing servers takes the location, the feature flags and the server list in that order.
 
 ## API Response Codes
 
@@ -201,7 +204,7 @@ Content-Type: application/json
 - **`x-pm-locale`** is sent by the official client only with a non-English catalog active, so it is not sent here.
 - **Bodies** are Python `json.dumps` output: `", "` and `": "` separators, keys in insertion order, non-ASCII escaped.
 - **Connection**: HTTP/1.1, one connection per request, TLS ClientHello as OpenSSL 3.5.5 produces it under aiohttp's certificate-pinning path, including its post-quantum ML-KEM key share.
-- **Server list version**: the official client switches from `/vpn/v1/logicals` to `/vpn/v2/logicals` plus a binary status blob when Proton's `BinaryServerStatus` feature flag is on for the account. This tool implements v1 only, and the goldens are recorded with that flag pinned off.
+- **Server list version**: the official client switches from `/vpn/v1/logicals` to `/vpn/v2/logicals` plus a binary status file when Proton's `BinaryServerStatus` feature flag is on for the account and the location has coordinates, and so does this tool. The v2 list has no `Status`, `Load`, `Score` or logical `Domain`. Loads and scores come from the status file, scored against the caller's location and country by `internal/serverstatus`, a port of Proton's [proton-vpn-binary-status](https://github.com/ProtonVPN/proton-vpn-binary-status) checked against that library's own test data. As in the official client, servers that are not autoconnectable get 1000 added to their score, and only enabled, visible servers count as online. The goldens are recorded with the flag pinned off and on.
 - **2FA** is always a separate `POST /auth/2fa` after `/auth`, never a field of the `/auth` body.
 
 `make parity-goldens` re-records all of this from the official client; `go test` fails on any divergence.

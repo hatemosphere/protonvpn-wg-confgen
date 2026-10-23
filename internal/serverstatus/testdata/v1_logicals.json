@@ -1,0 +1,1404 @@
+{
+  "LogicalServers": [
+    {
+      "Name": "SD#32",
+      "Status": 1,
+      "Load": 6,
+      "Score": 2.9983233794,
+      "ScoreJitter": -37138725
+    },
+    {
+      "Name": "SN#36",
+      "Status": 1,
+      "Load": 0,
+      "Score": 2.9943246119999998,
+      "ScoreJitter": -16628691
+    },
+    {
+      "Name": "US-AZ#101",
+      "Status": 1,
+      "Load": 38,
+      "Score": 1.9444271926,
+      "ScoreJitter": 42893099
+    },
+    {
+      "Name": "US-FL#10",
+      "Status": 1,
+      "Load": 42,
+      "Score": 1.9837496496,
+      "ScoreJitter": -33822497
+    },
+    {
+      "Name": "NL#341",
+      "Status": 1,
+      "Load": 72,
+      "Score": 2.9982566908,
+      "ScoreJitter": 12250524
+    },
+    {
+      "Name": "US-CA#90",
+      "Status": 1,
+      "Load": 51,
+      "Score": 1.9653300367,
+      "ScoreJitter": 34898395
+    },
+    {
+      "Name": "MM#01",
+      "Status": 1,
+      "Load": 10,
+      "Score": 2.9901631647,
+      "ScoreJitter": 42797953
+    },
+    {
+      "Name": "KM#31",
+      "Status": 1,
+      "Load": 8,
+      "Score": 2.9920653923,
+      "ScoreJitter": 35680692
+    },
+    {
+      "Name": "US-FL#12",
+      "Status": 1,
+      "Load": 33,
+      "Score": 1.9806978968,
+      "ScoreJitter": -3304969
+    },
+    {
+      "Name": "SE#31-TOR",
+      "Status": 1,
+      "Load": 71,
+      "Score": 8.9989247052,
+      "ScoreJitter": 9354846
+    },
+    {
+      "Name": "MZ#30",
+      "Status": 1,
+      "Load": 6,
+      "Score": 2.9917850895,
+      "ScoreJitter": 38931670
+    },
+    {
+      "Name": "AL#34",
+      "Status": 1,
+      "Load": 38,
+      "Score": 5.9989132593,
+      "ScoreJitter": -41977876
+    },
+    {
+      "Name": "FI#3",
+      "Status": 1,
+      "Load": 100,
+      "Score": 2.9986744074000002,
+      "ScoreJitter": 12829940
+    },
+    {
+      "Name": "CH-LT#2",
+      "Status": 1,
+      "Load": 72,
+      "Score": 2.997385096,
+      "ScoreJitter": 24439638
+    },
+    {
+      "Name": "ZA#39",
+      "Status": 1,
+      "Load": 36,
+      "Score": 5.998632794,
+      "ScoreJitter": -30589588
+    },
+    {
+      "Name": "CA#88",
+      "Status": 1,
+      "Load": 44,
+      "Score": 2.9839098059999998,
+      "ScoreJitter": -25112171
+    },
+    {
+      "Name": "MR#12",
+      "Status": 1,
+      "Load": 20,
+      "Score": 2.996070842,
+      "ScoreJitter": -34741084
+    },
+    {
+      "Name": "ES#33",
+      "Status": 1,
+      "Load": 69,
+      "Score": 2.9910013447,
+      "ScoreJitter": 31972047
+    },
+    {
+      "Name": "TG#31",
+      "Status": 1,
+      "Load": 5,
+      "Score": 2.9931833841,
+      "ScoreJitter": 7932792
+    },
+    {
+      "Name": "SE-JP#1",
+      "Status": 1,
+      "Load": 41,
+      "Score": 2.9908416351,
+      "ScoreJitter": 47919417
+    },
+    {
+      "Name": "CO#20",
+      "Status": 1,
+      "Load": 29,
+      "Score": 2.9897896271,
+      "ScoreJitter": -29558642
+    },
+    {
+      "Name": "RS#22",
+      "Status": 1,
+      "Load": 40,
+      "Score": 2.9937331506,
+      "ScoreJitter": -8931172
+    },
+    {
+      "Name": "SE-FR#1",
+      "Status": 1,
+      "Load": 52,
+      "Score": 2.9929935195,
+      "ScoreJitter": 1170634
+    },
+    {
+      "Name": "PT#6",
+      "Status": 1,
+      "Load": 90,
+      "Score": 2.9989149357000002,
+      "ScoreJitter": 9754752
+    },
+    {
+      "Name": "US-CA#331",
+      "Status": 1,
+      "Load": 26,
+      "Score": 1.864033547,
+      "ScoreJitter": 35117379
+    },
+    {
+      "Name": "DE#389",
+      "Status": 1,
+      "Load": 81,
+      "Score": 2.9964484437,
+      "ScoreJitter": 31348896
+    },
+    {
+      "Name": "FR#185",
+      "Status": 1,
+      "Load": 44,
+      "Score": 2.9921355623,
+      "ScoreJitter": 2468393
+    },
+    {
+      "Name": "IE#11",
+      "Status": 1,
+      "Load": 40,
+      "Score": 2.9943385892,
+      "ScoreJitter": -32252976
+    },
+    {
+      "Name": "KZ#27",
+      "Status": 1,
+      "Load": 0,
+      "Score": 2.9923725168,
+      "ScoreJitter": 5937914
+    },
+    {
+      "Name": "US-CO#21-TOR",
+      "Status": 1,
+      "Load": 54,
+      "Score": 8.9968727393,
+      "ScoreJitter": 30154125
+    },
+    {
+      "Name": "DE#53-TOR",
+      "Status": 1,
+      "Load": 100,
+      "Score": 8.9953556049,
+      "ScoreJitter": 45714506
+    },
+    {
+      "Name": "MA#14",
+      "Status": 1,
+      "Load": 12,
+      "Score": 2.9901015711,
+      "ScoreJitter": 22183554
+    },
+    {
+      "Name": "CL#27",
+      "Status": 1,
+      "Load": 65,
+      "Score": 2.9928177478,
+      "ScoreJitter": -10197750
+    },
+    {
+      "Name": "IQ#5",
+      "Status": 1,
+      "Load": 25,
+      "Score": 2.9960775531,
+      "ScoreJitter": -20735408
+    },
+    {
+      "Name": "NL#339",
+      "Status": 1,
+      "Load": 72,
+      "Score": 2.9988189121,
+      "ScoreJitter": 6628311
+    },
+    {
+      "Name": "LY#5",
+      "Status": 1,
+      "Load": 0,
+      "Score": 2.9934199917999997,
+      "ScoreJitter": -1240058
+    },
+    {
+      "Name": "AO#8",
+      "Status": 1,
+      "Load": 37,
+      "Score": 2.9965248620000002,
+      "ScoreJitter": 33170623
+    },
+    {
+      "Name": "LU#20",
+      "Status": 1,
+      "Load": 63,
+      "Score": 2.9967124800000002,
+      "ScoreJitter": -47173887
+    },
+    {
+      "Name": "US-DC#103",
+      "Status": 1,
+      "Load": 72,
+      "Score": 2.9995074071,
+      "ScoreJitter": 2952244
+    },
+    {
+      "Name": "CH-BA#2",
+      "Status": 1,
+      "Load": 36,
+      "Score": 2.9914282831,
+      "ScoreJitter": 18814478
+    },
+    {
+      "Name": "US-VA#12",
+      "Status": 1,
+      "Load": 50,
+      "Score": 1.9789094171000001,
+      "ScoreJitter": 8858695
+    },
+    {
+      "Name": "CO#27",
+      "Status": 1,
+      "Load": 23,
+      "Score": 2.983841203,
+      "ScoreJitter": 29925598
+    },
+    {
+      "Name": "VN#3",
+      "Status": 1,
+      "Load": 30,
+      "Score": 2.9935125415,
+      "ScoreJitter": 4962515
+    },
+    {
+      "Name": "AU#215",
+      "Status": 1,
+      "Load": 17,
+      "Score": 2.9892391839,
+      "ScoreJitter": 43797159
+    },
+    {
+      "Name": "ET#7",
+      "Status": 1,
+      "Load": 70,
+      "Score": 2.9952619066,
+      "ScoreJitter": 21524615
+    },
+    {
+      "Name": "YE#7",
+      "Status": 1,
+      "Load": 6,
+      "Score": 2.9974324749,
+      "ScoreJitter": -26235998
+    },
+    {
+      "Name": "IS-TH#1",
+      "Status": 1,
+      "Load": 46,
+      "Score": 2.9929547489,
+      "ScoreJitter": 38686896
+    },
+    {
+      "Name": "US-TX#270",
+      "Status": 1,
+      "Load": 65,
+      "Score": 1.9608149269,
+      "ScoreJitter": 41866019
+    },
+    {
+      "Name": "NP#11",
+      "Status": 1,
+      "Load": 5,
+      "Score": 2.9934129876,
+      "ScoreJitter": 7825143
+    },
+    {
+      "Name": "SE#17",
+      "Status": 1,
+      "Load": 53,
+      "Score": 2.9898933251,
+      "ScoreJitter": 17956564
+    },
+    {
+      "Name": "TH#2",
+      "Status": 1,
+      "Load": 46,
+      "Score": 2.9990528561,
+      "ScoreJitter": -46003065
+    },
+    {
+      "Name": "UZ#32",
+      "Status": 1,
+      "Load": 6,
+      "Score": 2.9910330911000003,
+      "ScoreJitter": 26048751
+    },
+    {
+      "Name": "CH-FI#2",
+      "Status": 1,
+      "Load": 81,
+      "Score": 2.9953970951,
+      "ScoreJitter": 44016976
+    },
+    {
+      "Name": "GR#40",
+      "Status": 1,
+      "Load": 81,
+      "Score": 2.9958452262,
+      "ScoreJitter": 38845035
+    },
+    {
+      "Name": "ZA#25",
+      "Status": 1,
+      "Load": 19,
+      "Score": 5.9955293351,
+      "ScoreJitter": 445000
+    },
+    {
+      "Name": "QA#37",
+      "Status": 1,
+      "Load": 17,
+      "Score": 2.992822805,
+      "ScoreJitter": 16406511
+    },
+    {
+      "Name": "CL#26",
+      "Status": 1,
+      "Load": 65,
+      "Score": 2.9868952857,
+      "ScoreJitter": 49026870
+    },
+    {
+      "Name": "IE#3",
+      "Status": 1,
+      "Load": 95,
+      "Score": 2.996831968,
+      "ScoreJitter": 31084194
+    },
+    {
+      "Name": "MK#02",
+      "Status": 1,
+      "Load": 84,
+      "Score": 2.9993967096,
+      "ScoreJitter": 4686102
+    },
+    {
+      "Name": "CA#607",
+      "Status": 1,
+      "Load": 37,
+      "Score": 2.9780165754,
+      "ScoreJitter": 8839749
+    },
+    {
+      "Name": "UK#638",
+      "Status": 1,
+      "Load": 38,
+      "Score": 2.9931557126,
+      "ScoreJitter": -20659424
+    },
+    {
+      "Name": "HU#40",
+      "Status": 1,
+      "Load": 72,
+      "Score": 2.9984506173,
+      "ScoreJitter": 11381421
+    },
+    {
+      "Name": "HR#12",
+      "Status": 1,
+      "Load": 26,
+      "Score": 2.9964748044,
+      "ScoreJitter": -38439893
+    },
+    {
+      "Name": "MD#18",
+      "Status": 1,
+      "Load": 37,
+      "Score": 2.9956119486,
+      "ScoreJitter": -26942785
+    },
+    {
+      "Name": "CH-MY#2",
+      "Status": 1,
+      "Load": 29,
+      "Score": 5.9932812047,
+      "ScoreJitter": 36632061
+    },
+    {
+      "Name": "UZ#30",
+      "Status": 1,
+      "Load": 0,
+      "Score": 2.9971084283,
+      "ScoreJitter": -34704620
+    },
+    {
+      "Name": "SE-PH#1",
+      "Status": 1,
+      "Load": 56,
+      "Score": 5.9994530951,
+      "ScoreJitter": -29649713
+    },
+    {
+      "Name": "SI#4",
+      "Status": 1,
+      "Load": 81,
+      "Score": 2.9954884172,
+      "ScoreJitter": 42905883
+    },
+    {
+      "Name": "DK#15",
+      "Status": 1,
+      "Load": 100,
+      "Score": 2.996748497,
+      "ScoreJitter": 31948457
+    },
+    {
+      "Name": "PL#50",
+      "Status": 1,
+      "Load": 53,
+      "Score": 2.9879055595,
+      "ScoreJitter": 44361034
+    },
+    {
+      "Name": "CU#10",
+      "Status": 1,
+      "Load": 9,
+      "Score": 2.982713339,
+      "ScoreJitter": -27462242
+    },
+    {
+      "Name": "SV#27",
+      "Status": 1,
+      "Load": 19,
+      "Score": 2.9846620268,
+      "ScoreJitter": -46262542
+    },
+    {
+      "Name": "SI#3",
+      "Status": 1,
+      "Load": 81,
+      "Score": 2.9977029375999997,
+      "ScoreJitter": 20760679
+    },
+    {
+      "Name": "NZ#24",
+      "Status": 1,
+      "Load": 38,
+      "Score": 2.9926540757,
+      "ScoreJitter": 3148366
+    },
+    {
+      "Name": "HK#27-TOR",
+      "Status": 1,
+      "Load": 95,
+      "Score": 8.9974487264,
+      "ScoreJitter": 24750135
+    },
+    {
+      "Name": "GT#12",
+      "Status": 1,
+      "Load": 8,
+      "Score": 2.9793139477,
+      "ScoreJitter": -2679601
+    },
+    {
+      "Name": "US-WA#103",
+      "Status": 1,
+      "Load": 24,
+      "Score": 1.9570132236,
+      "ScoreJitter": -48002105
+    },
+    {
+      "Name": "UA#17",
+      "Status": 1,
+      "Load": 52,
+      "Score": 2.9974004821999998,
+      "ScoreJitter": -46854305
+    },
+    {
+      "Name": "SS#30",
+      "Status": 1,
+      "Load": 0,
+      "Score": 2.9997966247,
+      "ScoreJitter": -48331098
+    },
+    {
+      "Name": "MM#03",
+      "Status": 1,
+      "Load": 5,
+      "Score": 2.992332621,
+      "ScoreJitter": 21103390
+    },
+    {
+      "Name": "CH-HR#2",
+      "Status": 1,
+      "Load": 79,
+      "Score": 2.9951685591,
+      "ScoreJitter": 47168277
+    },
+    {
+      "Name": "NL#88",
+      "Status": 1,
+      "Load": 72,
+      "Score": 2.9969710684999997,
+      "ScoreJitter": 25537695
+    },
+    {
+      "Name": "US-AZ#105",
+      "Status": 1,
+      "Load": 27,
+      "Score": 1.9215379689,
+      "ScoreJitter": 39822831
+    },
+    {
+      "Name": "KE#7",
+      "Status": 1,
+      "Load": 44,
+      "Score": 2.9913632203000002,
+      "ScoreJitter": 38884949
+    },
+    {
+      "Name": "EE#10",
+      "Status": 1,
+      "Load": 45,
+      "Score": 2.9909892031,
+      "ScoreJitter": 8788512
+    },
+    {
+      "Name": "US-CA#410",
+      "Status": 1,
+      "Load": 25,
+      "Score": 1.8651049087,
+      "ScoreJitter": -9211495
+    },
+    {
+      "Name": "IS-IL#1",
+      "Status": 1,
+      "Load": 12,
+      "Score": 5.9916884168,
+      "ScoreJitter": 40377665
+    },
+    {
+      "Name": "VN#2",
+      "Status": 1,
+      "Load": 39,
+      "Score": 2.9923648168,
+      "ScoreJitter": 16439762
+    },
+    {
+      "Name": "CH#351",
+      "Status": 1,
+      "Load": 81,
+      "Score": 2.996839318,
+      "ScoreJitter": 27958395
+    },
+    {
+      "Name": "DZ#30",
+      "Status": 1,
+      "Load": 10,
+      "Score": 2.9900886801,
+      "ScoreJitter": 25849890
+    },
+    {
+      "Name": "CZ#34",
+      "Status": 1,
+      "Load": 59,
+      "Score": 2.9918686532,
+      "ScoreJitter": 4173332
+    },
+    {
+      "Name": "RU#43",
+      "Status": 1,
+      "Load": 26,
+      "Score": 5.9900164387,
+      "ScoreJitter": 24292979
+    },
+    {
+      "Name": "CA#816",
+      "Status": 1,
+      "Load": 27,
+      "Score": 2.9835082791,
+      "ScoreJitter": -46077287
+    },
+    {
+      "Name": "IT#68",
+      "Status": 1,
+      "Load": 36,
+      "Score": 2.9942849881,
+      "ScoreJitter": -12715280
+    },
+    {
+      "Name": "DZ#31",
+      "Status": 1,
+      "Load": 10,
+      "Score": 2.9894851935,
+      "ScoreJitter": 31884756
+    },
+    {
+      "Name": "SI#12",
+      "Status": 1,
+      "Load": 33,
+      "Score": 2.9884952180999997,
+      "ScoreJitter": 40697122
+    },
+    {
+      "Name": "CH#350",
+      "Status": 1,
+      "Load": 81,
+      "Score": 2.9986329307,
+      "ScoreJitter": 10022268
+    },
+    {
+      "Name": "MU#31",
+      "Status": 1,
+      "Load": 12,
+      "Score": 2.9932754704,
+      "ScoreJitter": 27167507
+    },
+    {
+      "Name": "US-VA#15",
+      "Status": 1,
+      "Load": 41,
+      "Score": 1.9766065403000002,
+      "ScoreJitter": 31887463
+    },
+    {
+      "Name": "DE#388",
+      "Status": 1,
+      "Load": 81,
+      "Score": 2.9991271796,
+      "ScoreJitter": 4561537
+    },
+    {
+      "Name": "NO#46",
+      "Status": 1,
+      "Load": 72,
+      "Score": 2.9980527859,
+      "ScoreJitter": 10765673
+    },
+    {
+      "Name": "CA#1068",
+      "Status": 1,
+      "Load": 27,
+      "Score": 2.9620921876,
+      "ScoreJitter": -46197092
+    },
+    {
+      "Name": "IS-MT#1",
+      "Status": 1,
+      "Load": 26,
+      "Score": 2.9921002335,
+      "ScoreJitter": 28921383
+    },
+    {
+      "Name": "AE#12",
+      "Status": 1,
+      "Load": 5,
+      "Score": 5.9926021336,
+      "ScoreJitter": 18835183
+    },
+    {
+      "Name": "CH-AR#2",
+      "Status": 1,
+      "Load": 43,
+      "Score": 5.9931845889,
+      "ScoreJitter": 33144990
+    },
+    {
+      "Name": "TN#8",
+      "Status": 1,
+      "Load": 3,
+      "Score": 2.9955483426000002,
+      "ScoreJitter": -25784831
+    },
+    {
+      "Name": "MX#49",
+      "Status": 1,
+      "Load": 81,
+      "Score": 2.9966913109,
+      "ScoreJitter": 30902655
+    },
+    {
+      "Name": "SD#30",
+      "Status": 1,
+      "Load": 6,
+      "Score": 2.9948186509,
+      "ScoreJitter": -2091440
+    },
+    {
+      "Name": "NP#12",
+      "Status": 1,
+      "Load": 14,
+      "Score": 2.9955276782,
+      "ScoreJitter": -13321762
+    },
+    {
+      "Name": "HR#4",
+      "Status": 1,
+      "Load": 79,
+      "Score": 2.9981883151,
+      "ScoreJitter": 16970717
+    },
+    {
+      "Name": "TJ#4",
+      "Status": 1,
+      "Load": 7,
+      "Score": 2.9890310703000003,
+      "ScoreJitter": 47732973
+    },
+    {
+      "Name": "US-NY#438",
+      "Status": 1,
+      "Load": 58,
+      "Score": 1.9808224238999999,
+      "ScoreJitter": 4558283
+    },
+    {
+      "Name": "US-WA#110",
+      "Status": 1,
+      "Load": 81,
+      "Score": 2.9964515436,
+      "ScoreJitter": 29679814
+    },
+    {
+      "Name": "MN#12",
+      "Status": 1,
+      "Load": 13,
+      "Score": 2.9893011048,
+      "ScoreJitter": 32097030
+    },
+    {
+      "Name": "KZ#11",
+      "Status": 1,
+      "Load": 8,
+      "Score": 2.9909739378999998,
+      "ScoreJitter": 19923703
+    },
+    {
+      "Name": "MX#11",
+      "Status": 1,
+      "Load": 81,
+      "Score": 2.9984097297,
+      "ScoreJitter": 13792391
+    },
+    {
+      "Name": "AZ#33",
+      "Status": 1,
+      "Load": 0,
+      "Score": 2.9894191341000003,
+      "ScoreJitter": 42443064
+    },
+    {
+      "Name": "MD#48",
+      "Status": 1,
+      "Load": 19,
+      "Score": 2.989839808,
+      "ScoreJitter": 30778620
+    },
+    {
+      "Name": "US-NY#169",
+      "Status": 1,
+      "Load": 72,
+      "Score": 2.9971254404,
+      "ScoreJitter": 25957491
+    },
+    {
+      "Name": "AU#200",
+      "Status": 1,
+      "Load": 16,
+      "Score": 2.9970571464,
+      "ScoreJitter": -31695168
+    },
+    {
+      "Name": "TG#32",
+      "Status": 1,
+      "Load": 0,
+      "Score": 2.9905350364,
+      "ScoreJitter": 34416269
+    },
+    {
+      "Name": "UK#637",
+      "Status": 1,
+      "Load": 38,
+      "Score": 2.9912004932,
+      "ScoreJitter": -1107230
+    },
+    {
+      "Name": "IN#28",
+      "Status": 1,
+      "Load": 48,
+      "Score": 2.996933414,
+      "ScoreJitter": 28736599
+    },
+    {
+      "Name": "EG#20",
+      "Status": 1,
+      "Load": 20,
+      "Score": 2.9974048846,
+      "ScoreJitter": -34537161
+    },
+    {
+      "Name": "AU#109",
+      "Status": 1,
+      "Load": 23,
+      "Score": 2.9953293647,
+      "ScoreJitter": -9359803
+    },
+    {
+      "Name": "AL#38",
+      "Status": 1,
+      "Load": 33,
+      "Score": 5.9942184925,
+      "ScoreJitter": -11798716
+    },
+    {
+      "Name": "PT#8",
+      "Status": 1,
+      "Load": 81,
+      "Score": 2.9967245107,
+      "ScoreJitter": 31659002
+    },
+    {
+      "Name": "AE#11",
+      "Status": 1,
+      "Load": 14,
+      "Score": 5.9962915147,
+      "ScoreJitter": -18058627
+    },
+    {
+      "Name": "NO#13",
+      "Status": 1,
+      "Load": 90,
+      "Score": 2.9994877596,
+      "ScoreJitter": 4061396
+    },
+    {
+      "Name": "AU#1",
+      "Status": 1,
+      "Load": 31,
+      "Score": 2.9971516847,
+      "ScoreJitter": -32640551
+    },
+    {
+      "Name": "US-CA#80",
+      "Status": 1,
+      "Load": 65,
+      "Score": 1.9840872215,
+      "ScoreJitter": 32541546
+    },
+    {
+      "Name": "SE#19",
+      "Status": 1,
+      "Load": 53,
+      "Score": 2.9870943038,
+      "ScoreJitter": 45946777
+    },
+    {
+      "Name": "TZ#8",
+      "Status": 1,
+      "Load": 10,
+      "Score": 2.9931201929,
+      "ScoreJitter": 22422924
+    },
+    {
+      "Name": "TN#5",
+      "Status": 1,
+      "Load": 12,
+      "Score": 2.9948710932,
+      "ScoreJitter": -19012337
+    },
+    {
+      "Name": "CH#18-TOR",
+      "Status": 0,
+      "Load": 100,
+      "Score": 9,
+      "ScoreJitter": 26217804
+    },
+    {
+      "Name": "US-FL#101",
+      "Status": 1,
+      "Load": 45,
+      "Score": 1.9814391418000001,
+      "ScoreJitter": -10717419
+    },
+    {
+      "Name": "US-OH#12",
+      "Status": 1,
+      "Load": 72,
+      "Score": 2.9983561304,
+      "ScoreJitter": 14248914
+    },
+    {
+      "Name": "KH#2",
+      "Status": 1,
+      "Load": 17,
+      "Score": 2.9974832287,
+      "ScoreJitter": -30754612
+    },
+    {
+      "Name": "UA#56",
+      "Status": 1,
+      "Load": 24,
+      "Score": 2.9975218607,
+      "ScoreJitter": -48068090
+    },
+    {
+      "Name": "RS#23",
+      "Status": 1,
+      "Load": 49,
+      "Score": 2.9913266849999998,
+      "ScoreJitter": 15133483
+    },
+    {
+      "Name": "US-OH#1",
+      "Status": 1,
+      "Load": 72,
+      "Score": 2.9979758414999997,
+      "ScoreJitter": 18051803
+    },
+    {
+      "Name": "KZ#12",
+      "Status": 1,
+      "Load": 8,
+      "Score": 2.9969811297,
+      "ScoreJitter": -40148214
+    },
+    {
+      "Name": "NG#3",
+      "Status": 1,
+      "Load": 10,
+      "Score": 2.9990632173,
+      "ScoreJitter": -49461859
+    },
+    {
+      "Name": "AU#112",
+      "Status": 1,
+      "Load": 23,
+      "Score": 2.9985195508,
+      "ScoreJitter": -41261664
+    },
+    {
+      "Name": "UK#694",
+      "Status": 1,
+      "Load": 51,
+      "Score": 2.9915030592000003,
+      "ScoreJitter": -865290
+    },
+    {
+      "Name": "MY#36",
+      "Status": 1,
+      "Load": 20,
+      "Score": 5.9957201808,
+      "ScoreJitter": -9480160
+    },
+    {
+      "Name": "QA#1",
+      "Status": 1,
+      "Load": 13,
+      "Score": 2.9979461928999998,
+      "ScoreJitter": -34827367
+    },
+    {
+      "Name": "HK#29",
+      "Status": 1,
+      "Load": 6,
+      "Score": 2.9921713938,
+      "ScoreJitter": 14942360
+    },
+    {
+      "Name": "US-FL#103",
+      "Status": 1,
+      "Load": 36,
+      "Score": 1.9765955185,
+      "ScoreJitter": 37718813
+    },
+    {
+      "Name": "MR#10",
+      "Status": 1,
+      "Load": 20,
+      "Score": 2.9970616005,
+      "ScoreJitter": -44648669
+    },
+    {
+      "Name": "SK#12",
+      "Status": 1,
+      "Load": 37,
+      "Score": 2.9958121745,
+      "ScoreJitter": -32996513
+    },
+    {
+      "Name": "EC#3",
+      "Status": 1,
+      "Load": 68,
+      "Score": 2.9841338894,
+      "ScoreJitter": 27460059
+    },
+    {
+      "Name": "SN#13",
+      "Status": 1,
+      "Load": 0,
+      "Score": 2.9955003668,
+      "ScoreJitter": -28386239
+    },
+    {
+      "Name": "PH#4",
+      "Status": 1,
+      "Load": 65,
+      "Score": 5.9918499386,
+      "ScoreJitter": 18660319
+    },
+    {
+      "Name": "SE-FI#1",
+      "Status": 1,
+      "Load": 72,
+      "Score": 2.9996041276,
+      "ScoreJitter": 1149313
+    },
+    {
+      "Name": "CH-HU#2",
+      "Status": 1,
+      "Load": 34,
+      "Score": 2.9923734642,
+      "ScoreJitter": 8056407
+    },
+    {
+      "Name": "BR#100",
+      "Status": 1,
+      "Load": 30,
+      "Score": 5.9943605287,
+      "ScoreJitter": -18099965
+    },
+    {
+      "Name": "NZ#16",
+      "Status": 1,
+      "Load": 24,
+      "Score": 2.9987303077,
+      "ScoreJitter": 11080761
+    },
+    {
+      "Name": "GR#1",
+      "Status": 1,
+      "Load": 81,
+      "Score": 2.9979081857,
+      "ScoreJitter": 19842874
+    },
+    {
+      "Name": "AU#201",
+      "Status": 1,
+      "Load": 16,
+      "Score": 2.9958925352,
+      "ScoreJitter": -20049056
+    },
+    {
+      "Name": "MR#32",
+      "Status": 1,
+      "Load": 0,
+      "Score": 2.9909920875,
+      "ScoreJitter": 16046460
+    },
+    {
+      "Name": "RO#34",
+      "Status": 1,
+      "Load": 9,
+      "Score": 2.9974336414,
+      "ScoreJitter": -44126956
+    },
+    {
+      "Name": "BA#1",
+      "Status": 1,
+      "Load": 27,
+      "Score": 2.9927909668,
+      "ScoreJitter": 22216
+    },
+    {
+      "Name": "AU#202",
+      "Status": 1,
+      "Load": 25,
+      "Score": 2.9967345146,
+      "ScoreJitter": -28468850
+    },
+    {
+      "Name": "DZ#32",
+      "Status": 1,
+      "Load": 19,
+      "Score": 2.9929664845,
+      "ScoreJitter": -2928153
+    },
+    {
+      "Name": "TW#13",
+      "Status": 1,
+      "Load": 78,
+      "Score": 5.997541529,
+      "ScoreJitter": 23368904
+    },
+    {
+      "Name": "CI#4",
+      "Status": 1,
+      "Load": 22,
+      "Score": 2.9972618644,
+      "ScoreJitter": -35979356
+    },
+    {
+      "Name": "IE#4",
+      "Status": 1,
+      "Load": 100,
+      "Score": 2.9954753084,
+      "ScoreJitter": 44650790
+    },
+    {
+      "Name": "MY#12",
+      "Status": 1,
+      "Load": 43,
+      "Score": 5.9968099598,
+      "ScoreJitter": -20304976
+    },
+    {
+      "Name": "PL#52",
+      "Status": 1,
+      "Load": 44,
+      "Score": 2.9956804652,
+      "ScoreJitter": -33388022
+    },
+    {
+      "Name": "US-DC#29",
+      "Status": 1,
+      "Load": 72,
+      "Score": 2.9997239936,
+      "ScoreJitter": 294985
+    },
+    {
+      "Name": "IS-IE#1",
+      "Status": 1,
+      "Load": 54,
+      "Score": 2.9976484851,
+      "ScoreJitter": 21592072
+    },
+    {
+      "Name": "TH#4",
+      "Status": 1,
+      "Load": 37,
+      "Score": 2.9963067069,
+      "ScoreJitter": -18541573
+    },
+    {
+      "Name": "GR#2",
+      "Status": 1,
+      "Load": 90,
+      "Score": 2.9972004879,
+      "ScoreJitter": 26919852
+    },
+    {
+      "Name": "MR#11",
+      "Status": 1,
+      "Load": 11,
+      "Score": 2.9930056479,
+      "ScoreJitter": -4089143
+    },
+    {
+      "Name": "NG#14",
+      "Status": 1,
+      "Load": 16,
+      "Score": 2.9959869579,
+      "ScoreJitter": -19315242
+    },
+    {
+      "Name": "DE#387",
+      "Status": 1,
+      "Load": 72,
+      "Score": 2.9974950251,
+      "ScoreJitter": 20883082
+    },
+    {
+      "Name": "UA#20",
+      "Status": 1,
+      "Load": 43,
+      "Score": 2.9926665957000003,
+      "ScoreJitter": 484559
+    },
+    {
+      "Name": "PA#12",
+      "Status": 1,
+      "Load": 25,
+      "Score": 2.984737318,
+      "ScoreJitter": -86305
+    },
+    {
+      "Name": "SE-RO#1",
+      "Status": 1,
+      "Load": 17,
+      "Score": 2.9932317771,
+      "ScoreJitter": 8120998
+    },
+    {
+      "Name": "AT#64",
+      "Status": 1,
+      "Load": 55,
+      "Score": 2.9919479296000002,
+      "ScoreJitter": 5349185
+    },
+    {
+      "Name": "BN#1",
+      "Status": 1,
+      "Load": 1,
+      "Score": 2.99711501,
+      "ScoreJitter": -28096813
+    },
+    {
+      "Name": "SS#10",
+      "Status": 1,
+      "Load": 19,
+      "Score": 2.993577225,
+      "ScoreJitter": 13862898
+    },
+    {
+      "Name": "AU#111",
+      "Status": 1,
+      "Load": 23,
+      "Score": 2.9902740021,
+      "ScoreJitter": 41193822
+    },
+    {
+      "Name": "MZ#29",
+      "Status": 1,
+      "Load": 0,
+      "Score": 2.9944152187,
+      "ScoreJitter": 12630378
+    },
+    {
+      "Name": "TG#10",
+      "Status": 1,
+      "Load": 13,
+      "Score": 2.991152898,
+      "ScoreJitter": 28237653
+    },
+    {
+      "Name": "ES#34",
+      "Status": 1,
+      "Load": 69,
+      "Score": 2.998032705,
+      "ScoreJitter": -38341555
+    },
+    {
+      "Name": "MM#02",
+      "Status": 1,
+      "Load": 6,
+      "Score": 2.9975992335,
+      "ScoreJitter": -31562734
+    },
+    {
+      "Name": "LU#17",
+      "Status": 1,
+      "Load": 63,
+      "Score": 2.9910743363,
+      "ScoreJitter": 9207549
+    },
+    {
+      "Name": "DK#16",
+      "Status": 1,
+      "Load": 100,
+      "Score": 2.99737445,
+      "ScoreJitter": 25688927
+    },
+    {
+      "Name": "IS-PE#1",
+      "Status": 1,
+      "Load": 33,
+      "Score": 5.9980862463,
+      "ScoreJitter": -25483264
+    },
+    {
+      "Name": "EC#1",
+      "Status": 1,
+      "Load": 68,
+      "Score": 2.9876536138,
+      "ScoreJitter": -7737184
+    },
+    {
+      "Name": "GE#30",
+      "Status": 1,
+      "Load": 42,
+      "Score": 2.99339712,
+      "ScoreJitter": 1370974
+    },
+    {
+      "Name": "US-CA#814",
+      "Status": 1,
+      "Load": 55,
+      "Score": 1.9098774053,
+      "ScoreJitter": 2293088
+    },
+    {
+      "Name": "RO#33",
+      "Status": 1,
+      "Load": 18,
+      "Score": 2.9950327357999997,
+      "ScoreJitter": -20117900
+    },
+    {
+      "Name": "TM#26",
+      "Status": 1,
+      "Load": 0,
+      "Score": 2.9906742104,
+      "ScoreJitter": 31810501
+    },
+    {
+      "Name": "AU#167",
+      "Status": 1,
+      "Load": 29,
+      "Score": 2.9947889152,
+      "ScoreJitter": -11700153
+    },
+    {
+      "Name": "UZ#27",
+      "Status": 1,
+      "Load": 6,
+      "Score": 2.9942861408,
+      "ScoreJitter": -6481745
+    },
+    {
+      "Name": "US-TX#269",
+      "Status": 1,
+      "Load": 56,
+      "Score": 1.9685255263,
+      "ScoreJitter": -35239974
+    },
+    {
+      "Name": "LA#12",
+      "Status": 1,
+      "Load": 14,
+      "Score": 2.9894207072,
+      "ScoreJitter": 48109402
+    }
+  ]
+}

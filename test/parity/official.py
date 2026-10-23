@@ -26,7 +26,9 @@ from proton.vpn.session import VPNSession
 HERE = pathlib.Path(__file__).parent
 OUT = HERE / "testdata"
 AUTH_INFO = (OUT / "auth_info_response.json").read_bytes()
-PORT, TLS_PORT, LIVE_PORT = 18201, 18202, 18203
+PORT, TLS_PORT, LIVE_PORT, LIVE_V2_PORT = 18201, 18202, 18203, 18204
+# Stands in for the StatusID of the live server list, which changes over time.
+STATUS_ID = b"00000000-0000-0000-0000-000000000000"
 USERNAME, PASSWORD = "parityuser", "parity-password"
 
 
@@ -115,8 +117,8 @@ def forward(raw: bytes) -> bytes:
 
 # Feature flags that switch the client between request paths, pinned so the
 # recording does not depend on the account it is made with. BinaryServerStatus
-# selects /vpn/v2/logicals plus a binary status blob over /vpn/v1/logicals;
-# this tool implements the v1 path.
+# selects /vpn/v2/logicals plus a binary status file over /vpn/v1/logicals;
+# the post-login sequence is recorded once with each.
 PINNED_FLAGS = {"BinaryServerStatus": False}
 
 
@@ -130,6 +132,55 @@ def pin_flags(payload: bytes, encoding) -> bytes:
     toggles += [{"name": name, "enabled": True} for name, on in PINNED_FLAGS.items() if on]
     data["toggles"] = toggles
     return json.dumps(data).encode()
+
+
+async def sync(port: int, records: list, binary_status: bool):
+    PINNED_FLAGS["BinaryServerStatus"] = binary_status
+    serve(port, False, records, live=True)
+    session = new_session(f"http://127.0.0.1:{port}")
+    authenticate(session)
+    setattr(session, "_Session__Scopes", ["vpn"])
+    await session.fetch_session_data()
+
+
+def write_sync(records: list, names: set, order_file: str):
+    order = []
+    for raw in records:
+        path = raw.split(b" ")[1].decode().split("?")[0]
+        if path == "/tests/ping":
+            # A session used concurrently before its transport is chosen probes
+            # once per call. A real login has already probed by this point.
+            continue
+        if path.startswith("/vpn/v2/status/"):
+            path = "/vpn/v2/status/"
+            raw = re.sub(rb"(/vpn/v2/status/)[^/]+", rb"\g<1>" + STATUS_ID, raw)
+        # The netzone is the caller's own network; keep it out of the repository.
+        raw = re.sub(rb"(X-PM-netzone: )[^\r]+", rb"\g<1>192.0.2.0", raw)
+        if path not in SYNC_NAMES:
+            # A request this recorder does not know: keep it for inspection and
+            # fail loudly rather than silently drop part of the sequence.
+            (OUT / "unknown.http").write_bytes(raw)
+            raise SystemExit(f"unexpected post-login request {path}, saved to testdata/unknown.http")
+        if SYNC_NAMES[path] in names:
+            (OUT / f"{SYNC_NAMES[path]}.http").write_bytes(raw)
+        order.append(SYNC_NAMES[path])
+    if order:
+        # The first four go out concurrently; only the order after them is fixed.
+        print(order_file, sorted(order[:4]), "then", order[4:])
+        (OUT / order_file).write_text("\n".join(sorted(order[:4]) + order[4:]) + "\n")
+
+
+SYNC_NAMES = {
+    "/vpn/v2": "sync_vpn_info",
+    "/vpn/v1/certificate": "sync_certificate",
+    "/vpn/v1/location": "sync_location",
+    "/vpn/v2/clientconfig": "sync_clientconfig",
+    "/feature/v2/frontend": "sync_features",
+    "/vpn/v1/logicals": "sync_logicals",
+    "/vpn/v2/logicals": "sync_logicals_v2",
+    "/vpn/v2/status/": "sync_status_v2",
+    "/core/v4/notifications": "sync_notifications",
+}
 
 
 def environment(url: str):
@@ -180,13 +231,10 @@ async def main():
     # What the client fetches right after a successful login. These need real
     # responses to parse, so they are relayed to the live API when credentials
     # are provided; without them the existing goldens are left alone.
-    synced = []
+    synced, synced_v2 = [], []
     if os.environ.get("PARITY_TOKEN"):
-        serve(LIVE_PORT, False, synced, live=True)
-        session = new_session(f"http://127.0.0.1:{LIVE_PORT}")
-        authenticate(session)
-        setattr(session, "_Session__Scopes", ["vpn"])
-        await session.fetch_session_data()
+        await sync(LIVE_PORT, synced, binary_status=False)
+        await sync(LIVE_V2_PORT, synced_v2, binary_status=True)
 
     # The production TLS path, pinning included. The handshake cannot complete
     # against a plain socket, which is fine: only the ClientHello is wanted.
@@ -204,35 +252,9 @@ async def main():
         print(raw.split(b"\r\n")[0].decode(), "->", name)
         if name:
             (OUT / f"{name}.http").write_bytes(raw)
-    sync_names = {
-        "/vpn/v2": "sync_vpn_info",
-        "/vpn/v1/certificate": "sync_certificate",
-        "/vpn/v1/location": "sync_location",
-        "/vpn/v2/clientconfig": "sync_clientconfig",
-        "/feature/v2/frontend": "sync_features",
-        "/vpn/v1/logicals": "sync_logicals",
-        "/core/v4/notifications": "sync_notifications",
-    }
-    order = []
-    for raw in synced:
-        path = raw.split(b" ")[1].decode().split("?")[0]
-        if path == "/tests/ping":
-            # A session used concurrently before its transport is chosen probes
-            # once per call. A real login has already probed by this point.
-            continue
-        # The netzone is the caller's own network; keep it out of the repository.
-        raw = re.sub(rb"(X-PM-netzone: )[^\r]+", rb"\g<1>192.0.2.0", raw)
-        if path not in sync_names:
-            # A request this recorder does not know: keep it for inspection and
-            # fail loudly rather than silently drop part of the sequence.
-            (OUT / "unknown.http").write_bytes(raw)
-            raise SystemExit(f"unexpected post-login request {path}, saved to testdata/unknown.http")
-        (OUT / f"{sync_names[path]}.http").write_bytes(raw)
-        order.append(sync_names[path])
-    if order:
-        # The first four go out concurrently; only the order after them is fixed.
-        print("sync order:", sorted(order[:4]), "then", order[4:])
-        (OUT / "sync_order.txt").write_text("\n".join(sorted(order[:4]) + order[4:]) + "\n")
+    # The v2 run differs only in its server list requests; the rest is shared.
+    write_sync(synced, set(SYNC_NAMES.values()) - {"sync_logicals_v2", "sync_status_v2"}, "sync_order.txt")
+    write_sync(synced_v2, {"sync_logicals_v2", "sync_status_v2"}, "sync_order_v2.txt")
     # Written next to the Go code that embeds it.
     (HERE / "clienthello.bin").write_bytes(hellos[0])
     print("clienthello", len(hellos[0]), "bytes")

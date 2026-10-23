@@ -14,6 +14,9 @@ const (
 	RefreshPath     = "/auth/refresh"
 	CertificatePath = "/vpn/v1/certificate"
 	LogicalsPath    = "/vpn/v1/logicals"
+	LogicalsV2Path  = "/vpn/v2/logicals"
+	// StatusPathFormat takes the StatusID of a v2 server list.
+	StatusPathFormat = "/vpn/v2/status/%s/binary"
 	// LogicalsQuery is the query the official client always lists servers with.
 	LogicalsQuery     = "?SecureCoreFilter=all&WithState=true"
 	LocationPath      = "/vpn/v1/location"

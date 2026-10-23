@@ -1,0 +1,3405 @@
+{
+  "StatusID": "2f93aaaa-ada2-4adb-b463-f4b32425e191",
+  "LogicalServers": [
+    {
+      "Name": "SD#32",
+      "StatusReference": {
+        "Index": 160,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 15.55,
+        "Longitude": 32.53
+      },
+      "ExitLocation": {
+        "Latitude": 15.55,
+        "Longitude": 32.53
+      },
+      "ExitCountry": "SD"
+    },
+    {
+      "Name": "SN#36",
+      "StatusReference": {
+        "Index": 133,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 14.71,
+        "Longitude": -17.46
+      },
+      "ExitLocation": {
+        "Latitude": 14.71,
+        "Longitude": -17.46
+      },
+      "ExitCountry": "SN"
+    },
+    {
+      "Name": "US-AZ#101",
+      "StatusReference": {
+        "Index": 49,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 33.44,
+        "Longitude": -112.07
+      },
+      "ExitLocation": {
+        "Latitude": 33.44,
+        "Longitude": -112.07
+      },
+      "ExitCountry": "US"
+    },
+    {
+      "Name": "US-FL#10",
+      "StatusReference": {
+        "Index": 1,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 25.76,
+        "Longitude": -80.19
+      },
+      "ExitLocation": {
+        "Latitude": 25.76,
+        "Longitude": -80.19
+      },
+      "ExitCountry": "US"
+    },
+    {
+      "Name": "NL#341",
+      "StatusReference": {
+        "Index": 105,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 52.37,
+        "Longitude": 4.89
+      },
+      "ExitLocation": {
+        "Latitude": 52.37,
+        "Longitude": 4.89
+      },
+      "ExitCountry": "NL"
+    },
+    {
+      "Name": "US-CA#90",
+      "StatusReference": {
+        "Index": 65,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 34.05,
+        "Longitude": -118.24
+      },
+      "ExitLocation": {
+        "Latitude": 34.05,
+        "Longitude": -118.24
+      },
+      "ExitCountry": "US"
+    },
+    {
+      "Name": "MM#01",
+      "StatusReference": {
+        "Index": 136,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 16.87,
+        "Longitude": 96.19
+      },
+      "ExitLocation": {
+        "Latitude": 16.87,
+        "Longitude": 96.19
+      },
+      "ExitCountry": "MM"
+    },
+    {
+      "Name": "KM#31",
+      "StatusReference": {
+        "Index": 168,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": -11.71,
+        "Longitude": 43.24
+      },
+      "ExitLocation": {
+        "Latitude": -11.71,
+        "Longitude": 43.24
+      },
+      "ExitCountry": "KM"
+    },
+    {
+      "Name": "US-FL#12",
+      "StatusReference": {
+        "Index": 68,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 25.76,
+        "Longitude": -80.19
+      },
+      "ExitLocation": {
+        "Latitude": 25.76,
+        "Longitude": -80.19
+      },
+      "ExitCountry": "US"
+    },
+    {
+      "Name": "SE#31-TOR",
+      "StatusReference": {
+        "Index": 19,
+        "Cost": 0,
+        "Penalty": 7
+      },
+      "EntryLocation": {
+        "Latitude": 59.33,
+        "Longitude": 18.06
+      },
+      "ExitLocation": {
+        "Latitude": 59.33,
+        "Longitude": 18.06
+      },
+      "ExitCountry": "SE"
+    },
+    {
+      "Name": "MZ#30",
+      "StatusReference": {
+        "Index": 149,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": -25.95,
+        "Longitude": 32.58
+      },
+      "ExitLocation": {
+        "Latitude": -25.95,
+        "Longitude": 32.58
+      },
+      "ExitCountry": "MZ"
+    },
+    {
+      "Name": "AL#34",
+      "StatusReference": {
+        "Index": 35,
+        "Cost": 1,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 41.32,
+        "Longitude": 19.81
+      },
+      "ExitLocation": {
+        "Latitude": 41.32,
+        "Longitude": 19.81
+      },
+      "ExitCountry": "AL"
+    },
+    {
+      "Name": "FI#3",
+      "StatusReference": {
+        "Index": 59,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 60.175,
+        "Longitude": 24.941
+      },
+      "ExitLocation": {
+        "Latitude": 60.175,
+        "Longitude": 24.941
+      },
+      "ExitCountry": "FI"
+    },
+    {
+      "Name": "CH-LT#2",
+      "StatusReference": {
+        "Index": 88,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 54.68,
+        "Longitude": 25.27
+      },
+      "ExitLocation": {
+        "Latitude": 54.68,
+        "Longitude": 25.27
+      },
+      "ExitCountry": "LT"
+    },
+    {
+      "Name": "ZA#39",
+      "StatusReference": {
+        "Index": 119,
+        "Cost": 1,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": -26.2,
+        "Longitude": 28.04
+      },
+      "ExitLocation": {
+        "Latitude": -26.2,
+        "Longitude": 28.04
+      },
+      "ExitCountry": "ZA"
+    },
+    {
+      "Name": "CA#88",
+      "StatusReference": {
+        "Index": 196,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 45.5,
+        "Longitude": -73.56
+      },
+      "ExitLocation": {
+        "Latitude": 45.5,
+        "Longitude": -73.56
+      },
+      "ExitCountry": "CA"
+    },
+    {
+      "Name": "MR#12",
+      "StatusReference": {
+        "Index": 109,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 18.07,
+        "Longitude": -15.96
+      },
+      "ExitLocation": {
+        "Latitude": 18.07,
+        "Longitude": -15.96
+      },
+      "ExitCountry": "MR"
+    },
+    {
+      "Name": "ES#33",
+      "StatusReference": {
+        "Index": 91,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 40.41,
+        "Longitude": -3.7
+      },
+      "ExitLocation": {
+        "Latitude": 40.41,
+        "Longitude": -3.7
+      },
+      "ExitCountry": "ES"
+    },
+    {
+      "Name": "TG#31",
+      "StatusReference": {
+        "Index": 121,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 6.17,
+        "Longitude": 1.23
+      },
+      "ExitLocation": {
+        "Latitude": 6.17,
+        "Longitude": 1.23
+      },
+      "ExitCountry": "TG"
+    },
+    {
+      "Name": "SE-JP#1",
+      "StatusReference": {
+        "Index": 10,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 35.65,
+        "Longitude": 139.83
+      },
+      "ExitLocation": {
+        "Latitude": 35.65,
+        "Longitude": 139.83
+      },
+      "ExitCountry": "JP"
+    },
+    {
+      "Name": "CO#20",
+      "StatusReference": {
+        "Index": 87,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 4.71,
+        "Longitude": -74.07
+      },
+      "ExitLocation": {
+        "Latitude": 4.62,
+        "Longitude": -74.06
+      },
+      "ExitCountry": "CO"
+    },
+    {
+      "Name": "RS#22",
+      "StatusReference": {
+        "Index": 150,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 44.8,
+        "Longitude": 20.45
+      },
+      "ExitLocation": {
+        "Latitude": 44.8,
+        "Longitude": 20.45
+      },
+      "ExitCountry": "RS"
+    },
+    {
+      "Name": "SE-FR#1",
+      "StatusReference": {
+        "Index": 197,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 48.86,
+        "Longitude": 2.34
+      },
+      "ExitLocation": {
+        "Latitude": 48.86,
+        "Longitude": 2.35
+      },
+      "ExitCountry": "FR"
+    },
+    {
+      "Name": "PT#6",
+      "StatusReference": {
+        "Index": 30,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 38.72,
+        "Longitude": -9.13
+      },
+      "ExitLocation": {
+        "Latitude": 38.72,
+        "Longitude": -9.13
+      },
+      "ExitCountry": "PT"
+    },
+    {
+      "Name": "US-CA#331",
+      "StatusReference": {
+        "Index": 64,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 34.05,
+        "Longitude": -118.24
+      },
+      "ExitLocation": {
+        "Latitude": 34.05,
+        "Longitude": -118.24
+      },
+      "ExitCountry": "US"
+    },
+    {
+      "Name": "DE#389",
+      "StatusReference": {
+        "Index": 75,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 50.11,
+        "Longitude": 8.68
+      },
+      "ExitLocation": {
+        "Latitude": 50.11,
+        "Longitude": 8.68
+      },
+      "ExitCountry": "DE"
+    },
+    {
+      "Name": "FR#185",
+      "StatusReference": {
+        "Index": 108,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 43.29,
+        "Longitude": 5.37
+      },
+      "ExitLocation": {
+        "Latitude": 43.29,
+        "Longitude": 5.37
+      },
+      "ExitCountry": "FR"
+    },
+    {
+      "Name": "IE#11",
+      "StatusReference": {
+        "Index": 96,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 53.35,
+        "Longitude": -6.26
+      },
+      "ExitLocation": {
+        "Latitude": 53.35,
+        "Longitude": -6.26
+      },
+      "ExitCountry": "IE"
+    },
+    {
+      "Name": "KZ#27",
+      "StatusReference": {
+        "Index": 5,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 51.16,
+        "Longitude": 71.44
+      },
+      "ExitLocation": {
+        "Latitude": 51.16,
+        "Longitude": 71.44
+      },
+      "ExitCountry": "KZ"
+    },
+    {
+      "Name": "US-CO#21-TOR",
+      "StatusReference": {
+        "Index": 129,
+        "Cost": 0,
+        "Penalty": 7
+      },
+      "EntryLocation": {
+        "Latitude": 39.73,
+        "Longitude": -104.99
+      },
+      "ExitLocation": {
+        "Latitude": 39.74,
+        "Longitude": -104.99
+      },
+      "ExitCountry": "US"
+    },
+    {
+      "Name": "DE#53-TOR",
+      "StatusReference": {
+        "Index": 29,
+        "Cost": 0,
+        "Penalty": 7
+      },
+      "EntryLocation": {
+        "Latitude": 50.11,
+        "Longitude": 8.68
+      },
+      "ExitLocation": {
+        "Latitude": 50.11,
+        "Longitude": 8.68
+      },
+      "ExitCountry": "DE"
+    },
+    {
+      "Name": "MA#14",
+      "StatusReference": {
+        "Index": 159,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 34.01,
+        "Longitude": -6.83
+      },
+      "ExitLocation": {
+        "Latitude": 34.01,
+        "Longitude": -6.83
+      },
+      "ExitCountry": "MA"
+    },
+    {
+      "Name": "CL#27",
+      "StatusReference": {
+        "Index": 135,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": -33.44,
+        "Longitude": -70.67
+      },
+      "ExitLocation": {
+        "Latitude": -33.44,
+        "Longitude": -70.67
+      },
+      "ExitCountry": "CL"
+    },
+    {
+      "Name": "IQ#5",
+      "StatusReference": {
+        "Index": 173,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 33.3,
+        "Longitude": 44.35
+      },
+      "ExitLocation": {
+        "Latitude": 33.3,
+        "Longitude": 44.35
+      },
+      "ExitCountry": "IQ"
+    },
+    {
+      "Name": "NL#339",
+      "StatusReference": {
+        "Index": 193,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 52.37,
+        "Longitude": 4.89
+      },
+      "ExitLocation": {
+        "Latitude": 52.37,
+        "Longitude": 4.89
+      },
+      "ExitCountry": "NL"
+    },
+    {
+      "Name": "LY#5",
+      "StatusReference": {
+        "Index": 171,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 32.88,
+        "Longitude": 13.19
+      },
+      "ExitLocation": {
+        "Latitude": 32.88,
+        "Longitude": 13.19
+      },
+      "ExitCountry": "LY"
+    },
+    {
+      "Name": "AO#8",
+      "StatusReference": {
+        "Index": 56,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": -8.83,
+        "Longitude": 13.23
+      },
+      "ExitLocation": {
+        "Latitude": -8.83,
+        "Longitude": 13.23
+      },
+      "ExitCountry": "AO"
+    },
+    {
+      "Name": "LU#20",
+      "StatusReference": {
+        "Index": 158,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 49.61,
+        "Longitude": 6.13
+      },
+      "ExitLocation": {
+        "Latitude": 49.61,
+        "Longitude": 6.13
+      },
+      "ExitCountry": "LU"
+    },
+    {
+      "Name": "US-DC#103",
+      "StatusReference": {
+        "Index": 122,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 38.9,
+        "Longitude": -77.05
+      },
+      "ExitLocation": {
+        "Latitude": 38.9,
+        "Longitude": -77.05
+      },
+      "ExitCountry": "US"
+    },
+    {
+      "Name": "CH-BA#2",
+      "StatusReference": {
+        "Index": 180,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 44.17,
+        "Longitude": 17.65
+      },
+      "ExitLocation": {
+        "Latitude": 44.17,
+        "Longitude": 17.65
+      },
+      "ExitCountry": "BA"
+    },
+    {
+      "Name": "US-VA#12",
+      "StatusReference": {
+        "Index": 164,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 39.04,
+        "Longitude": -77.48
+      },
+      "ExitLocation": {
+        "Latitude": 39.04,
+        "Longitude": -77.48
+      },
+      "ExitCountry": "US"
+    },
+    {
+      "Name": "CO#27",
+      "StatusReference": {
+        "Index": 183,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 4.62,
+        "Longitude": -74.06
+      },
+      "ExitLocation": {
+        "Latitude": 4.62,
+        "Longitude": -74.06
+      },
+      "ExitCountry": "CO"
+    },
+    {
+      "Name": "VN#3",
+      "StatusReference": {
+        "Index": 54,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 21.02,
+        "Longitude": 105.83
+      },
+      "ExitLocation": {
+        "Latitude": 21.02,
+        "Longitude": 105.83
+      },
+      "ExitCountry": "VN"
+    },
+    {
+      "Name": "AU#215",
+      "StatusReference": {
+        "Index": 175,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": -27.47,
+        "Longitude": 153.02
+      },
+      "ExitLocation": {
+        "Latitude": -27.47,
+        "Longitude": 153.02
+      },
+      "ExitCountry": "AU"
+    },
+    {
+      "Name": "ET#7",
+      "StatusReference": {
+        "Index": 114,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 9.02,
+        "Longitude": 38.74
+      },
+      "ExitLocation": {
+        "Latitude": 9.02,
+        "Longitude": 38.74
+      },
+      "ExitCountry": "ET"
+    },
+    {
+      "Name": "YE#7",
+      "StatusReference": {
+        "Index": 143,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 15.34,
+        "Longitude": 44.2
+      },
+      "ExitLocation": {
+        "Latitude": 15.34,
+        "Longitude": 44.2
+      },
+      "ExitCountry": "YE"
+    },
+    {
+      "Name": "IS-TH#1",
+      "StatusReference": {
+        "Index": 0,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 13.73,
+        "Longitude": 100.53
+      },
+      "ExitLocation": {
+        "Latitude": 13.73,
+        "Longitude": 100.53
+      },
+      "ExitCountry": "TH"
+    },
+    {
+      "Name": "US-TX#270",
+      "StatusReference": {
+        "Index": 45,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 26.2,
+        "Longitude": -98.23
+      },
+      "ExitLocation": {
+        "Latitude": 26.2,
+        "Longitude": -98.23
+      },
+      "ExitCountry": "US"
+    },
+    {
+      "Name": "NP#11",
+      "StatusReference": {
+        "Index": 27,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 27.7,
+        "Longitude": 85.3
+      },
+      "ExitLocation": {
+        "Latitude": 27.7,
+        "Longitude": 85.3
+      },
+      "ExitCountry": "NP"
+    },
+    {
+      "Name": "SE#17",
+      "StatusReference": {
+        "Index": 3,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 59.33,
+        "Longitude": 18.06
+      },
+      "ExitLocation": {
+        "Latitude": 59.33,
+        "Longitude": 18.06
+      },
+      "ExitCountry": "SE"
+    },
+    {
+      "Name": "TH#2",
+      "StatusReference": {
+        "Index": 98,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 13.73,
+        "Longitude": 100.53
+      },
+      "ExitLocation": {
+        "Latitude": 13.73,
+        "Longitude": 100.53
+      },
+      "ExitCountry": "TH"
+    },
+    {
+      "Name": "UZ#32",
+      "StatusReference": {
+        "Index": 14,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 41.31,
+        "Longitude": 69.24
+      },
+      "ExitLocation": {
+        "Latitude": 41.31,
+        "Longitude": 69.24
+      },
+      "ExitCountry": "UZ"
+    },
+    {
+      "Name": "CH-FI#2",
+      "StatusReference": {
+        "Index": 162,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 60.175,
+        "Longitude": 24.941
+      },
+      "ExitLocation": {
+        "Latitude": 60.175,
+        "Longitude": 24.941
+      },
+      "ExitCountry": "FI"
+    },
+    {
+      "Name": "GR#40",
+      "StatusReference": {
+        "Index": 42,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 37.97,
+        "Longitude": 23.72
+      },
+      "ExitLocation": {
+        "Latitude": 37.97,
+        "Longitude": 23.72
+      },
+      "ExitCountry": "GR"
+    },
+    {
+      "Name": "ZA#25",
+      "StatusReference": {
+        "Index": 123,
+        "Cost": 1,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": -26.2,
+        "Longitude": 28.04
+      },
+      "ExitLocation": {
+        "Latitude": -26.2,
+        "Longitude": 28.04
+      },
+      "ExitCountry": "ZA"
+    },
+    {
+      "Name": "QA#37",
+      "StatusReference": {
+        "Index": 172,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 25.28,
+        "Longitude": 51.53
+      },
+      "ExitLocation": {
+        "Latitude": 25.28,
+        "Longitude": 51.53
+      },
+      "ExitCountry": "QA"
+    },
+    {
+      "Name": "CL#26",
+      "StatusReference": {
+        "Index": 62,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": -33.44,
+        "Longitude": -70.67
+      },
+      "ExitLocation": {
+        "Latitude": -33.44,
+        "Longitude": -70.67
+      },
+      "ExitCountry": "CL"
+    },
+    {
+      "Name": "IE#3",
+      "StatusReference": {
+        "Index": 81,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 53.35,
+        "Longitude": -6.26
+      },
+      "ExitLocation": {
+        "Latitude": 53.35,
+        "Longitude": -6.26
+      },
+      "ExitCountry": "IE"
+    },
+    {
+      "Name": "MK#02",
+      "StatusReference": {
+        "Index": 157,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 41.99,
+        "Longitude": 21.42
+      },
+      "ExitLocation": {
+        "Latitude": 41.99,
+        "Longitude": 21.42
+      },
+      "ExitCountry": "MK"
+    },
+    {
+      "Name": "CA#607",
+      "StatusReference": {
+        "Index": 188,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 43.65,
+        "Longitude": -79.34
+      },
+      "ExitLocation": {
+        "Latitude": 43.65,
+        "Longitude": -79.34
+      },
+      "ExitCountry": "CA"
+    },
+    {
+      "Name": "UK#638",
+      "StatusReference": {
+        "Index": 97,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 55.95,
+        "Longitude": -3.18
+      },
+      "ExitLocation": {
+        "Latitude": 55.95,
+        "Longitude": -3.18
+      },
+      "ExitCountry": "UK"
+    },
+    {
+      "Name": "HU#40",
+      "StatusReference": {
+        "Index": 177,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 47.49,
+        "Longitude": 19.05
+      },
+      "ExitLocation": {
+        "Latitude": 47.49,
+        "Longitude": 19.05
+      },
+      "ExitCountry": "HU"
+    },
+    {
+      "Name": "HR#12",
+      "StatusReference": {
+        "Index": 130,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 45.81,
+        "Longitude": 15.96
+      },
+      "ExitLocation": {
+        "Latitude": 45.81,
+        "Longitude": 15.96
+      },
+      "ExitCountry": "HR"
+    },
+    {
+      "Name": "MD#18",
+      "StatusReference": {
+        "Index": 67,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 47.01,
+        "Longitude": 28.86
+      },
+      "ExitLocation": {
+        "Latitude": 47.01,
+        "Longitude": 28.86
+      },
+      "ExitCountry": "MD"
+    },
+    {
+      "Name": "CH-MY#2",
+      "StatusReference": {
+        "Index": 111,
+        "Cost": 1,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 3.14,
+        "Longitude": 101.69
+      },
+      "ExitLocation": {
+        "Latitude": 3.14,
+        "Longitude": 101.69
+      },
+      "ExitCountry": "MY"
+    },
+    {
+      "Name": "UZ#30",
+      "StatusReference": {
+        "Index": 92,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 41.31,
+        "Longitude": 69.24
+      },
+      "ExitLocation": {
+        "Latitude": 41.31,
+        "Longitude": 69.24
+      },
+      "ExitCountry": "UZ"
+    },
+    {
+      "Name": "SE-PH#1",
+      "StatusReference": {
+        "Index": 115,
+        "Cost": 1,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 14.59,
+        "Longitude": 120.98
+      },
+      "ExitLocation": {
+        "Latitude": 14.59,
+        "Longitude": 120.98
+      },
+      "ExitCountry": "PH"
+    },
+    {
+      "Name": "SI#4",
+      "StatusReference": {
+        "Index": 18,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 46.05,
+        "Longitude": 14.51
+      },
+      "ExitLocation": {
+        "Latitude": 46.05,
+        "Longitude": 14.51
+      },
+      "ExitCountry": "SI"
+    },
+    {
+      "Name": "DK#15",
+      "StatusReference": {
+        "Index": 152,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 55.68,
+        "Longitude": 12.57
+      },
+      "ExitLocation": {
+        "Latitude": 55.68,
+        "Longitude": 12.57
+      },
+      "ExitCountry": "DK"
+    },
+    {
+      "Name": "PL#50",
+      "StatusReference": {
+        "Index": 156,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 52.23,
+        "Longitude": 21.01
+      },
+      "ExitLocation": {
+        "Latitude": 52.23,
+        "Longitude": 21.01
+      },
+      "ExitCountry": "PL"
+    },
+    {
+      "Name": "CU#10",
+      "StatusReference": {
+        "Index": 134,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 23.13,
+        "Longitude": -82.38
+      },
+      "ExitLocation": {
+        "Latitude": 23.13,
+        "Longitude": -82.38
+      },
+      "ExitCountry": "CU"
+    },
+    {
+      "Name": "SV#27",
+      "StatusReference": {
+        "Index": 2,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 13.69,
+        "Longitude": -89.21
+      },
+      "ExitLocation": {
+        "Latitude": 13.69,
+        "Longitude": -89.21
+      },
+      "ExitCountry": "SV"
+    },
+    {
+      "Name": "SI#3",
+      "StatusReference": {
+        "Index": 48,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 46.05,
+        "Longitude": 14.51
+      },
+      "ExitLocation": {
+        "Latitude": 46.05,
+        "Longitude": 14.51
+      },
+      "ExitCountry": "SI"
+    },
+    {
+      "Name": "NZ#24",
+      "StatusReference": {
+        "Index": 47,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": -36.84,
+        "Longitude": 174.76
+      },
+      "ExitLocation": {
+        "Latitude": -36.84,
+        "Longitude": 174.76
+      },
+      "ExitCountry": "NZ"
+    },
+    {
+      "Name": "HK#27-TOR",
+      "StatusReference": {
+        "Index": 39,
+        "Cost": 0,
+        "Penalty": 7
+      },
+      "EntryLocation": {
+        "Latitude": 22.3,
+        "Longitude": 114.17
+      },
+      "ExitLocation": {
+        "Latitude": 22.3,
+        "Longitude": 114.17
+      },
+      "ExitCountry": "HK"
+    },
+    {
+      "Name": "GT#12",
+      "StatusReference": {
+        "Index": 118,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 14.64,
+        "Longitude": -90.51
+      },
+      "ExitLocation": {
+        "Latitude": 14.64,
+        "Longitude": -90.51
+      },
+      "ExitCountry": "GT"
+    },
+    {
+      "Name": "US-WA#103",
+      "StatusReference": {
+        "Index": 16,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 47.6,
+        "Longitude": -122.33
+      },
+      "ExitLocation": {
+        "Latitude": 47.6,
+        "Longitude": -122.33
+      },
+      "ExitCountry": "US"
+    },
+    {
+      "Name": "UA#17",
+      "StatusReference": {
+        "Index": 4,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 50.45,
+        "Longitude": 30.52
+      },
+      "ExitLocation": {
+        "Latitude": 50.45,
+        "Longitude": 30.52
+      },
+      "ExitCountry": "UA"
+    },
+    {
+      "Name": "SS#30",
+      "StatusReference": {
+        "Index": 93,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 4.85,
+        "Longitude": 31.57
+      },
+      "ExitLocation": {
+        "Latitude": 4.85,
+        "Longitude": 31.57
+      },
+      "ExitCountry": "SS"
+    },
+    {
+      "Name": "MM#03",
+      "StatusReference": {
+        "Index": 144,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 16.87,
+        "Longitude": 96.19
+      },
+      "ExitLocation": {
+        "Latitude": 16.87,
+        "Longitude": 96.19
+      },
+      "ExitCountry": "MM"
+    },
+    {
+      "Name": "CH-HR#2",
+      "StatusReference": {
+        "Index": 46,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 45.81,
+        "Longitude": 15.96
+      },
+      "ExitLocation": {
+        "Latitude": 45.81,
+        "Longitude": 15.96
+      },
+      "ExitCountry": "HR"
+    },
+    {
+      "Name": "NL#88",
+      "StatusReference": {
+        "Index": 194,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 52.37,
+        "Longitude": 4.89
+      },
+      "ExitLocation": {
+        "Latitude": 52.37,
+        "Longitude": 4.89
+      },
+      "ExitCountry": "NL"
+    },
+    {
+      "Name": "US-AZ#105",
+      "StatusReference": {
+        "Index": 26,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 33.44,
+        "Longitude": -112.07
+      },
+      "ExitLocation": {
+        "Latitude": 33.44,
+        "Longitude": -112.07
+      },
+      "ExitCountry": "US"
+    },
+    {
+      "Name": "KE#7",
+      "StatusReference": {
+        "Index": 120,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": -1.28,
+        "Longitude": 36.81
+      },
+      "ExitLocation": {
+        "Latitude": -1.28,
+        "Longitude": 36.81
+      },
+      "ExitCountry": "KE"
+    },
+    {
+      "Name": "EE#10",
+      "StatusReference": {
+        "Index": 84,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 59.44,
+        "Longitude": 24.75
+      },
+      "ExitLocation": {
+        "Latitude": 59.44,
+        "Longitude": 24.75
+      },
+      "ExitCountry": "EE"
+    },
+    {
+      "Name": "US-CA#410",
+      "StatusReference": {
+        "Index": 112,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 37.33,
+        "Longitude": -121.89
+      },
+      "ExitLocation": {
+        "Latitude": 37.33,
+        "Longitude": -121.89
+      },
+      "ExitCountry": "US"
+    },
+    {
+      "Name": "IS-IL#1",
+      "StatusReference": {
+        "Index": 154,
+        "Cost": 1,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 32.08,
+        "Longitude": 34.88
+      },
+      "ExitLocation": {
+        "Latitude": 32.08,
+        "Longitude": 34.78
+      },
+      "ExitCountry": "IL"
+    },
+    {
+      "Name": "VN#2",
+      "StatusReference": {
+        "Index": 79,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 21.02,
+        "Longitude": 105.83
+      },
+      "ExitLocation": {
+        "Latitude": 21.02,
+        "Longitude": 105.83
+      },
+      "ExitCountry": "VN"
+    },
+    {
+      "Name": "CH#351",
+      "StatusReference": {
+        "Index": 28,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 47.37,
+        "Longitude": 8.54
+      },
+      "ExitLocation": {
+        "Latitude": 47.37,
+        "Longitude": 8.54
+      },
+      "ExitCountry": "CH"
+    },
+    {
+      "Name": "DZ#30",
+      "StatusReference": {
+        "Index": 25,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 36.73,
+        "Longitude": 3.08
+      },
+      "ExitLocation": {
+        "Latitude": 36.73,
+        "Longitude": 3.08
+      },
+      "ExitCountry": "DZ"
+    },
+    {
+      "Name": "CZ#34",
+      "StatusReference": {
+        "Index": 166,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 50.07,
+        "Longitude": 14.41
+      },
+      "ExitLocation": {
+        "Latitude": 50.07,
+        "Longitude": 14.41
+      },
+      "ExitCountry": "CZ"
+    },
+    {
+      "Name": "RU#43",
+      "StatusReference": {
+        "Index": 148,
+        "Cost": 1,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 55.75,
+        "Longitude": 37.61
+      },
+      "ExitLocation": {
+        "Latitude": 55.75,
+        "Longitude": 37.61
+      },
+      "ExitCountry": "RU"
+    },
+    {
+      "Name": "CA#816",
+      "StatusReference": {
+        "Index": 131,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 43.65,
+        "Longitude": -79.34
+      },
+      "ExitLocation": {
+        "Latitude": 43.65,
+        "Longitude": -79.34
+      },
+      "ExitCountry": "CA"
+    },
+    {
+      "Name": "IT#68",
+      "StatusReference": {
+        "Index": 71,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 38.12,
+        "Longitude": 13.36
+      },
+      "ExitLocation": {
+        "Latitude": 38.12,
+        "Longitude": 13.36
+      },
+      "ExitCountry": "IT"
+    },
+    {
+      "Name": "DZ#31",
+      "StatusReference": {
+        "Index": 182,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 36.73,
+        "Longitude": 3.08
+      },
+      "ExitLocation": {
+        "Latitude": 36.73,
+        "Longitude": 3.08
+      },
+      "ExitCountry": "DZ"
+    },
+    {
+      "Name": "SI#12",
+      "StatusReference": {
+        "Index": 192,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 46.05,
+        "Longitude": 14.51
+      },
+      "ExitLocation": {
+        "Latitude": 46.05,
+        "Longitude": 14.51
+      },
+      "ExitCountry": "SI"
+    },
+    {
+      "Name": "CH#350",
+      "StatusReference": {
+        "Index": 145,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 47.37,
+        "Longitude": 8.54
+      },
+      "ExitLocation": {
+        "Latitude": 47.37,
+        "Longitude": 8.54
+      },
+      "ExitCountry": "CH"
+    },
+    {
+      "Name": "MU#31",
+      "StatusReference": {
+        "Index": 127,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": -20.16,
+        "Longitude": 57.5
+      },
+      "ExitLocation": {
+        "Latitude": -20.16,
+        "Longitude": 57.5
+      },
+      "ExitCountry": "MU"
+    },
+    {
+      "Name": "US-VA#15",
+      "StatusReference": {
+        "Index": 147,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 39.04,
+        "Longitude": -77.48
+      },
+      "ExitLocation": {
+        "Latitude": 39.04,
+        "Longitude": -77.48
+      },
+      "ExitCountry": "US"
+    },
+    {
+      "Name": "DE#388",
+      "StatusReference": {
+        "Index": 13,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 50.11,
+        "Longitude": 8.68
+      },
+      "ExitLocation": {
+        "Latitude": 50.11,
+        "Longitude": 8.68
+      },
+      "ExitCountry": "DE"
+    },
+    {
+      "Name": "NO#46",
+      "StatusReference": {
+        "Index": 37,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 59.91,
+        "Longitude": 10.75
+      },
+      "ExitLocation": {
+        "Latitude": 59.91,
+        "Longitude": 10.75
+      },
+      "ExitCountry": "NO"
+    },
+    {
+      "Name": "CA#1068",
+      "StatusReference": {
+        "Index": 103,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 49.24,
+        "Longitude": -123.11
+      },
+      "ExitLocation": {
+        "Latitude": 49.24,
+        "Longitude": -123.11
+      },
+      "ExitCountry": "CA"
+    },
+    {
+      "Name": "IS-MT#1",
+      "StatusReference": {
+        "Index": 99,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 35.89,
+        "Longitude": 14.51
+      },
+      "ExitLocation": {
+        "Latitude": 35.89,
+        "Longitude": 14.51
+      },
+      "ExitCountry": "MT"
+    },
+    {
+      "Name": "AE#12",
+      "StatusReference": {
+        "Index": 132,
+        "Cost": 1,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 25.27,
+        "Longitude": 55.29
+      },
+      "ExitLocation": {
+        "Latitude": 25.27,
+        "Longitude": 55.29
+      },
+      "ExitCountry": "AE"
+    },
+    {
+      "Name": "CH-AR#2",
+      "StatusReference": {
+        "Index": 195,
+        "Cost": 1,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": -34.6,
+        "Longitude": -58.38
+      },
+      "ExitLocation": {
+        "Latitude": -34.6,
+        "Longitude": -58.38
+      },
+      "ExitCountry": "AR"
+    },
+    {
+      "Name": "TN#8",
+      "StatusReference": {
+        "Index": 163,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 36.8,
+        "Longitude": 10.18
+      },
+      "ExitLocation": {
+        "Latitude": 36.8,
+        "Longitude": 10.18
+      },
+      "ExitCountry": "TN"
+    },
+    {
+      "Name": "MX#49",
+      "StatusReference": {
+        "Index": 32,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 20.58,
+        "Longitude": -100.38
+      },
+      "ExitLocation": {
+        "Latitude": 20.58,
+        "Longitude": -100.38
+      },
+      "ExitCountry": "MX"
+    },
+    {
+      "Name": "SD#30",
+      "StatusReference": {
+        "Index": 6,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 15.55,
+        "Longitude": 32.53
+      },
+      "ExitLocation": {
+        "Latitude": 15.55,
+        "Longitude": 32.53
+      },
+      "ExitCountry": "SD"
+    },
+    {
+      "Name": "NP#12",
+      "StatusReference": {
+        "Index": 151,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 27.7,
+        "Longitude": 85.3
+      },
+      "ExitLocation": {
+        "Latitude": 27.7,
+        "Longitude": 85.3
+      },
+      "ExitCountry": "NP"
+    },
+    {
+      "Name": "HR#4",
+      "StatusReference": {
+        "Index": 44,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 45.81,
+        "Longitude": 15.96
+      },
+      "ExitLocation": {
+        "Latitude": 45.81,
+        "Longitude": 15.96
+      },
+      "ExitCountry": "HR"
+    },
+    {
+      "Name": "TJ#4",
+      "StatusReference": {
+        "Index": 21,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 38.53,
+        "Longitude": 68.78
+      },
+      "ExitLocation": {
+        "Latitude": 38.53,
+        "Longitude": 68.78
+      },
+      "ExitCountry": "TJ"
+    },
+    {
+      "Name": "US-NY#438",
+      "StatusReference": {
+        "Index": 137,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 40.73,
+        "Longitude": -73.93
+      },
+      "ExitLocation": {
+        "Latitude": 40.73,
+        "Longitude": -73.93
+      },
+      "ExitCountry": "US"
+    },
+    {
+      "Name": "US-WA#110",
+      "StatusReference": {
+        "Index": 174,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 47.6,
+        "Longitude": -122.33
+      },
+      "ExitLocation": {
+        "Latitude": 47.6,
+        "Longitude": -122.33
+      },
+      "ExitCountry": "US"
+    },
+    {
+      "Name": "MN#12",
+      "StatusReference": {
+        "Index": 142,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 47.92,
+        "Longitude": 106.91
+      },
+      "ExitLocation": {
+        "Latitude": 47.92,
+        "Longitude": 106.91
+      },
+      "ExitCountry": "MN"
+    },
+    {
+      "Name": "KZ#11",
+      "StatusReference": {
+        "Index": 57,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 51.16,
+        "Longitude": 71.44
+      },
+      "ExitLocation": {
+        "Latitude": 51.16,
+        "Longitude": 71.44
+      },
+      "ExitCountry": "KZ"
+    },
+    {
+      "Name": "MX#11",
+      "StatusReference": {
+        "Index": 12,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 19.43,
+        "Longitude": -99.13
+      },
+      "ExitLocation": {
+        "Latitude": 19.43,
+        "Longitude": -99.13
+      },
+      "ExitCountry": "MX"
+    },
+    {
+      "Name": "AZ#33",
+      "StatusReference": {
+        "Index": 146,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 40.4,
+        "Longitude": 49.86
+      },
+      "ExitLocation": {
+        "Latitude": 40.4,
+        "Longitude": 49.86
+      },
+      "ExitCountry": "AZ"
+    },
+    {
+      "Name": "MD#48",
+      "StatusReference": {
+        "Index": 191,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 47.01,
+        "Longitude": 28.86
+      },
+      "ExitLocation": {
+        "Latitude": 47.01,
+        "Longitude": 28.86
+      },
+      "ExitCountry": "MD"
+    },
+    {
+      "Name": "US-NY#169",
+      "StatusReference": {
+        "Index": 90,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 40.73,
+        "Longitude": -73.93
+      },
+      "ExitLocation": {
+        "Latitude": 40.73,
+        "Longitude": -73.93
+      },
+      "ExitCountry": "US"
+    },
+    {
+      "Name": "AU#200",
+      "StatusReference": {
+        "Index": 24,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": -33.86,
+        "Longitude": 151.2
+      },
+      "ExitLocation": {
+        "Latitude": -33.86,
+        "Longitude": 151.2
+      },
+      "ExitCountry": "AU"
+    },
+    {
+      "Name": "TG#32",
+      "StatusReference": {
+        "Index": 117,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 6.17,
+        "Longitude": 1.23
+      },
+      "ExitLocation": {
+        "Latitude": 6.17,
+        "Longitude": 1.23
+      },
+      "ExitCountry": "TG"
+    },
+    {
+      "Name": "UK#637",
+      "StatusReference": {
+        "Index": 17,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 55.95,
+        "Longitude": -3.18
+      },
+      "ExitLocation": {
+        "Latitude": 55.95,
+        "Longitude": -3.18
+      },
+      "ExitCountry": "UK"
+    },
+    {
+      "Name": "IN#28",
+      "StatusReference": {
+        "Index": 107,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 19.07,
+        "Longitude": 72.88
+      },
+      "ExitLocation": {
+        "Latitude": 19.07,
+        "Longitude": 72.88
+      },
+      "ExitCountry": "IN"
+    },
+    {
+      "Name": "EG#20",
+      "StatusReference": {
+        "Index": 60,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 30.04,
+        "Longitude": 31.23
+      },
+      "ExitLocation": {
+        "Latitude": 30.04,
+        "Longitude": 31.23
+      },
+      "ExitCountry": "EG"
+    },
+    {
+      "Name": "AU#109",
+      "StatusReference": {
+        "Index": 141,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": -34.92,
+        "Longitude": 138.59
+      },
+      "ExitLocation": {
+        "Latitude": -34.92,
+        "Longitude": 138.59
+      },
+      "ExitCountry": "AU"
+    },
+    {
+      "Name": "AL#38",
+      "StatusReference": {
+        "Index": 15,
+        "Cost": 1,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 41.32,
+        "Longitude": 19.81
+      },
+      "ExitLocation": {
+        "Latitude": 41.32,
+        "Longitude": 19.81
+      },
+      "ExitCountry": "AL"
+    },
+    {
+      "Name": "PT#8",
+      "StatusReference": {
+        "Index": 190,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 38.72,
+        "Longitude": -9.13
+      },
+      "ExitLocation": {
+        "Latitude": 38.72,
+        "Longitude": -9.13
+      },
+      "ExitCountry": "PT"
+    },
+    {
+      "Name": "AE#11",
+      "StatusReference": {
+        "Index": 31,
+        "Cost": 1,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 25.27,
+        "Longitude": 55.29
+      },
+      "ExitLocation": {
+        "Latitude": 25.27,
+        "Longitude": 55.29
+      },
+      "ExitCountry": "AE"
+    },
+    {
+      "Name": "NO#13",
+      "StatusReference": {
+        "Index": 83,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 59.91,
+        "Longitude": 10.75
+      },
+      "ExitLocation": {
+        "Latitude": 59.91,
+        "Longitude": 10.75
+      },
+      "ExitCountry": "NO"
+    },
+    {
+      "Name": "AU#1",
+      "StatusReference": {
+        "Index": 170,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": -33.86,
+        "Longitude": 151.2
+      },
+      "ExitLocation": {
+        "Latitude": -33.86,
+        "Longitude": 151.2
+      },
+      "ExitCountry": "AU"
+    },
+    {
+      "Name": "US-CA#80",
+      "StatusReference": {
+        "Index": 63,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 37.33,
+        "Longitude": -121.89
+      },
+      "ExitLocation": {
+        "Latitude": 37.33,
+        "Longitude": -121.89
+      },
+      "ExitCountry": "US"
+    },
+    {
+      "Name": "SE#19",
+      "StatusReference": {
+        "Index": 106,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 59.33,
+        "Longitude": 18.06
+      },
+      "ExitLocation": {
+        "Latitude": 59.33,
+        "Longitude": 18.06
+      },
+      "ExitCountry": "SE"
+    },
+    {
+      "Name": "TZ#8",
+      "StatusReference": {
+        "Index": 76,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": -6.1,
+        "Longitude": 35.74
+      },
+      "ExitLocation": {
+        "Latitude": -6.1,
+        "Longitude": 35.74
+      },
+      "ExitCountry": "TZ"
+    },
+    {
+      "Name": "TN#5",
+      "StatusReference": {
+        "Index": 113,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 36.8,
+        "Longitude": 10.18
+      },
+      "ExitLocation": {
+        "Latitude": 36.8,
+        "Longitude": 10.18
+      },
+      "ExitCountry": "TN"
+    },
+    {
+      "Name": "CH#18-TOR",
+      "StatusReference": {
+        "Index": 85,
+        "Cost": 0,
+        "Penalty": 7
+      },
+      "EntryLocation": {
+        "Latitude": 47.37,
+        "Longitude": 8.54
+      },
+      "ExitLocation": {
+        "Latitude": 47.37,
+        "Longitude": 8.54
+      },
+      "ExitCountry": "CH"
+    },
+    {
+      "Name": "US-FL#101",
+      "StatusReference": {
+        "Index": 110,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 25.76,
+        "Longitude": -80.19
+      },
+      "ExitLocation": {
+        "Latitude": 25.76,
+        "Longitude": -80.19
+      },
+      "ExitCountry": "US"
+    },
+    {
+      "Name": "US-OH#12",
+      "StatusReference": {
+        "Index": 69,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 39.98,
+        "Longitude": -82.98
+      },
+      "ExitLocation": {
+        "Latitude": 39.98,
+        "Longitude": -82.98
+      },
+      "ExitCountry": "US"
+    },
+    {
+      "Name": "KH#2",
+      "StatusReference": {
+        "Index": 125,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 11.55,
+        "Longitude": 104.92
+      },
+      "ExitLocation": {
+        "Latitude": 11.55,
+        "Longitude": 104.92
+      },
+      "ExitCountry": "KH"
+    },
+    {
+      "Name": "UA#56",
+      "StatusReference": {
+        "Index": 101,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 50.45,
+        "Longitude": 30.52
+      },
+      "ExitLocation": {
+        "Latitude": 50.45,
+        "Longitude": 30.52
+      },
+      "ExitCountry": "UA"
+    },
+    {
+      "Name": "RS#23",
+      "StatusReference": {
+        "Index": 139,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 44.8,
+        "Longitude": 20.45
+      },
+      "ExitLocation": {
+        "Latitude": 44.8,
+        "Longitude": 20.45
+      },
+      "ExitCountry": "RS"
+    },
+    {
+      "Name": "US-OH#1",
+      "StatusReference": {
+        "Index": 23,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 39.98,
+        "Longitude": -82.98
+      },
+      "ExitLocation": {
+        "Latitude": 39.98,
+        "Longitude": -82.98
+      },
+      "ExitCountry": "US"
+    },
+    {
+      "Name": "KZ#12",
+      "StatusReference": {
+        "Index": 78,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 51.16,
+        "Longitude": 71.44
+      },
+      "ExitLocation": {
+        "Latitude": 51.16,
+        "Longitude": 71.44
+      },
+      "ExitCountry": "KZ"
+    },
+    {
+      "Name": "NG#3",
+      "StatusReference": {
+        "Index": 73,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 9.054,
+        "Longitude": 7.324
+      },
+      "ExitLocation": {
+        "Latitude": 9.054,
+        "Longitude": 7.324
+      },
+      "ExitCountry": "NG"
+    },
+    {
+      "Name": "AU#112",
+      "StatusReference": {
+        "Index": 165,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": -34.92,
+        "Longitude": 138.59
+      },
+      "ExitLocation": {
+        "Latitude": -34.92,
+        "Longitude": 138.59
+      },
+      "ExitCountry": "AU"
+    },
+    {
+      "Name": "UK#694",
+      "StatusReference": {
+        "Index": 199,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 51.48,
+        "Longitude": -3.17
+      },
+      "ExitLocation": {
+        "Latitude": 51.48,
+        "Longitude": -3.17
+      },
+      "ExitCountry": "UK"
+    },
+    {
+      "Name": "MY#36",
+      "StatusReference": {
+        "Index": 95,
+        "Cost": 1,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 1.48,
+        "Longitude": 103.74
+      },
+      "ExitLocation": {
+        "Latitude": 1.48,
+        "Longitude": 103.74
+      },
+      "ExitCountry": "MY"
+    },
+    {
+      "Name": "QA#1",
+      "StatusReference": {
+        "Index": 70,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 25.28,
+        "Longitude": 51.53
+      },
+      "ExitLocation": {
+        "Latitude": 25.28,
+        "Longitude": 51.53
+      },
+      "ExitCountry": "QA"
+    },
+    {
+      "Name": "HK#29",
+      "StatusReference": {
+        "Index": 7,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 22.3,
+        "Longitude": 114.17
+      },
+      "ExitLocation": {
+        "Latitude": 22.3,
+        "Longitude": 114.17
+      },
+      "ExitCountry": "HK"
+    },
+    {
+      "Name": "US-FL#103",
+      "StatusReference": {
+        "Index": 184,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 25.76,
+        "Longitude": -80.19
+      },
+      "ExitLocation": {
+        "Latitude": 25.76,
+        "Longitude": -80.19
+      },
+      "ExitCountry": "US"
+    },
+    {
+      "Name": "MR#10",
+      "StatusReference": {
+        "Index": 153,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 18.07,
+        "Longitude": -15.96
+      },
+      "ExitLocation": {
+        "Latitude": 18.07,
+        "Longitude": -15.96
+      },
+      "ExitCountry": "MR"
+    },
+    {
+      "Name": "SK#12",
+      "StatusReference": {
+        "Index": 11,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 48.14,
+        "Longitude": 17.11
+      },
+      "ExitLocation": {
+        "Latitude": 48.14,
+        "Longitude": 17.11
+      },
+      "ExitCountry": "SK"
+    },
+    {
+      "Name": "EC#3",
+      "StatusReference": {
+        "Index": 58,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": -0.18,
+        "Longitude": -78.46
+      },
+      "ExitLocation": {
+        "Latitude": -0.18,
+        "Longitude": -78.46
+      },
+      "ExitCountry": "EC"
+    },
+    {
+      "Name": "SN#13",
+      "StatusReference": {
+        "Index": 186,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 14.71,
+        "Longitude": -17.46
+      },
+      "ExitLocation": {
+        "Latitude": 14.71,
+        "Longitude": -17.46
+      },
+      "ExitCountry": "SN"
+    },
+    {
+      "Name": "PH#4",
+      "StatusReference": {
+        "Index": 40,
+        "Cost": 1,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 14.59,
+        "Longitude": 120.98
+      },
+      "ExitLocation": {
+        "Latitude": 14.59,
+        "Longitude": 120.98
+      },
+      "ExitCountry": "PH"
+    },
+    {
+      "Name": "SE-FI#1",
+      "StatusReference": {
+        "Index": 126,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 60.175,
+        "Longitude": 24.941
+      },
+      "ExitLocation": {
+        "Latitude": 60.175,
+        "Longitude": 24.941
+      },
+      "ExitCountry": "FI"
+    },
+    {
+      "Name": "CH-HU#2",
+      "StatusReference": {
+        "Index": 179,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 47.49,
+        "Longitude": 19.05
+      },
+      "ExitLocation": {
+        "Latitude": 47.49,
+        "Longitude": 19.05
+      },
+      "ExitCountry": "HU"
+    },
+    {
+      "Name": "BR#100",
+      "StatusReference": {
+        "Index": 41,
+        "Cost": 1,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": -23.55,
+        "Longitude": -46.63
+      },
+      "ExitLocation": {
+        "Latitude": -23.55,
+        "Longitude": -46.63
+      },
+      "ExitCountry": "BR"
+    },
+    {
+      "Name": "NZ#16",
+      "StatusReference": {
+        "Index": 116,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": -36.84,
+        "Longitude": 174.76
+      },
+      "ExitLocation": {
+        "Latitude": -36.84,
+        "Longitude": 174.76
+      },
+      "ExitCountry": "NZ"
+    },
+    {
+      "Name": "GR#1",
+      "StatusReference": {
+        "Index": 178,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 37.97,
+        "Longitude": 23.72
+      },
+      "ExitLocation": {
+        "Latitude": 37.97,
+        "Longitude": 23.72
+      },
+      "ExitCountry": "GR"
+    },
+    {
+      "Name": "AU#201",
+      "StatusReference": {
+        "Index": 161,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": -33.86,
+        "Longitude": 151.2
+      },
+      "ExitLocation": {
+        "Latitude": -33.86,
+        "Longitude": 151.2
+      },
+      "ExitCountry": "AU"
+    },
+    {
+      "Name": "MR#32",
+      "StatusReference": {
+        "Index": 155,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 18.07,
+        "Longitude": -15.96
+      },
+      "ExitLocation": {
+        "Latitude": 18.07,
+        "Longitude": -15.96
+      },
+      "ExitCountry": "MR"
+    },
+    {
+      "Name": "RO#34",
+      "StatusReference": {
+        "Index": 34,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 44.42,
+        "Longitude": 26.1
+      },
+      "ExitLocation": {
+        "Latitude": 44.42,
+        "Longitude": 26.1
+      },
+      "ExitCountry": "RO"
+    },
+    {
+      "Name": "BA#1",
+      "StatusReference": {
+        "Index": 50,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 44.17,
+        "Longitude": 17.65
+      },
+      "ExitLocation": {
+        "Latitude": 44.17,
+        "Longitude": 17.65
+      },
+      "ExitCountry": "BA"
+    },
+    {
+      "Name": "AU#202",
+      "StatusReference": {
+        "Index": 189,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": -33.86,
+        "Longitude": 151.2
+      },
+      "ExitLocation": {
+        "Latitude": -33.86,
+        "Longitude": 151.2
+      },
+      "ExitCountry": "AU"
+    },
+    {
+      "Name": "DZ#32",
+      "StatusReference": {
+        "Index": 36,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 36.73,
+        "Longitude": 3.08
+      },
+      "ExitLocation": {
+        "Latitude": 36.73,
+        "Longitude": 3.08
+      },
+      "ExitCountry": "DZ"
+    },
+    {
+      "Name": "TW#13",
+      "StatusReference": {
+        "Index": 181,
+        "Cost": 1,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 24.24,
+        "Longitude": 120.6
+      },
+      "ExitLocation": {
+        "Latitude": 24.24,
+        "Longitude": 120.6
+      },
+      "ExitCountry": "TW"
+    },
+    {
+      "Name": "CI#4",
+      "StatusReference": {
+        "Index": 187,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 6.82,
+        "Longitude": -5.27
+      },
+      "ExitLocation": {
+        "Latitude": 6.82,
+        "Longitude": -5.27
+      },
+      "ExitCountry": "CI"
+    },
+    {
+      "Name": "IE#4",
+      "StatusReference": {
+        "Index": 100,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 53.35,
+        "Longitude": -6.26
+      },
+      "ExitLocation": {
+        "Latitude": 53.35,
+        "Longitude": -6.26
+      },
+      "ExitCountry": "IE"
+    },
+    {
+      "Name": "MY#12",
+      "StatusReference": {
+        "Index": 86,
+        "Cost": 1,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 3.14,
+        "Longitude": 101.69
+      },
+      "ExitLocation": {
+        "Latitude": 3.14,
+        "Longitude": 101.69
+      },
+      "ExitCountry": "MY"
+    },
+    {
+      "Name": "PL#52",
+      "StatusReference": {
+        "Index": 82,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 52.23,
+        "Longitude": 21.01
+      },
+      "ExitLocation": {
+        "Latitude": 52.23,
+        "Longitude": 21.01
+      },
+      "ExitCountry": "PL"
+    },
+    {
+      "Name": "US-DC#29",
+      "StatusReference": {
+        "Index": 94,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 38.9,
+        "Longitude": -77.05
+      },
+      "ExitLocation": {
+        "Latitude": 38.9,
+        "Longitude": -77.05
+      },
+      "ExitCountry": "US"
+    },
+    {
+      "Name": "IS-IE#1",
+      "StatusReference": {
+        "Index": 185,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 53.35,
+        "Longitude": -6.26
+      },
+      "ExitLocation": {
+        "Latitude": 53.35,
+        "Longitude": -6.26
+      },
+      "ExitCountry": "IE"
+    },
+    {
+      "Name": "TH#4",
+      "StatusReference": {
+        "Index": 104,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 13.73,
+        "Longitude": 100.53
+      },
+      "ExitLocation": {
+        "Latitude": 13.73,
+        "Longitude": 100.53
+      },
+      "ExitCountry": "TH"
+    },
+    {
+      "Name": "GR#2",
+      "StatusReference": {
+        "Index": 9,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 37.97,
+        "Longitude": 23.72
+      },
+      "ExitLocation": {
+        "Latitude": 37.97,
+        "Longitude": 23.72
+      },
+      "ExitCountry": "GR"
+    },
+    {
+      "Name": "MR#11",
+      "StatusReference": {
+        "Index": 198,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 18.07,
+        "Longitude": -15.96
+      },
+      "ExitLocation": {
+        "Latitude": 18.07,
+        "Longitude": -15.96
+      },
+      "ExitCountry": "MR"
+    },
+    {
+      "Name": "NG#14",
+      "StatusReference": {
+        "Index": 176,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 6.46,
+        "Longitude": 3.4
+      },
+      "ExitLocation": {
+        "Latitude": 6.46,
+        "Longitude": 3.4
+      },
+      "ExitCountry": "NG"
+    },
+    {
+      "Name": "DE#387",
+      "StatusReference": {
+        "Index": 8,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 50.11,
+        "Longitude": 8.68
+      },
+      "ExitLocation": {
+        "Latitude": 50.11,
+        "Longitude": 8.68
+      },
+      "ExitCountry": "DE"
+    },
+    {
+      "Name": "UA#20",
+      "StatusReference": {
+        "Index": 102,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 50.45,
+        "Longitude": 30.52
+      },
+      "ExitLocation": {
+        "Latitude": 50.45,
+        "Longitude": 30.52
+      },
+      "ExitCountry": "UA"
+    },
+    {
+      "Name": "PA#12",
+      "StatusReference": {
+        "Index": 20,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 8.99,
+        "Longitude": -79.51
+      },
+      "ExitLocation": {
+        "Latitude": 8.99,
+        "Longitude": -79.51
+      },
+      "ExitCountry": "PA"
+    },
+    {
+      "Name": "SE-RO#1",
+      "StatusReference": {
+        "Index": 89,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 44.42,
+        "Longitude": 26.1
+      },
+      "ExitLocation": {
+        "Latitude": 44.42,
+        "Longitude": 26.1
+      },
+      "ExitCountry": "RO"
+    },
+    {
+      "Name": "AT#64",
+      "StatusReference": {
+        "Index": 66,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 48.21,
+        "Longitude": 16.36
+      },
+      "ExitLocation": {
+        "Latitude": 48.21,
+        "Longitude": 16.36
+      },
+      "ExitCountry": "AT"
+    },
+    {
+      "Name": "BN#1",
+      "StatusReference": {
+        "Index": 53,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 4.89,
+        "Longitude": 114.94
+      },
+      "ExitLocation": {
+        "Latitude": 4.89,
+        "Longitude": 114.94
+      },
+      "ExitCountry": "BN"
+    },
+    {
+      "Name": "SS#10",
+      "StatusReference": {
+        "Index": 77,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 4.85,
+        "Longitude": 31.57
+      },
+      "ExitLocation": {
+        "Latitude": 4.85,
+        "Longitude": 31.57
+      },
+      "ExitCountry": "SS"
+    },
+    {
+      "Name": "AU#111",
+      "StatusReference": {
+        "Index": 22,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": -34.92,
+        "Longitude": 138.59
+      },
+      "ExitLocation": {
+        "Latitude": -34.92,
+        "Longitude": 138.59
+      },
+      "ExitCountry": "AU"
+    },
+    {
+      "Name": "MZ#29",
+      "StatusReference": {
+        "Index": 80,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": -25.95,
+        "Longitude": 32.58
+      },
+      "ExitLocation": {
+        "Latitude": -25.95,
+        "Longitude": 32.58
+      },
+      "ExitCountry": "MZ"
+    },
+    {
+      "Name": "TG#10",
+      "StatusReference": {
+        "Index": 55,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 6.17,
+        "Longitude": 1.23
+      },
+      "ExitLocation": {
+        "Latitude": 6.17,
+        "Longitude": 1.23
+      },
+      "ExitCountry": "TG"
+    },
+    {
+      "Name": "ES#34",
+      "StatusReference": {
+        "Index": 72,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 40.41,
+        "Longitude": -3.7
+      },
+      "ExitLocation": {
+        "Latitude": 40.41,
+        "Longitude": -3.7
+      },
+      "ExitCountry": "ES"
+    },
+    {
+      "Name": "MM#02",
+      "StatusReference": {
+        "Index": 51,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 16.87,
+        "Longitude": 96.19
+      },
+      "ExitLocation": {
+        "Latitude": 16.87,
+        "Longitude": 96.19
+      },
+      "ExitCountry": "MM"
+    },
+    {
+      "Name": "LU#17",
+      "StatusReference": {
+        "Index": 33,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 49.61,
+        "Longitude": 6.13
+      },
+      "ExitLocation": {
+        "Latitude": 49.61,
+        "Longitude": 6.13
+      },
+      "ExitCountry": "LU"
+    },
+    {
+      "Name": "DK#16",
+      "StatusReference": {
+        "Index": 124,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 55.68,
+        "Longitude": 12.57
+      },
+      "ExitLocation": {
+        "Latitude": 55.68,
+        "Longitude": 12.57
+      },
+      "ExitCountry": "DK"
+    },
+    {
+      "Name": "IS-PE#1",
+      "StatusReference": {
+        "Index": 140,
+        "Cost": 1,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": -12.04,
+        "Longitude": -77.04
+      },
+      "ExitLocation": {
+        "Latitude": -12.04,
+        "Longitude": -77.04
+      },
+      "ExitCountry": "PE"
+    },
+    {
+      "Name": "EC#1",
+      "StatusReference": {
+        "Index": 38,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": -0.18,
+        "Longitude": -78.46
+      },
+      "ExitLocation": {
+        "Latitude": -0.18,
+        "Longitude": -78.46
+      },
+      "ExitCountry": "EC"
+    },
+    {
+      "Name": "GE#30",
+      "StatusReference": {
+        "Index": 61,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 41.71,
+        "Longitude": 44.78
+      },
+      "ExitLocation": {
+        "Latitude": 41.71,
+        "Longitude": 44.78
+      },
+      "ExitCountry": "GE"
+    },
+    {
+      "Name": "US-CA#814",
+      "StatusReference": {
+        "Index": 52,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 37.33,
+        "Longitude": -121.89
+      },
+      "ExitLocation": {
+        "Latitude": 37.33,
+        "Longitude": -121.89
+      },
+      "ExitCountry": "US"
+    },
+    {
+      "Name": "RO#33",
+      "StatusReference": {
+        "Index": 169,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 44.42,
+        "Longitude": 26.1
+      },
+      "ExitLocation": {
+        "Latitude": 44.42,
+        "Longitude": 26.1
+      },
+      "ExitCountry": "RO"
+    },
+    {
+      "Name": "TM#26",
+      "StatusReference": {
+        "Index": 43,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 37.86,
+        "Longitude": 58.23
+      },
+      "ExitLocation": {
+        "Latitude": 37.86,
+        "Longitude": 58.23
+      },
+      "ExitCountry": "TM"
+    },
+    {
+      "Name": "AU#167",
+      "StatusReference": {
+        "Index": 74,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": -27.47,
+        "Longitude": 153.02
+      },
+      "ExitLocation": {
+        "Latitude": -27.47,
+        "Longitude": 153.02
+      },
+      "ExitCountry": "AU"
+    },
+    {
+      "Name": "UZ#27",
+      "StatusReference": {
+        "Index": 138,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 41.31,
+        "Longitude": 69.24
+      },
+      "ExitLocation": {
+        "Latitude": 41.31,
+        "Longitude": 69.24
+      },
+      "ExitCountry": "UZ"
+    },
+    {
+      "Name": "US-TX#269",
+      "StatusReference": {
+        "Index": 128,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 26.2,
+        "Longitude": -98.23
+      },
+      "ExitLocation": {
+        "Latitude": 26.2,
+        "Longitude": -98.23
+      },
+      "ExitCountry": "US"
+    },
+    {
+      "Name": "LA#12",
+      "StatusReference": {
+        "Index": 167,
+        "Cost": 0,
+        "Penalty": 1
+      },
+      "EntryLocation": {
+        "Latitude": 17.96,
+        "Longitude": 102.6
+      },
+      "ExitLocation": {
+        "Latitude": 17.96,
+        "Longitude": 102.6
+      },
+      "ExitCountry": "LA"
+    }
+  ]
+}

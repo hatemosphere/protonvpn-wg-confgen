@@ -195,3 +195,39 @@ func TestListCertificatesFilter(t *testing.T) {
 		}
 	}
 }
+
+// TestApplyLoads checks the mapping _convert_load does in the official client:
+// only enabled and visible servers are online, and servers that are not
+// autoconnectable rank behind every one that is.
+func TestApplyLoads(t *testing.T) {
+	servers := make([]api.LogicalServer, 3)
+	for i := range servers {
+		servers[i].StatusReference.Index = uint32(i)
+		servers[i].ExitCountry = "CH"
+	}
+	status := []byte{
+		1, 0, 0, 0,
+		7, 30, 0, 0, 0, 0, // enabled, visible, autoconnectable
+		3, 40, 0, 0, 0, 0, // enabled, visible
+		5, 50, 0, 0, 0, 0, // enabled, autoconnectable, hidden
+	}
+	lat, long := float32(47.37), float32(8.54)
+	if err := applyLoads(servers, status, &location{Lat: &lat, Long: &long, Country: "CH"}); err != nil {
+		t.Fatal(err)
+	}
+
+	for i, want := range []struct {
+		status, load int
+		penalized    bool
+	}{
+		{1, 30, false},
+		{1, 40, true},
+		{0, 50, true}, // the scoring library already sinks hidden servers
+	} {
+		s := servers[i]
+		if s.Status != want.status || s.Load != want.load || (s.Score >= 1000) != want.penalized {
+			t.Errorf("server %d: status %d, load %d, score %v; want status %d, load %d, penalized %t",
+				i, s.Status, s.Load, s.Score, want.status, want.load, want.penalized)
+		}
+	}
+}

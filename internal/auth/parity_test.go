@@ -27,6 +27,8 @@ import (
 const (
 	goldenDir  = "../../test/parity/testdata"
 	parityUser = "parityuser"
+	// The StatusID test/parity/official.py puts in place of the live one.
+	statusID = "00000000-0000-0000-0000-000000000000"
 )
 
 // recorder is a raw TCP server: it keeps every request exactly as received and
@@ -35,15 +37,18 @@ type recorder struct {
 	listener net.Listener
 	mu       sync.Mutex
 	requests [][]byte
+
+	// binaryStatus turns on the feature flag that selects the v2 server list.
+	binaryStatus bool
 }
 
-func newRecorder(t *testing.T) *recorder {
+func newRecorder(t *testing.T, binaryStatus bool) *recorder {
 	t.Helper()
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatal(err)
 	}
-	r := &recorder{listener: listener}
+	r := &recorder{listener: listener, binaryStatus: binaryStatus}
 	t.Cleanup(func() { _ = listener.Close() })
 
 	authInfo, err := os.ReadFile(filepath.Join(goldenDir, "auth_info_response.json"))
@@ -80,6 +85,12 @@ func (r *recorder) serve(conn net.Conn, authInfo []byte) {
 
 	status, payload := "200 OK", []byte(`{"Code": 1000}`)
 	switch req.URL.Path {
+	case "/feature/v2/frontend":
+		payload = fmt.Appendf(nil, `{"Code": 1000, "toggles": [{"name": "BinaryServerStatus", "enabled": %t}]}`, r.binaryStatus)
+	case "/vpn/v2/logicals":
+		payload = []byte(`{"Code": 1000, "StatusID": "` + statusID + `", "LogicalServers": []}`)
+	case "/vpn/v2/status/" + statusID + "/binary":
+		payload = []byte{1, 0, 0, 0}
 	case "/auth/info":
 		payload = authInfo
 	case "/auth":
@@ -89,7 +100,7 @@ func (r *recorder) serve(conn net.Conn, authInfo []byte) {
 	case "/vpn/v1/location":
 		// A documentation address: the netzone header derived from it then
 		// matches the scrubbed value in the goldens.
-		payload = []byte(`{"Code": 1000, "IP": "192.0.2.77"}`)
+		payload = []byte(`{"Code": 1000, "IP": "192.0.2.77", "Lat": 47.37, "Long": 8.54, "Country": "CH"}`)
 	case "/auth/refresh":
 		payload = []byte(`{"Code": 1000, "AccessToken": "TOKEN2", "RefreshToken": "REFRESH2", "Scopes": ["vpn"]}`)
 	}
@@ -156,7 +167,7 @@ func assertGolden(t *testing.T, name string, got []byte) {
 // TestLoginMatchesOfficialClient covers a fresh password login: the transport
 // probe, the SRP parameters request and the SRP proof.
 func TestLoginMatchesOfficialClient(t *testing.T) {
-	rec := newRecorder(t)
+	rec := newRecorder(t, false)
 	cfg := &config.Config{APIURL: rec.url(), Username: parityUser, Password: "parity-password", NoSession: true}
 
 	if _, err := NewClient(cfg).Authenticate(); err == nil {
@@ -170,10 +181,10 @@ func TestLoginMatchesOfficialClient(t *testing.T) {
 }
 
 // TestAuthenticatedRequestsMatchOfficialClient covers an established session:
-// the server listing with its location lookup, the 2FA submission and the
-// token refresh.
+// the server listing with its location and feature flag lookups, the 2FA
+// submission and the token refresh.
 func TestAuthenticatedRequestsMatchOfficialClient(t *testing.T) {
-	rec := newRecorder(t)
+	rec := newRecorder(t, false)
 	cfg := &config.Config{APIURL: rec.url(), Username: parityUser, NoSession: true}
 	session := &api.Session{UID: "UIDVALUE", AccessToken: "TOKENVALUE", RefreshToken: "REFRESHVALUE"}
 	client := NewClient(cfg)
@@ -188,54 +199,66 @@ func TestAuthenticatedRequestsMatchOfficialClient(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	requests := rec.take(t, 4)
-	for i, name := range []string{"sync_location", "sync_logicals", "auth_2fa", "auth_refresh"} {
+	requests := rec.take(t, 5)
+	for i, name := range []string{"sync_location", "sync_features", "sync_logicals", "auth_2fa", "auth_refresh"} {
 		assertGolden(t, name, requests[i])
 	}
 }
 
 // TestPostLoginSyncMatchesOfficialClient covers what follows a successful
-// login. The official client issues four requests concurrently and then three
-// in a fixed order; sync_order.txt records that.
+// login, with each server list. The official client issues four requests
+// concurrently and then the rest in a fixed order, which the order files record.
 func TestPostLoginSyncMatchesOfficialClient(t *testing.T) {
-	rec := newRecorder(t)
-	cfg := &config.Config{APIURL: rec.url(), Username: parityUser, NoSession: true}
-	session := &api.Session{UID: "UIDVALUE", AccessToken: "TOKENVALUE", RefreshToken: "REFRESHVALUE"}
+	for _, tc := range []struct {
+		order        string
+		binaryStatus bool
+	}{
+		{"sync_order.txt", false},
+		{"sync_order_v2.txt", true},
+	} {
+		t.Run(tc.order, func(t *testing.T) {
+			rec := newRecorder(t, tc.binaryStatus)
+			cfg := &config.Config{APIURL: rec.url(), Username: parityUser, NoSession: true}
+			session := &api.Session{UID: "UIDVALUE", AccessToken: "TOKENVALUE", RefreshToken: "REFRESHVALUE"}
 
-	vpn.NewClient(cfg, session).SyncSession()
+			vpn.NewClient(cfg, session).SyncSession()
 
-	order, err := os.ReadFile(filepath.Join(goldenDir, "sync_order.txt"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	names := strings.Fields(string(order))
-	requests := rec.take(t, len(names))
+			order, err := os.ReadFile(filepath.Join(goldenDir, tc.order))
+			if err != nil {
+				t.Fatal(err)
+			}
+			names := strings.Fields(string(order))
+			requests := rec.take(t, len(names))
 
-	byPath := map[string]string{
-		"/vpn/v2":                "sync_vpn_info",
-		"/vpn/v1/certificate":    "sync_certificate",
-		"/vpn/v1/location":       "sync_location",
-		"/vpn/v2/clientconfig":   "sync_clientconfig",
-		"/feature/v2/frontend":   "sync_features",
-		"/vpn/v1/logicals":       "sync_logicals",
-		"/core/v4/notifications": "sync_notifications",
-	}
-	const concurrent = 4
-	got := make([]string, 0, len(requests))
-	for _, raw := range requests {
-		target := strings.Fields(string(raw))[1]
-		path, _, _ := strings.Cut(target, "?")
-		name, ok := byPath[path]
-		if !ok {
-			t.Fatalf("unexpected request to %s", target)
-		}
-		assertGolden(t, name, raw)
-		got = append(got, name)
-	}
+			byPath := map[string]string{
+				"/vpn/v2":                                "sync_vpn_info",
+				"/vpn/v1/certificate":                    "sync_certificate",
+				"/vpn/v1/location":                       "sync_location",
+				"/vpn/v2/clientconfig":                   "sync_clientconfig",
+				"/feature/v2/frontend":                   "sync_features",
+				"/vpn/v1/logicals":                       "sync_logicals",
+				"/vpn/v2/logicals":                       "sync_logicals_v2",
+				"/vpn/v2/status/" + statusID + "/binary": "sync_status_v2",
+				"/core/v4/notifications":                 "sync_notifications",
+			}
+			const concurrent = 4
+			got := make([]string, 0, len(requests))
+			for _, raw := range requests {
+				target := strings.Fields(string(raw))[1]
+				path, _, _ := strings.Cut(target, "?")
+				name, ok := byPath[path]
+				if !ok {
+					t.Fatalf("unexpected request to %s", target)
+				}
+				assertGolden(t, name, raw)
+				got = append(got, name)
+			}
 
-	// The concurrent batch may arrive in any order; what follows may not.
-	slices.Sort(got[:concurrent])
-	if !slices.Equal(got, names) {
-		t.Errorf("request order\n got: %v\nwant: %v", got, names)
+			// The concurrent batch may arrive in any order; what follows may not.
+			slices.Sort(got[:concurrent])
+			if !slices.Equal(got, names) {
+				t.Errorf("request order\n got: %v\nwant: %v", got, names)
+			}
+		})
 	}
 }

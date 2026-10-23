@@ -13,6 +13,7 @@ import (
 	"protonvpn-wg-confgen/internal/api"
 	"protonvpn-wg-confgen/internal/config"
 	"protonvpn-wg-confgen/internal/constants"
+	"protonvpn-wg-confgen/internal/serverstatus"
 	"protonvpn-wg-confgen/internal/timeutil"
 
 	"github.com/ProtonVPN/go-vpn-lib/ed25519"
@@ -173,26 +174,82 @@ func (c *Client) renewalFeatures(current api.CertFeaturesSent) map[string]any {
 
 // GetServers fetches the list of VPN servers the way the official client does:
 // it looks up the caller's location first, since the listing carries the
-// truncated address as X-PM-netzone.
+// truncated address as X-PM-netzone and the v2 list is scored against it, and
+// checks the feature flag that picks between the two lists.
 func (c *Client) GetServers() ([]api.LogicalServer, error) {
 	if c.servers != nil {
 		return c.servers, nil
 	}
 
-	netzone, err := c.netzone()
+	loc, err := c.location()
 	if err != nil {
 		return nil, err
 	}
-	return c.fetchServers(netzone)
+	return c.fetchServers(loc, c.binaryServerStatus())
 }
 
-func (c *Client) fetchServers(netzone string) ([]api.LogicalServer, error) {
-	req, err := api.NewRequest(http.MethodGet, c.config.APIURL+constants.LogicalsPath+constants.LogicalsQuery, nil, c.session)
+// location is the caller as the API sees it, from /vpn/v1/location.
+type location struct {
+	Code    int      `json:"Code"`
+	IP      string   `json:"IP"`
+	Lat     *float32 `json:"Lat"`
+	Long    *float32 `json:"Long"`
+	Country string   `json:"Country"`
+}
+
+func (c *Client) location() (*location, error) {
+	var loc location
+	if err := c.doJSON(http.MethodGet, c.config.APIURL+constants.LocationPath, nil, &loc); err != nil {
+		return nil, err
+	}
+	if net.ParseIP(loc.IP).To4() == nil {
+		return nil, fmt.Errorf("location lookup returned no IPv4 address (code %d)", loc.Code)
+	}
+	return &loc, nil
+}
+
+// netzone returns the caller's IPv4 address with the last octet zeroed, as
+// truncate_ip_address does in the official client.
+func (l *location) netzone() string {
+	ip := net.ParseIP(l.IP).To4()
+	ip[3] = 0
+	return ip.String()
+}
+
+// binaryServerStatus fetches the feature flags and reports whether the
+// official client would list servers through the v2 endpoints. Any failure
+// reads as off, which is the client's own default.
+func (c *Client) binaryServerStatus() bool {
+	var flags struct {
+		Toggles []struct {
+			Name    string `json:"name"`
+			Enabled bool   `json:"enabled"`
+		} `json:"toggles"`
+	}
+	if err := c.doJSON(http.MethodGet, c.config.APIURL+constants.FeatureFlagsPath, nil, &flags); err != nil {
+		return false
+	}
+	for _, t := range flags.Toggles {
+		if t.Name == "BinaryServerStatus" {
+			return t.Enabled
+		}
+	}
+	return false
+}
+
+// fetchServers lists the servers from v1, or from v2 when the flag is on and
+// the location has coordinates, which is the official client's rule.
+func (c *Client) fetchServers(loc *location, v2 bool) ([]api.LogicalServer, error) {
+	v2 = v2 && loc.Lat != nil && loc.Long != nil
+	path := constants.LogicalsPath
+	if v2 {
+		path = constants.LogicalsV2Path
+	}
+
+	req, err := c.serverListRequest(path+constants.LogicalsQuery, loc)
 	if err != nil {
 		return nil, err
 	}
-	api.SetServerListHeaders(req, netzone)
-
 	var response api.LogicalsResponse
 	if err := api.Do(c.httpClient, req, &response); err != nil {
 		return nil, err
@@ -201,37 +258,76 @@ func (c *Client) fetchServers(netzone string) ([]api.LogicalServer, error) {
 		return nil, fmt.Errorf("API returned error code: %d", response.Code)
 	}
 
+	if v2 {
+		req, err := c.serverListRequest(fmt.Sprintf(constants.StatusPathFormat, response.StatusID), loc)
+		if err != nil {
+			return nil, err
+		}
+		status, err := api.DoBinary(c.httpClient, req)
+		if err != nil {
+			return nil, fmt.Errorf("server status: %w", err)
+		}
+		if err := applyLoads(response.LogicalServers, status, loc); err != nil {
+			return nil, err
+		}
+	}
+
 	c.servers = response.LogicalServers
 	return c.servers, nil
 }
 
-// netzone returns the caller's IPv4 address with the last octet zeroed, as
-// truncate_ip_address does in the official client.
-func (c *Client) netzone() (string, error) {
-	var location struct {
-		Code int    `json:"Code"`
-		IP   string `json:"IP"`
+func (c *Client) serverListRequest(path string, loc *location) (*http.Request, error) {
+	req, err := api.NewRequest(http.MethodGet, c.config.APIURL+path, nil, c.session)
+	if err != nil {
+		return nil, err
 	}
-	if err := c.doJSON(http.MethodGet, c.config.APIURL+constants.LocationPath, nil, &location); err != nil {
-		return "", err
+	api.SetServerListHeaders(req, loc.netzone())
+	return req, nil
+}
+
+// applyLoads fills in what the v2 list leaves out, as _convert_load does in
+// the official client: servers that are not autoconnectable sink by 1000, and
+// only enabled, visible servers count as online.
+func applyLoads(servers []api.LogicalServer, status []byte, loc *location) error {
+	logicals := make([]serverstatus.Logical, len(servers))
+	for i := range servers {
+		s := &servers[i]
+		logicals[i] = serverstatus.Logical{
+			StatusReference: s.StatusReference,
+			EntryLocation:   s.EntryLocation,
+			ExitLocation:    s.ExitLocation,
+			ExitCountry:     s.ExitCountry,
+		}
 	}
-	ip := net.ParseIP(location.IP).To4()
-	if ip == nil {
-		return "", fmt.Errorf("location lookup returned no IPv4 address (code %d)", location.Code)
+	user := serverstatus.Location{Latitude: *loc.Lat, Longitude: *loc.Long}
+	loads, err := serverstatus.ComputeLoads(logicals, status, &user, loc.Country)
+	if err != nil {
+		return err
 	}
-	ip[3] = 0
-	return ip.String(), nil
+	for i, load := range loads {
+		s := &servers[i]
+		s.Load = int(load.Load)
+		s.Score = load.Score
+		if !load.Autoconnectable {
+			s.Score += 1000
+		}
+		s.Status = 0
+		if load.Enabled && load.Visible {
+			s.Status = constants.StatusOnline
+		}
+	}
+	return nil
 }
 
 // SyncSession issues the requests the official client makes right after a
 // login: account info, a session certificate, location and client config
 // together, then feature flags, the server list and notifications. Only the
-// location and the server list are used; the rest exists so that a login here
-// is followed by the same traffic as a login there. Failures are ignored, as
-// nothing depends on these calls succeeding.
+// location, the flags and the server list are used; the rest exists so that a
+// login here is followed by the same traffic as a login there. Failures are
+// ignored, as nothing depends on these calls succeeding.
 func (c *Client) SyncSession() {
 	var discard struct{}
-	var netzone string
+	var loc *location
 	var wg sync.WaitGroup
 
 	get := func(path string) {
@@ -261,13 +357,13 @@ func (c *Client) SyncSession() {
 	}()
 	go func() {
 		defer wg.Done()
-		netzone, _ = c.netzone()
+		loc, _ = c.location()
 	}()
 	wg.Wait()
 
-	_ = c.doJSON(http.MethodGet, c.config.APIURL+constants.FeatureFlagsPath, nil, &discard)
-	if netzone != "" {
-		_, _ = c.fetchServers(netzone)
+	v2 := c.binaryServerStatus()
+	if loc != nil {
+		_, _ = c.fetchServers(loc, v2)
 	}
 	_ = c.doJSON(http.MethodGet, c.config.APIURL+constants.NotificationsPath, nil, &discard)
 }

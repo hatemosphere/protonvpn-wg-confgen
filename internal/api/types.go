@@ -4,6 +4,8 @@ package api
 import (
 	"bytes"
 	"encoding/json"
+
+	"protonvpn-wg-confgen/internal/serverstatus"
 )
 
 // AuthInfoResponse represents the response from the auth info endpoint
@@ -159,10 +161,12 @@ type LogicalServer struct {
 	Status       int              `json:"Status"`
 	Servers      []PhysicalServer `json:"Servers"`
 	HostCountry  string           `json:"HostCountry"`
-	Location     struct {
-		Lat  float64 `json:"Lat"`
-		Long float64 `json:"Long"`
-	} `json:"Location"`
+
+	// The v2 list has these instead of Status, Load and Score, which are
+	// computed from them, see serverstatus.
+	StatusReference serverstatus.StatusReference `json:"StatusReference"`
+	EntryLocation   serverstatus.Location        `json:"EntryLocation"`
+	ExitLocation    serverstatus.Location        `json:"ExitLocation"`
 }
 
 // PhysicalServer represents a physical VPN server
@@ -181,6 +185,7 @@ type PhysicalServer struct {
 // LogicalsResponse represents the response from the logicals endpoint
 type LogicalsResponse struct {
 	Code           int             `json:"Code"`
+	StatusID       string          `json:"StatusID"` // v2: names the status file
 	LogicalServers []LogicalServer `json:"LogicalServers"`
 }
 

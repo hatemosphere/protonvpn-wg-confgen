@@ -14,7 +14,7 @@ I wanted to automatically rotate VPN servers on my private HTPC Linux host runni
 
 - Username/password login with SRP, including TOTP 2FA; password from a prompt, a flag, or stdin for password managers
 - Session persistence and automatic refresh, so headless runs only need the password once
-- Picks the best server using Proton's own Quick Connect metric (lowest `Score`, with `Load` as tiebreaker - lower is better per the official API)
+- Picks the best server the way the official clients do: lowest `Score`, computed for your location when Proton serves the v2 server list
 - Filters by country, tier, P2P, and Secure Core, or targets one server by name
 - Persistent configurations (visible in the ProtonVPN dashboard) or session-only ones that are never registered on the account
 - VPN accelerator, NAT-PMP port forwarding, Moderate NAT, NetShield, and IPv6
@@ -169,7 +169,7 @@ A server looks like this:
 }
 ```
 
-`country` is the exit country. `host_country` appears only when the server is physically elsewhere. The same filters apply as for the table, so P2P-only is the default: add `--p2p-only=false` for every server.
+`country` is the exit country. `host_country` appears only when the server is physically elsewhere. `hostname` is missing when Proton serves the v2 server list, which has none at that level. The same filters apply as for the table, so P2P-only is the default: add `--p2p-only=false` for every server.
 
 The examples assume the list is saved once, which also avoids hitting the API per query:
 
@@ -444,7 +444,7 @@ This is tested against the real thing. `test/parity/official.py` drives Proton's
 make parity-goldens   # re-record from the official client (needs docker), then run go test
 ```
 
-Covered: the transport probe, SRP info and proof, 2FA submission, token refresh, the seven requests the official client makes after a login (in its order), the server listing, and the TLS handshake. The post-login goldens need real API responses to record, so `make parity-goldens` only refreshes them when `PARITY_UID` and `PARITY_TOKEN` hold a valid session.
+Covered: the transport probe, SRP info and proof, 2FA submission, token refresh, the requests the official client makes after a login (in its order, with either server list), the server listing, and the TLS handshake. The post-login goldens need real API responses to record, so `make parity-goldens` only refreshes them when `PARITY_UID` and `PARITY_TOKEN` hold a valid session.
 
 Not covered, because it cannot match: a persistent configuration is registered with `Mode` and `DeviceName`, which the Linux client never sends. A session-only certificate (`--no-save`) uses the official body.
 
