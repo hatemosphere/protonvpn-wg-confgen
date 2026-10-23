@@ -37,6 +37,7 @@ func Parse() (*Config, error) {
 	flag.BoolVar(&cfg.P2PServersOnly, "p2p-only", constants.DefaultP2POnly, "Use only P2P-enabled servers")
 	flag.BoolVar(&cfg.SecureCoreOnly, "secure-core", false, "Use only Secure Core servers (multi-hop through privacy-friendly countries)")
 	flag.BoolVar(&cfg.FreeOnly, "free-only", false, "Use only Free tier servers (tier 0)")
+	flag.BoolVar(&cfg.PreferInCountry, "prefer-in-country", false, "Prefer servers hosted in their exit country over Smart Routing ones (useful when you are in that country)")
 
 	// Output configuration
 	flag.StringVar(&cfg.OutputFile, "output", "protonvpn.conf", "Output WireGuard configuration file")
@@ -245,7 +246,7 @@ var flagGroups = []struct {
 }{
 	{"Modes", []string{"list-servers", "list-configs", "with-sessions", "json", "renew-serial", "revoke-serial"}},
 	{"Authentication", []string{"username", "password", "password-stdin"}},
-	{"Server selection", []string{"countries", "server", "p2p-only", "secure-core", "free-only", "debug"}},
+	{"Server selection", []string{"countries", "server", "p2p-only", "secure-core", "free-only", "prefer-in-country", "debug"}},
 	{"Output and network", []string{"output", "device-name", "ipv6", "dns", "allowed-ips", "accelerator", "port-forwarding", "moderate-nat", "netshield"}},
 	{"Certificate and session", []string{"duration", "no-save", "session-duration", "clear-session", "no-session", "force-refresh", "hv-token", "api-url"}},
 }

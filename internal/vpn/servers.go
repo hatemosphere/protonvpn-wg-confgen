@@ -61,6 +61,12 @@ func isEnabled(server *api.LogicalServer) bool {
 		slices.ContainsFunc(server.Servers, func(p api.PhysicalServer) bool { return p.Status == constants.StatusOnline })
 }
 
+// isSmartRouting reports whether the server exits in its country but is
+// hosted in another one.
+func isSmartRouting(server *api.LogicalServer) bool {
+	return server.HostCountry != "" && server.HostCountry != server.ExitCountry
+}
+
 // SelectBest selects the best server based on configuration
 func (s *ServerSelector) SelectBest(servers []api.LogicalServer) (*api.LogicalServer, error) {
 	// If a specific server is requested, find it by exact name match
@@ -91,7 +97,17 @@ func (s *ServerSelector) SelectBest(servers []api.LogicalServer) (*api.LogicalSe
 	// Lowest score wins, as in the official clients (get_fastest_in_country on
 	// Linux, getBestScoreServer on Android). The sort is stable so that ties go
 	// to the server listed first, which is what their min() and sortedBy do.
+	// --prefer-in-country ranks servers hosted in their exit country ahead of
+	// Smart Routing ones first; the official clients have no such preference.
 	slices.SortStableFunc(filtered, func(a, b api.LogicalServer) int {
+		if s.config.PreferInCountry {
+			if ra, rb := isSmartRouting(&a), isSmartRouting(&b); ra != rb {
+				if ra {
+					return 1
+				}
+				return -1
+			}
+		}
 		return cmp.Compare(a.Score, b.Score)
 	})
 

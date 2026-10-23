@@ -187,3 +187,22 @@ func TestSelectBestMatchesOfficialClients(t *testing.T) {
 		t.Errorf("a server whose hosts are all offline must be skipped: got %s", got)
 	}
 }
+
+// TestPreferInCountry covers issue #12.
+func TestPreferInCountry(t *testing.T) {
+	smart := scored("BR#SR", "BR", "US", 1.0, 0)
+	local := scored("BR#LOCAL", "BR", "", 1.5, 0)
+	sameHost := scored("BR#SAME", "BR", "BR", 1.4, 0)
+
+	if got := selectBest(t, &config.Config{Countries: []string{"BR"}}, smart, local); got != "BR#SR" {
+		t.Errorf("default must stay score-only like the official clients: got %s", got)
+	}
+
+	prefer := config.Config{Countries: []string{"BR"}, PreferInCountry: true}
+	if got := selectBest(t, &prefer, smart, local, sameHost); got != "BR#SAME" {
+		t.Errorf("in-country first, then score: got %s", got)
+	}
+	if got := selectBest(t, &prefer, smart, scored("BR#SR2", "BR", "US", 0.5, 0)); got != "BR#SR2" {
+		t.Errorf("with no in-country server, selection must be unchanged: got %s", got)
+	}
+}

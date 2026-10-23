@@ -80,6 +80,7 @@ Flags are given as `--name value` or `--name=value`; the two forms are interchan
 | `p2p-only` | `true` | Use only P2P-enabled servers |
 | `secure-core` | `false` | Use only Secure Core servers |
 | `free-only` | `false` | Use only Free tier servers |
+| `prefer-in-country` | `false` | Pick servers hosted in their exit country over Smart Routing ones (hosted elsewhere, e.g. BR servers in Miami), falling back to Smart Routing when none are online. The official clients rank by score alone |
 | `debug` | `false` | Print every server that survived filtering |
 
 ### Output and network

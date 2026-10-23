@@ -13,6 +13,8 @@ type Config struct {
 	P2PServersOnly bool
 	SecureCoreOnly bool
 	FreeOnly       bool
+	// PreferInCountry ranks servers hosted in their exit country first
+	PreferInCountry bool
 
 	// Output configuration
 	OutputFile       string
