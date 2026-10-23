@@ -11,6 +11,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/klauspost/compress/zstd"
+
 	"protonvpn-wg-confgen/internal/constants"
 )
 
@@ -36,9 +38,11 @@ const (
 	netzoneHeader       = "X-PM-netzone"
 	modifiedSinceHeader = "If-Modified-Since"
 
-	// Content encodings aiohttp advertises without optional codecs installed.
+	// Content encodings aiohttp advertises on Ubuntu 26.04, where Python's
+	// standard library has zstd. Brotli would need an optional package.
 	encodingGzip    = "gzip"
 	encodingDeflate = "deflate"
+	encodingZstd    = "zstd"
 )
 
 // setRaw sets a header under its exact name. Header.Set would canonicalize it,
@@ -77,7 +81,7 @@ func NewRequest(method, url string, body Body, session *Session) (*http.Request,
 	// order. The client also sends x-pm-locale, but only with a non-English
 	// catalog active.
 	setRaw(req, "Accept", "*/*")
-	setRaw(req, "Accept-Encoding", encodingGzip+", "+encodingDeflate)
+	setRaw(req, "Accept-Encoding", encodingGzip+", "+encodingDeflate+", "+encodingZstd)
 	if body != nil {
 		setRaw(req, "Content-Type", "application/json")
 	}
@@ -152,6 +156,13 @@ func Do(client *http.Client, req *http.Request, out any) error {
 		if reader, err = zlib.NewReader(resp.Body); err != nil {
 			return err
 		}
+	case encodingZstd:
+		decoder, err := zstd.NewReader(resp.Body)
+		if err != nil {
+			return err
+		}
+		defer decoder.Close()
+		reader = decoder
 	}
 
 	body, err := io.ReadAll(reader)

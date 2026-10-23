@@ -9,6 +9,8 @@ import (
 	"net/http/httptest"
 	"testing"
 	"time"
+
+	"github.com/klauspost/compress/zstd"
 )
 
 // first reads a header by its exact, non-canonical name.
@@ -73,7 +75,7 @@ func TestNewRequestHeaders(t *testing.T) {
 		if got := first(req, "Accept"); got != "*/*" {
 			t.Errorf("Accept = %q", got)
 		}
-		if got := first(req, "Accept-Encoding"); got != "gzip, deflate" {
+		if got := first(req, "Accept-Encoding"); got != "gzip, deflate, zstd" {
 			t.Errorf("Accept-Encoding = %q", got)
 		}
 	}
@@ -94,7 +96,7 @@ func TestNewRequestHeaders(t *testing.T) {
 // TestDoDecodesCompressedBodies covers the consequence of setting
 // Accept-Encoding by hand: net/http no longer decompresses for us.
 func TestDoDecodesCompressedBodies(t *testing.T) {
-	for _, enc := range []string{encodingGzip, encodingDeflate, ""} {
+	for _, enc := range []string{encodingGzip, encodingDeflate, encodingZstd, ""} {
 		t.Run("encoding="+enc, func(t *testing.T) {
 			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 				var buf bytes.Buffer
@@ -104,6 +106,8 @@ func TestDoDecodesCompressedBodies(t *testing.T) {
 					wc = gzip.NewWriter(&buf)
 				case encodingDeflate:
 					wc = zlib.NewWriter(&buf)
+				case encodingZstd:
+					wc, _ = zstd.NewWriter(&buf)
 				}
 				if wc == nil {
 					buf.WriteString(`{"Code":1000}`)

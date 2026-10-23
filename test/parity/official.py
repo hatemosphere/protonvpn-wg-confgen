@@ -9,12 +9,15 @@ Only the base URL is overridden. Headers, bodies, TLS setup and call order all
 come from the client's own code.
 """
 import asyncio
+import gzip
 import http.client
+import json
 import os
 import pathlib
 import re
 import socket
 import threading
+import zlib
 
 from proton.session.environments import ProdEnvironment
 from proton.vpn.core.session_holder import ClientTypeMetadata, SessionHolder
@@ -100,11 +103,33 @@ def forward(raw: bytes) -> bytes:
     conn.request(method, path, body=body or None, headers=headers)
     resp = conn.getresponse()
     payload = resp.read()
+    headers = {name: resp.getheader(name) for name in ("Content-Type", "Content-Encoding", "Last-Modified")}
+    if path.startswith("/feature/v2/frontend"):
+        payload = pin_flags(payload, headers.pop("Content-Encoding"))
     out = f"HTTP/1.1 {resp.status} {resp.reason}\r\nContent-Length: {len(payload)}\r\n"
-    for name in ("Content-Type", "Content-Encoding", "Last-Modified"):
-        if resp.getheader(name):
-            out += f"{name}: {resp.getheader(name)}\r\n"
+    for name, value in headers.items():
+        if value:
+            out += f"{name}: {value}\r\n"
     return out.encode() + b"\r\n" + payload
+
+
+# Feature flags that switch the client between request paths, pinned so the
+# recording does not depend on the account it is made with. BinaryServerStatus
+# selects /vpn/v2/logicals plus a binary status blob over /vpn/v1/logicals;
+# this tool implements the v1 path.
+PINNED_FLAGS = {"BinaryServerStatus": False}
+
+
+def pin_flags(payload: bytes, encoding) -> bytes:
+    if encoding == "gzip":
+        payload = gzip.decompress(payload)
+    elif encoding == "deflate":
+        payload = zlib.decompress(payload)
+    data = json.loads(payload)
+    toggles = [t for t in data.get("toggles", []) if t.get("name") not in PINNED_FLAGS]
+    toggles += [{"name": name, "enabled": True} for name, on in PINNED_FLAGS.items() if on]
+    data["toggles"] = toggles
+    return json.dumps(data).encode()
 
 
 def environment(url: str):
@@ -197,6 +222,11 @@ async def main():
             continue
         # The netzone is the caller's own network; keep it out of the repository.
         raw = re.sub(rb"(X-PM-netzone: )[^\r]+", rb"\g<1>192.0.2.0", raw)
+        if path not in sync_names:
+            # A request this recorder does not know: keep it for inspection and
+            # fail loudly rather than silently drop part of the sequence.
+            (OUT / "unknown.http").write_bytes(raw)
+            raise SystemExit(f"unexpected post-login request {path}, saved to testdata/unknown.http")
         (OUT / f"{sync_names[path]}.http").write_bytes(raw)
         order.append(sync_names[path])
     if order:

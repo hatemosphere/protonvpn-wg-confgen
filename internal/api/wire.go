@@ -21,8 +21,8 @@ import (
 
 // This file reproduces, byte for byte, what the official ProtonVPN Linux client
 // puts on the wire. That client is python-proton-core on aiohttp and OpenSSL;
-// the reference here is Ubuntu 24.04's stock packages (aiohttp 3.9.1, OpenSSL
-// 3.0.13), matching the distribution named in the User-Agent. net/http cannot
+// the reference here is Ubuntu 26.04's stock packages (aiohttp 3.13.3, OpenSSL
+// 3.5.5), matching the distribution named in the User-Agent. net/http cannot
 // do this: it sorts headers, canonicalizes their names and has its own TLS
 // handshake, so requests are written by hand over a uTLS connection.
 
@@ -125,10 +125,11 @@ var headerOrder = []string{
 	"Content-Type",
 }
 
-// clientHello is a TLS ClientHello recorded from aiohttp 3.9.1 on OpenSSL
-// 3.0.13 with ssl.create_default_context(), as python-proton-core configures it.
+// clientHello is a TLS ClientHello recorded from the official client on
+// Ubuntu 26.04 (aiohttp 3.13.3, OpenSSL 3.5.5), through python-proton-core's
+// production TLS path.
 //
-//go:embed clienthello_ubuntu2404.bin
+//go:embed clienthello.bin
 var clientHello []byte
 
 // wireTransport sends each request on its own connection, as the official

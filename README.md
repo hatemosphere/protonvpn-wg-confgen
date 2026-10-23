@@ -438,7 +438,7 @@ make show-version   # print the ProtonVPN client version that would be stamped i
 
 Proton scores logins by how much a client looks like its own, so requests are built to be indistinguishable from the official Linux client's: same headers in the same order and spelling, same JSON serialization, same TLS ClientHello, one connection per request over HTTP/1.1. `net/http` cannot produce that, so `internal/api/wire.go` writes requests by hand over a [uTLS](https://github.com/refraction-networking/utls) connection.
 
-This is tested against the real thing. `test/parity/official.py` drives Proton's own packages (installed from their apt repository into Ubuntu 24.04) against a recording server and stores the raw bytes in `test/parity/testdata`. `go test ./...` runs the same calls through this client and requires them to match byte for byte, apart from the port, timezone, CPU architecture and the random SRP values. The ClientHello is compared field by field.
+This is tested against the real thing. `test/parity/official.py` drives Proton's own packages (installed from their apt repository into Ubuntu 26.04) against a recording server and stores the raw bytes in `test/parity/testdata`. `go test ./...` runs the same calls through this client and requires them to match byte for byte, apart from the port, timezone, CPU architecture and the random SRP values. The ClientHello is compared field by field.
 
 ```bash
 make parity-goldens   # re-record from the official client (needs docker), then run go test

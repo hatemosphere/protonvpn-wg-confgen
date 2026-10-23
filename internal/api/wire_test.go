@@ -70,12 +70,12 @@ func TestWriteRequestMatchesAiohttp(t *testing.T) {
 		{
 			name: "bodyless and unauthenticated", method: http.MethodGet, path: "/vpn/v2",
 			want: "GET /vpn/v2 HTTP/1.1\r\nHost: 127.0.0.1:18101\r\n" + common + tz +
-				"Accept: */*\r\nAccept-Encoding: gzip, deflate\r\n\r\n",
+				"Accept: */*\r\nAccept-Encoding: gzip, deflate, zstd\r\n\r\n",
 		},
 		{
 			name: "json body", method: http.MethodPost, path: "/auth/info", body: Body{{usernameKey, "t"}},
 			want: "POST /auth/info HTTP/1.1\r\nHost: 127.0.0.1:18101\r\n" + common + tz +
-				"Accept: */*\r\nAccept-Encoding: gzip, deflate\r\nContent-Length: 17\r\nContent-Type: application/json\r\n\r\n" +
+				"Accept: */*\r\nAccept-Encoding: gzip, deflate, zstd\r\nContent-Length: 17\r\nContent-Type: application/json\r\n\r\n" +
 				`{"Username": "t"}`,
 		},
 		{
@@ -83,7 +83,7 @@ func TestWriteRequestMatchesAiohttp(t *testing.T) {
 			session: &Session{UID: "UIDVALUE", AccessToken: "TOKENVALUE"},
 			want: "GET /vpn/v1/logicals HTTP/1.1\r\nHost: 127.0.0.1:18101\r\n" + common +
 				"x-pm-uid: UIDVALUE\r\nAuthorization: Bearer TOKENVALUE\r\n" + tz +
-				"Accept: */*\r\nAccept-Encoding: gzip, deflate\r\n\r\n",
+				"Accept: */*\r\nAccept-Encoding: gzip, deflate, zstd\r\n\r\n",
 		},
 	}
 	for _, tt := range tests {

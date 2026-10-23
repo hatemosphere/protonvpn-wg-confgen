@@ -176,18 +176,18 @@ The certificate is a 7-day session certificate for a throwaway key, as the offic
 
 ## Request Format
 
-Requests reproduce the official Linux client byte for byte. Recorded from Proton's own packages on Ubuntu 24.04 (api-core 5.8.3, aiohttp 3.9.1, OpenSSL 3.0.13):
+Requests reproduce the official Linux client byte for byte. Recorded from Proton's own packages on Ubuntu 26.04 (api-core 5.8.11, aiohttp 3.13.3, OpenSSL 3.5.5):
 
 ```
 POST /auth/2fa HTTP/1.1
 Host: vpn-api.proton.me
-x-pm-appversion: linux-vpn-gui@5.8.3+x86-64
-User-Agent: ProtonVPN/5.8.3 (Linux; ubuntu/24.04)
+x-pm-appversion: linux-vpn-gui@5.8.11+x86-64
+User-Agent: ProtonVPN/5.8.11 (Linux; ubuntu/26.04)
 x-pm-uid: <session uid>
 Authorization: Bearer <access token>
 x-pm-timezone: Europe/Zurich
 Accept: */*
-Accept-Encoding: gzip, deflate
+Accept-Encoding: gzip, deflate, zstd
 Content-Length: 27
 Content-Type: application/json
 
@@ -200,7 +200,8 @@ Content-Type: application/json
 - **`x-pm-timezone`** is the IANA name `/etc/localtime` points to, omitted when unresolvable. python-proton-core's own calls, the `/tests/ping` transport probe and `/auth/refresh`, do not carry it.
 - **`x-pm-locale`** is sent by the official client only with a non-English catalog active, so it is not sent here.
 - **Bodies** are Python `json.dumps` output: `", "` and `": "` separators, keys in insertion order, non-ASCII escaped.
-- **Connection**: HTTP/1.1, one connection per request, TLS ClientHello as OpenSSL 3.0.13 produces it under aiohttp's certificate-pinning path.
+- **Connection**: HTTP/1.1, one connection per request, TLS ClientHello as OpenSSL 3.5.5 produces it under aiohttp's certificate-pinning path, including its post-quantum ML-KEM key share.
+- **Server list version**: the official client switches from `/vpn/v1/logicals` to `/vpn/v2/logicals` plus a binary status blob when Proton's `BinaryServerStatus` feature flag is on for the account. This tool implements v1 only, and the goldens are recorded with that flag pinned off.
 - **2FA** is always a separate `POST /auth/2fa` after `/auth`, never a field of the `/auth` body.
 
 `make parity-goldens` re-records all of this from the official client; `go test` fails on any divergence.
