@@ -30,7 +30,7 @@ tar xzf protonvpn-wg-confgen_*_linux_amd64.tar.gz
 ./protonvpn-wg-confgen --help
 ```
 
-Or build from source (requires Go 1.26+):
+Or build from source (requires Go 1.27+):
 
 ```bash
 git clone https://github.com/hatemosphere/protonvpn-wg-confgen
