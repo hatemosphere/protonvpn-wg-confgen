@@ -12,6 +12,7 @@ const (
 	nlServer = "NL#1"
 	chServer = "CH#1"
 	usServer = "US#1"
+	brServer = "BR#1"
 )
 
 // server builds an online logical server with one online physical server.
@@ -134,5 +135,55 @@ func TestGetBestPhysicalServer(t *testing.T) {
 				t.Fatalf("got %+v, want ID %q", got, tt.want)
 			}
 		})
+	}
+}
+
+func selectBest(t *testing.T, cfg *config.Config, servers ...api.LogicalServer) string {
+	t.Helper()
+	got, err := NewServerSelector(cfg).SelectBest(servers)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return got.Name
+}
+
+func scored(name, country, host string, score float64, features int) api.LogicalServer {
+	s := server(country, api.TierPlus, features)
+	s.Name, s.HostCountry, s.Score = name, host, score
+	return s
+}
+
+// TestSelectBestMatchesOfficialClients pins the pick to what the Linux and
+// Android clients do for a country: lowest score, ties to the first listed,
+// never Secure Core or Tor unless asked for, never a server with no online host.
+func TestSelectBestMatchesOfficialClients(t *testing.T) {
+	cfg := config.Config{Countries: []string{"BR"}}
+
+	if got := selectBest(t, &cfg,
+		scored(brServer, "BR", "", 2.0, 0),
+		scored("BR#2", "BR", "", 1.0, 0),
+	); got != "BR#2" {
+		t.Errorf("lowest score: got %s", got)
+	}
+
+	// Load no longer breaks ties; list order does, as with min() and sortedBy.
+	first, second := scored(brServer, "BR", "", 1.0, 0), scored("BR#2", "BR", "", 1.0, 0)
+	first.Load, second.Load = 90, 10
+	if got := selectBest(t, &cfg, first, second); got != brServer {
+		t.Errorf("tie: got %s, want the first listed", got)
+	}
+
+	if got := selectBest(t, &cfg,
+		scored("BR#TOR", "BR", "", 0.1, api.FeatureTor),
+		scored("CH-BR#1", "BR", "", 0.2, api.FeatureSecureCore),
+		scored(brServer, "BR", "", 1.0, 0),
+	); got != brServer {
+		t.Errorf("Tor and Secure Core must be skipped: got %s", got)
+	}
+
+	down := scored("BR#DOWN", "BR", "", 0.1, 0)
+	down.Servers[0].Status = 0
+	if got := selectBest(t, &cfg, down, scored(brServer, "BR", "", 1.0, 0)); got != brServer {
+		t.Errorf("a server whose hosts are all offline must be skipped: got %s", got)
 	}
 }

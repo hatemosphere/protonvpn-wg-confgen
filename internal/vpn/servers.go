@@ -4,6 +4,7 @@ import (
 	"cmp"
 	"errors"
 	"fmt"
+	"math/rand/v2"
 	"slices"
 	"strings"
 
@@ -36,7 +37,7 @@ func EligibleServers(cfg *config.Config, servers []api.LogicalServer) []api.Logi
 }
 
 func isEligible(cfg *config.Config, server *api.LogicalServer) bool {
-	if server.Status != constants.StatusOnline || len(server.Servers) == 0 {
+	if !isEnabled(server) {
 		return false
 	}
 	// Free tier is opt-in: -free-only selects it exclusively, otherwise it is excluded.
@@ -53,6 +54,13 @@ func isEligible(cfg *config.Config, server *api.LogicalServer) bool {
 	return !cfg.SecureCoreOnly || server.Features&api.FeatureSecureCore != 0
 }
 
+// isEnabled mirrors LogicalServer.enabled in the official client: the logical
+// server is online and so is at least one of its physical servers.
+func isEnabled(server *api.LogicalServer) bool {
+	return server.Status == constants.StatusOnline &&
+		slices.ContainsFunc(server.Servers, func(p api.PhysicalServer) bool { return p.Status == constants.StatusOnline })
+}
+
 // SelectBest selects the best server based on configuration
 func (s *ServerSelector) SelectBest(servers []api.LogicalServer) (*api.LogicalServer, error) {
 	// If a specific server is requested, find it by exact name match
@@ -65,7 +73,12 @@ func (s *ServerSelector) SelectBest(servers []api.LogicalServer) (*api.LogicalSe
 		return nil, fmt.Errorf("server %q not found or offline", s.config.ServerName)
 	}
 
-	filtered := EligibleServers(s.config, servers)
+	// The official clients' fastest-in-country pick never lands on Secure Core
+	// or Tor servers unless those are what was asked for.
+	filtered := slices.DeleteFunc(EligibleServers(s.config, servers), func(server api.LogicalServer) bool {
+		return server.Features&api.FeatureTor != 0 ||
+			(!s.config.SecureCoreOnly && server.Features&api.FeatureSecureCore != 0)
+	})
 
 	if s.config.Debug {
 		s.printDebugServerList(filtered)
@@ -75,13 +88,11 @@ func (s *ServerSelector) SelectBest(servers []api.LogicalServer) (*api.LogicalSe
 		return nil, s.buildNoServersError()
 	}
 
-	// Sort servers: lowest score first (Proton API convention: lower = better for Quick Connect),
-	// with lower load as tiebreaker.
-	slices.SortFunc(filtered, func(a, b api.LogicalServer) int {
-		if c := cmp.Compare(a.Score, b.Score); c != 0 {
-			return c
-		}
-		return cmp.Compare(a.Load, b.Load)
+	// Lowest score wins, as in the official clients (get_fastest_in_country on
+	// Linux, getBestScoreServer on Android). The sort is stable so that ties go
+	// to the server listed first, which is what their min() and sortedBy do.
+	slices.SortStableFunc(filtered, func(a, b api.LogicalServer) int {
+		return cmp.Compare(a.Score, b.Score)
 	})
 
 	return &filtered[0], nil
@@ -99,16 +110,22 @@ func (s *ServerSelector) buildNoServersError() error {
 	return errors.New(errMsg)
 }
 
-// GetBestPhysicalServer returns the first online physical server, or nil if the
+// GetBestPhysicalServer returns an online physical server, or nil if the
 // logical server has none. Returning an offline server would produce a config
 // pointing at a dead endpoint.
 func GetBestPhysicalServer(server *api.LogicalServer) *api.PhysicalServer {
+	var online []*api.PhysicalServer
 	for i := range server.Servers {
 		if server.Servers[i].Status == constants.StatusOnline {
-			return &server.Servers[i]
+			online = append(online, &server.Servers[i])
 		}
 	}
-	return nil
+	if len(online) == 0 {
+		return nil
+	}
+	// The official clients pick at random among the online ones, which spreads
+	// users across the hosts behind a logical server.
+	return online[rand.IntN(len(online))] //nolint:gosec // G404: load spreading, not a secret
 }
 
 // printDebugServerList prints a debug list of filtered servers
