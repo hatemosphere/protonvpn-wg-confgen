@@ -6,6 +6,23 @@
 
 Generate WireGuard configuration files for ProtonVPN from the command line, picking the best server in the countries you ask for. Headless-friendly: log in once, then rotate configs unattended.
 
+## Quickstart
+
+Runs on macOS, Linux and Windows (amd64 and arm64, plus armv7 on Linux).
+
+```bash
+# macOS or Linux, with Homebrew
+brew install hatemosphere/tap/protonvpn-wg-confgen
+
+# Log in (prompts for the password and 2FA code) and write the best server in Switzerland or Germany
+protonvpn-wg-confgen --username <user> --countries CH,DE --output protonvpn.conf
+
+# Bring the tunnel up (WireGuard tools); on Windows, import the file into the WireGuard app
+sudo wg-quick up ./protonvpn.conf
+```
+
+On Windows, or without Homebrew, grab a binary from the [latest release](https://github.com/hatemosphere/protonvpn-wg-confgen/releases/latest), see [Installation](#installation). Update with `brew upgrade protonvpn-wg-confgen`.
+
 ## Motivation
 
 I wanted to automatically rotate VPN servers on my private HTPC Linux host running WireGuard, and since I'm already paying for a Proton bundle subscription, why not just use theirs? Unfortunately, as of the time of writing, they didn't have a good programmatic headless way to generate WireGuard profiles, so I did my research and reverse-engineered their APIs (which was a pain in the butt) and created this. The idea is to run this code as a daemon and restart the WireGuard client on profile file change.
@@ -28,6 +45,8 @@ With [Homebrew](https://brew.sh) on macOS or Linux:
 ```bash
 brew install hatemosphere/tap/protonvpn-wg-confgen
 ```
+
+The binaries are not notarized by Apple, so the cask clears the macOS quarantine flag on install.
 
 Or download a binary for your platform from the [latest release](https://github.com/hatemosphere/protonvpn-wg-confgen/releases/latest). Archives are named `protonvpn-wg-confgen_<version>_<os>_<arch>.tar.gz` (`.zip` on Windows) and are published with a `checksums.txt` (SHA-256):
 
