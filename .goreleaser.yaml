@@ -77,9 +77,9 @@ homebrew_casks:
     # The binaries are not notarized, so Gatekeeper would refuse to run them.
     hooks:
       post:
-        install: |
-          if OS.mac?
-            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/protonvpn-wg-confgen"]
+        install_steps: |
+          on_macos do
+            run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "{{ .StagedPath }}/protonvpn-wg-confgen"]
           end
 
 checksum:
