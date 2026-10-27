@@ -57,6 +57,31 @@ archives:
       - README.md
       - LICENSE
 
+# Installs with `brew install hatemosphere/tap/protonvpn-wg-confgen`. The cask
+# is pushed with a write deploy key on the tap; without one it is built but not
+# uploaded, so forks still release.
+homebrew_casks:
+  - name: protonvpn-wg-confgen
+    binaries:
+      - protonvpn-wg-confgen
+    homepage: https://github.com/hatemosphere/protonvpn-wg-confgen
+    description: Generate ProtonVPN WireGuard configs
+    license: GPL-3.0-only
+    repository:
+      owner: hatemosphere
+      name: homebrew-tap
+      git:
+        url: git@github.com:hatemosphere/homebrew-tap.git
+        private_key: '{{ index .Env "HOMEBREW_TAP_DEPLOY_KEY" }}'
+    skip_upload: '{{ if not (index .Env "HOMEBREW_TAP_DEPLOY_KEY") }}true{{ end }}'
+    # The binaries are not notarized, so Gatekeeper would refuse to run them.
+    hooks:
+      post:
+        install: |
+          if OS.mac?
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/protonvpn-wg-confgen"]
+          end
+
 checksum:
   name_template: "checksums.txt"
   algorithm: sha256

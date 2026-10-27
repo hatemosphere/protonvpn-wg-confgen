@@ -23,7 +23,13 @@ I wanted to automatically rotate VPN servers on my private HTPC Linux host runni
 
 ## Installation
 
-Download a binary for your platform from the [latest release](https://github.com/hatemosphere/protonvpn-wg-confgen/releases/latest). Archives are named `protonvpn-wg-confgen_<version>_<os>_<arch>.tar.gz` (`.zip` on Windows) and are published with a `checksums.txt` (SHA-256):
+With [Homebrew](https://brew.sh) on macOS or Linux:
+
+```bash
+brew install hatemosphere/tap/protonvpn-wg-confgen
+```
+
+Or download a binary for your platform from the [latest release](https://github.com/hatemosphere/protonvpn-wg-confgen/releases/latest). Archives are named `protonvpn-wg-confgen_<version>_<os>_<arch>.tar.gz` (`.zip` on Windows) and are published with a `checksums.txt` (SHA-256):
 
 ```bash
 tar xzf protonvpn-wg-confgen_*_linux_amd64.tar.gz
