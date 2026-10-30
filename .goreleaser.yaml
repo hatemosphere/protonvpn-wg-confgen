@@ -82,6 +82,38 @@ homebrew_casks:
             run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "{{ .StagedPath }}/protonvpn-wg-confgen"]
           end
 
+# Opens a pull request to microsoft/winget-pkgs from the hatemosphere fork.
+# Needs a classic token with public_repo scope: fine-grained tokens cannot open
+# pull requests on repositories outside the account. Skipped without one.
+winget:
+  - name: protonvpn-wg-confgen
+    package_identifier: hatemosphere.protonvpn-wg-confgen
+    publisher: hatemosphere
+    publisher_url: https://github.com/hatemosphere
+    publisher_support_url: https://github.com/hatemosphere/protonvpn-wg-confgen/issues
+    short_description: Generate ProtonVPN WireGuard configs from the command line
+    description: Logs in to ProtonVPN, picks the best server in the requested countries and writes a WireGuard configuration for it. Works headless, with sessions and certificate renewal for unattended use.
+    homepage: https://github.com/hatemosphere/protonvpn-wg-confgen
+    license: GPL-3.0-only
+    license_url: https://github.com/hatemosphere/protonvpn-wg-confgen/blob/main/LICENSE
+    release_notes_url: "{{ .ReleaseURL }}"
+    tags:
+      - protonvpn
+      - wireguard
+      - vpn
+      - cli
+    skip_upload: '{{ if not (index .Env "WINGET_GITHUB_TOKEN") }}true{{ end }}'
+    repository:
+      owner: hatemosphere
+      name: winget-pkgs
+      token: '{{ index .Env "WINGET_GITHUB_TOKEN" }}'
+      pull_request:
+        enabled: true
+        base:
+          owner: microsoft
+          name: winget-pkgs
+          branch: master
+
 checksum:
   name_template: "checksums.txt"
   algorithm: sha256
