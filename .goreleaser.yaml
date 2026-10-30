@@ -106,7 +106,7 @@ winget:
     repository:
       owner: hatemosphere
       name: winget-pkgs
-      token: '{{ index .Env "WINGET_GITHUB_TOKEN" }}'
+      token: "{{ .Env.WINGET_GITHUB_TOKEN }}"
       pull_request:
         enabled: true
         base:
