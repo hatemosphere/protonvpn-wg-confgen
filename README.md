@@ -55,6 +55,12 @@ tar xzf protonvpn-wg-confgen_*_linux_amd64.tar.gz
 ./protonvpn-wg-confgen --help
 ```
 
+Each archive also has a build provenance attestation tying it to the tagged source and the release workflow. Check it with the [GitHub CLI](https://cli.github.com):
+
+```bash
+gh attestation verify protonvpn-wg-confgen_*_linux_amd64.tar.gz -R hatemosphere/protonvpn-wg-confgen
+```
+
 Or build from source (requires Go 1.27+):
 
 ```bash
