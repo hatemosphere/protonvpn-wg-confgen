@@ -179,13 +179,13 @@ The certificate is a 7-day session certificate for a throwaway key, as the offic
 
 ## Request Format
 
-Requests reproduce the official Linux client byte for byte. Recorded from Proton's own packages on Ubuntu 26.04 (api-core 5.8.11, aiohttp 3.13.3, OpenSSL 3.5.5):
+Requests reproduce the official Linux client byte for byte. Recorded from Proton's own packages on Ubuntu 26.04 (api-core 6.1.2, aiohttp 3.13.3, OpenSSL 3.5.5):
 
 ```
 POST /auth/2fa HTTP/1.1
 Host: vpn-api.proton.me
-x-pm-appversion: linux-vpn-gui@5.8.11+x86-64
-User-Agent: ProtonVPN/5.8.11 (Linux; ubuntu/26.04)
+x-pm-appversion: linux-vpn-gui@6.1.2+x86-64
+User-Agent: ProtonVPN/6.1.2 (Linux; ubuntu/26.04)
 x-pm-uid: <session uid>
 Authorization: Bearer <access token>
 x-pm-timezone: Europe/Zurich

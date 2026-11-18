@@ -1,7 +1,7 @@
 POST /auth/refresh HTTP/1.1
 Host: 127.0.0.1:18201
-x-pm-appversion: linux-vpn-gui@5.8.11+aarch64
-User-Agent: ProtonVPN/5.8.11 (Linux; ubuntu/26.04)
+x-pm-appversion: linux-vpn-gui@6.1.2+aarch64
+User-Agent: ProtonVPN/6.1.2 (Linux; ubuntu/26.04)
 x-pm-uid: UIDVALUE
 Authorization: Bearer TOKENVALUE
 Accept: */*
