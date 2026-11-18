@@ -12,7 +12,7 @@ MODULE=protonvpn-wg-confgen
 # at the end of the pipeline succeeds even when curl fails, so a `||` here
 # would never fire and would stamp an empty version.
 PROTON_VERSION_URL=https://raw.githubusercontent.com/ProtonVPN/python-proton-vpn-api-core/stable/versions.yml
-PROTON_VERSION_FALLBACK=5.8.11
+PROTON_VERSION_FALLBACK=6.1.2
 PROTON_VERSION ?= $(shell curl -sf "$(PROTON_VERSION_URL)" 2>/dev/null | head -1 | cut -d' ' -f2)
 ifeq ($(strip $(PROTON_VERSION)),)
 PROTON_VERSION=$(PROTON_VERSION_FALLBACK)

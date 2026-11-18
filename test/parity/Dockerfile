@@ -3,7 +3,7 @@
 # client's real HTTP stack (python-proton-core on the distro's aiohttp/OpenSSL).
 # The release is part of what is recorded: the User-Agent names it and the
 # ClientHello comes from its OpenSSL. Changing it means re-recording.
-FROM ubuntu:26.04@sha256:c098726dd9b9733f3e885f8de0ef375206a311b0a317eadc40d347b1115fb944
+FROM ubuntu:26.04@sha256:d66b366dac61b575bee2aef07e9c26e8070096fbe84a3d4d3eb0da069b5d76db
 ARG RELEASE_DEB=protonvpn-stable-release_1.0.8_all.deb
 RUN apt-get update -qq \
  && DEBIAN_FRONTEND=noninteractive apt-get upgrade -y -qq >/dev/null \

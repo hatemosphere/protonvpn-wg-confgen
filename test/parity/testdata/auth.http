@@ -1,11 +1,11 @@
 POST /auth HTTP/1.1
 Host: 127.0.0.1:18201
-x-pm-appversion: linux-vpn-gui@5.8.11+aarch64
-User-Agent: ProtonVPN/5.8.11 (Linux; ubuntu/26.04)
+x-pm-appversion: linux-vpn-gui@6.1.2+aarch64
+User-Agent: ProtonVPN/6.1.2 (Linux; ubuntu/26.04)
 x-pm-timezone: Europe/Zurich
 Accept: */*
 Accept-Encoding: gzip, deflate, zstd
 Content-Length: 806
 Content-Type: application/json
 
-{"Username": "parityuser", "ClientEphemeral": "WqsyGzoSit54I+CrFKJjneLunRBF2CkLhngp1riyqIL8D03Z3lOP6reHL/3+mLv/+tpN8kVRx/qPK8z6344pig1LSUjWJ3ukS69VqrE4wL93G2MmyFzkE1vsPigq34lrvwQmSpKKjNpD9iCUGGSG6xR91ZAXRrtQwzIy1K9aNs/RYXfgg+SbQN817QAx7X5dezsuW47Pp6gfXL+mkEpPD+7oefDwDGe1Du/YACjmuTEzE2l/IiU7ckwp6ylzkmnPLX8IwFic8CsbcmZEMIk4vBKvLFUDwg24Wwhc827SolbJkAiBUyYWiBXEPyQ6ve0mBc34TiTEsiTLfGSYDJQykw==", "ClientProof": "q1y3lCDMLm1sqzHFhVyMcmZd9Oo8dQkJp1AvKEkGEaWnVxopALpP9JXJsiYF8uf5kGSTL+UdvJgmWjxEDyB2gphHWMrbULn4Ff4TXRWr9sIe7F0mQwNbC/Or6HUfR51dYNGoGBq67uilzGyNFryHL5H0hz7SdubXYcvoI1pEm7sm4j9hiv66PRQ/CFyw0rmnHM5mYSZ3jhKnfEcDl/eyLhh5yg1uIedloss0XCe4HtdCYfouVF6w5JazuEBFdQ33HgDoTUk7PeUXLxfPIg9g0X8tULSpjrr1R+8JcF3M4owluM4DVuBn69DisTfjvNLIsYEL3AEat26VQZu1DO98HQ==", "SRPSession": "9f2fdc8b19427e8d0d66e0ec4fc6a2c5"}
+{"Username": "parityuser", "ClientEphemeral": "MMr8+z1hzGJFXAzyxc0e8meNK4Zn0/yPzb2roA2cSZkS/e2nQJWIacUozZ+6jrgLYBc6+q0Yn97CtHDHMZQSwTXqLSKl2UNWnZrfbC2kbdpNfYZm0XqWjYfBEbsrclFDcE20rGQLRYYYKQIaZ9FB8vUSLOZb8kuNwZ2uC5NCsuRXYIqJWnsFalWYcy3963S8UUAGg0tj4qkUAJIiEmfxXrtpc/8YEdwUendLZxci7rV/CTbZchIsPGuP/xoeCG3ZpkvUorRlLvqYbZp+QUCv9wyG4IcBfm7xU289/E8uq3kOublaI7c81eZ/xuFIT/5l2oDAHRa2+pwN3F2HGUgPsw==", "ClientProof": "wXJw5NNWgwgGbfqA/8ANsZmY0BhGlNcV5LN2lRc5fWMqXNaSzN2ecWD5o1LD3dCdhwExLmY0gvy7ctIxqlM7HiKX5+/7/luD2+JelFm504WNRzsgJUzFunk/0dOVhwmWdgPm9098IA6c/cwwMJjH9snP/j4TmL5DDvq/lK87CUeX1vp75LdzKLfaGOxWZwBbL5d3uqzl3XxSD4SJGryAd5oK96ai42obQDn0znxSdPlerMU4jLjBLDBk3MtzITPYG6ZiXvvMCKySvdDvrJojeN4qFAYnKS+WmJfhQiD9hE0WbZ17JDirwGG9xC/9Up2pGqSY3I3/x69NcZJcmnRSpg==", "SRPSession": "9f2fdc8b19427e8d0d66e0ec4fc6a2c5"}
