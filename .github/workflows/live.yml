@@ -1,0 +1,65 @@
+name: Live
+
+# Nightly run of test/integration/live.sh against the real Proton API with a
+# dedicated free account. Credentials come from a read-only 1Password service
+# account whose token sits in the integration environment, which only main can
+# use. Never give this workflow a pull_request trigger.
+
+on:
+  schedule:
+    - cron: "23 4 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: live
+  cancel-in-progress: false
+
+jobs:
+  live:
+    name: Live run
+    runs-on: ubuntu-latest
+    environment: integration
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
+        with:
+          go-version-file: go.mod
+          cache: false
+
+      - name: Build
+        run: make build
+
+      - name: Load credentials
+        uses: 1password/load-secrets-action@70062d7a876d3eb6334754fa26efd2fbd90c32f2 # v5.0.1
+        with:
+          export-env: true
+          version: 2.42.0
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          PWG_USERNAME: op://protonvpn-ci/proton-sandbox/username
+          PWG_PASSWORD: op://protonvpn-ci/proton-sandbox/password
+          PWG_TOTP: op://protonvpn-ci/proton-sandbox/one-time password
+
+      - name: Live run
+        run: test/integration/live.sh build/protonvpn-wg-confgen
+
+      - name: Alert on Telegram
+        if: failure()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          [ -n "$TELEGRAM_BOT_TOKEN" ] || exit 0
+          curl -fsS -o /dev/null "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+            --data-urlencode "text=protonvpn-wg-confgen live run failed: ${RUN_URL}"
