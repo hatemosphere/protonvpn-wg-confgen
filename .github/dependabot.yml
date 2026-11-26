@@ -1,0 +1,30 @@
+# Weekly, grouped updates. The cooldown keeps versions younger than a week out,
+# matching the dependency age check in CI.
+version: 2
+updates:
+  - package-ecosystem: gomod
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      go:
+        patterns: ["*"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: docker
+    directory: /test/parity
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7

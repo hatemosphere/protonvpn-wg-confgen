@@ -5,12 +5,16 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+    # labeled/unlabeled so the deps-reviewed override takes effect
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+  schedule:
+    - cron: "41 5 * * 1" # new advisories arrive without code changes
 
 permissions:
   contents: read
 
 env:
-  GOLANGCI_LINT_VERSION: "v2.15.0"
+  GOLANGCI_LINT_VERSION: "v2.15.0" # golangci/golangci-lint
 
 jobs:
   lint:
@@ -132,3 +136,91 @@ jobs:
         with:
           name: protonvpn-wg-confgen-${{ matrix.goos }}-${{ matrix.goarch }}
           path: build/protonvpn-wg-confgen-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}
+
+  workflows:
+    name: Workflows
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: actionlint
+        run: go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
+
+      - name: zizmor
+        uses: zizmorcore/zizmor-action@45d7276c9ca790aabd705e31ca99c6185c3e76dd # v0.8.1
+        with:
+          version: 1.32.0 # zizmorcore/zizmor
+          advanced-security: false
+          annotations: true
+
+  dependencies:
+    name: Dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Verify modules against go.sum
+        run: go mod verify
+
+      - name: go.mod and go.sum are tidy
+        run: go mod tidy -diff
+
+      - name: govulncheck
+        run: go run golang.org/x/vuln/cmd/govulncheck@v1.10.0 ./...
+
+  dependency-changes:
+    name: Dependency changes
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      # Both checks can be waived with the deps-reviewed label after a human
+      # review, e.g. for an urgent security release.
+      - name: New versions are at least a week old
+        if: ${{ !contains(github.event.pull_request.labels.*.name, 'deps-reviewed') }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: scripts/check-dependency-age.sh "$BASE_SHA"
+
+      # Capslock maps what the code can reach (network, files, exec, unsafe...)
+      # through its dependencies; an update that grows that set needs a look.
+      - name: No new capabilities from dependencies
+        if: ${{ !contains(github.event.pull_request.labels.*.name, 'deps-reviewed') }}
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if git diff --quiet "$BASE_SHA" -- go.mod go.sum; then
+            echo "go.mod and go.sum unchanged"
+            exit 0
+          fi
+          go install github.com/google/capslock/cmd/capslock@v0.3.4
+          git worktree add "$RUNNER_TEMP/base" "$BASE_SHA"
+          (cd "$RUNNER_TEMP/base" && capslock -packages ./... -output json) >"$RUNNER_TEMP/base.json"
+          capslock -packages ./... -output compare "$RUNNER_TEMP/base.json"
