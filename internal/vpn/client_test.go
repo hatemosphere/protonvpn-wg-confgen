@@ -12,6 +12,7 @@ import (
 
 	"protonvpn-wg-confgen/internal/api"
 	"protonvpn-wg-confgen/internal/config"
+	"protonvpn-wg-confgen/internal/constants"
 )
 
 func TestCertificateNetShield(t *testing.T) {
@@ -229,5 +230,35 @@ func TestApplyLoads(t *testing.T) {
 			t.Errorf("server %d: status %d, load %d, score %v; want status %d, load %d, penalized %t",
 				i, s.Status, s.Load, s.Score, want.status, want.load, want.penalized)
 		}
+	}
+}
+
+// The login certificate the official client requests is never used here, so
+// it must not stay on the account; the account's tier comes along.
+func TestSyncSession(t *testing.T) {
+	var revoked string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case r.URL.Path == "/vpn/v2":
+			_, _ = w.Write([]byte(`{"Code":1000,"VPN":{"MaxTier":0}}`))
+		case r.URL.Path == constants.CertificatePath && r.Method == http.MethodPost:
+			_, _ = w.Write([]byte(`{"Code":1000,"SerialNumber":"42"}`))
+		case r.URL.Path == constants.CertificatePath && r.Method == http.MethodDelete:
+			var body struct{ SerialNumber string }
+			_ = json.NewDecoder(r.Body).Decode(&body)
+			revoked = body.SerialNumber
+			_, _ = w.Write([]byte(`{"Code":1000,"Count":1}`))
+		default:
+			_, _ = w.Write([]byte(`{"Code":1000}`))
+		}
+	}))
+	defer srv.Close()
+
+	tier := NewClient(&config.Config{APIURL: srv.URL}, &api.Session{UID: "uid", AccessToken: "token"}).SyncSession()
+	if tier == nil || *tier != 0 {
+		t.Errorf("tier = %v, want 0", tier)
+	}
+	if revoked != "42" {
+		t.Errorf("revoked %q, want the login certificate 42", revoked)
 	}
 }

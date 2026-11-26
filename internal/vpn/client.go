@@ -321,12 +321,15 @@ func applyLoads(servers []api.LogicalServer, status []byte, loc *location) error
 
 // SyncSession issues the requests the official client makes right after a
 // login: account info, a session certificate, location and client config
-// together, then feature flags, the server list and notifications. Only the
-// location, the flags and the server list are used; the rest exists so that a
-// login here is followed by the same traffic as a login there. Failures are
-// ignored, as nothing depends on these calls succeeding.
-func (c *Client) SyncSession() {
+// together, then feature flags, the server list and notifications. Used are
+// the account's tier, which it returns (nil when the call failed), the
+// location, the flags and the server list; the rest exists so that a login
+// here is followed by the same traffic as a login there. Failures are ignored,
+// as nothing depends on these calls succeeding.
+func (c *Client) SyncSession() *int {
 	var discard struct{}
+	var account api.VPNAccount
+	var loginCert api.VPNInfo
 	var loc *location
 	var wg sync.WaitGroup
 
@@ -336,12 +339,15 @@ func (c *Client) SyncSession() {
 	}
 
 	wg.Add(4)
-	go get(constants.VPNInfoPath)
+	go func() {
+		defer wg.Done()
+		_ = c.doJSON(http.MethodGet, c.config.APIURL+constants.VPNInfoPath, nil, &account)
+	}()
 	go get(constants.ClientConfigPath)
 	go func() {
 		defer wg.Done()
 		// The official client always fetches a 7-day session certificate for a
-		// fresh key at login. It is never used here and expires on its own.
+		// fresh key at login. It is never used here, so it is revoked below.
 		keyPair, err := ed25519.NewKeyPair()
 		if err != nil {
 			return
@@ -353,7 +359,7 @@ func (c *Client) SyncSession() {
 		_ = c.doJSON(http.MethodPost, c.config.APIURL+constants.CertificatePath, api.Body{
 			{Key: keyClientPublicKey, Value: pem},
 			{Key: keyDuration, Value: constants.LoginCertDuration},
-		}, &discard)
+		}, &loginCert)
 	}()
 	go func() {
 		defer wg.Done()
@@ -366,6 +372,14 @@ func (c *Client) SyncSession() {
 		_, _ = c.fetchServers(loc, v2)
 	}
 	_ = c.doJSON(http.MethodGet, c.config.APIURL+constants.NotificationsPath, nil, &discard)
+
+	if loginCert.SerialNumber != "" {
+		_ = c.RevokeCertificate(loginCert.SerialNumber)
+	}
+	if !constants.IsSuccessCode(account.Code) {
+		return nil
+	}
+	return account.VPN.MaxTier
 }
 
 // ListCertificates fetches the certificates on the account, paginating via

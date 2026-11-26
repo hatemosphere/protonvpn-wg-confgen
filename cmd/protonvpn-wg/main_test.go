@@ -12,10 +12,15 @@ import (
 // The JSON output is a contract for scripts: these pin the field names and the
 // decoding that distinguishes it from the raw API response.
 func TestServersJSON(t *testing.T) {
+	// Proton lists a host once per label; the labels pick a backend behind the
+	// same address, which a WireGuard config cannot choose.
+	host := api.PhysicalServer{Domain: "node-nl-01.protonvpn.net", EntryIP: "192.0.2.1", ExitIP: "192.0.2.2", X25519PublicKey: "key=", Label: "0"}
+	relabeled := host
+	relabeled.Label, relabeled.Status = "1", constants.StatusOnline
 	servers := []api.LogicalServer{{
 		Name: "IS-NL#1", Domain: "is-nl-01.protonvpn.net", ExitCountry: "NL", EntryCountry: "IS", HostCountry: "NL",
 		City: "Amsterdam", Tier: api.TierPlus, Load: 27, Score: 1.5, Features: api.FeatureSecureCore | api.FeatureP2P,
-		Servers: []api.PhysicalServer{{Domain: "node-nl-01.protonvpn.net", EntryIP: "192.0.2.1", ExitIP: "192.0.2.2", X25519PublicKey: "key=", Status: constants.StatusOnline}},
+		Servers: []api.PhysicalServer{host, relabeled},
 	}, {Name: "US#1", ExitCountry: "US"}}
 
 	var buf bytes.Buffer
@@ -42,7 +47,11 @@ func TestServersJSON(t *testing.T) {
 	if features := got[0]["features"].([]any); len(features) != 2 || features[0] != "SecureCore" || features[1] != "P2P" {
 		t.Errorf("features = %v", features)
 	}
-	endpoint := got[0]["endpoints"].([]any)[0].(map[string]any)
+	endpoints := got[0]["endpoints"].([]any)
+	if len(endpoints) != 1 {
+		t.Fatalf("endpoints = %v, want the host once", endpoints)
+	}
+	endpoint := endpoints[0].(map[string]any)
 	if endpoint["hostname"] != "node-nl-01.protonvpn.net" || endpoint["entry_ip"] != "192.0.2.1" || endpoint["online"] != true {
 		t.Errorf("endpoint = %v", endpoint)
 	}

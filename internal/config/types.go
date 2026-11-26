@@ -15,6 +15,9 @@ type Config struct {
 	FreeOnly       bool
 	// PreferInCountry ranks servers hosted in their exit country first
 	PreferInCountry bool
+	// MaxTier is the highest server tier the account's plan includes, from
+	// the API; nil when unknown
+	MaxTier *int
 
 	// Output configuration
 	OutputFile       string

@@ -16,11 +16,11 @@ func TestSessionSaveRepairsPermissions(t *testing.T) {
 		t.Fatal(err)
 	}
 	store := &SessionStore{filePath: path}
-	if err := store.Save(&api.Session{AccessToken: "test-token", ExpiresIn: 3600}, "alice", time.Hour); err != nil {
+	if err := store.Save(&api.Session{AccessToken: "test-token", ExpiresIn: 3600}, "alice", time.Hour, new(0)); err != nil {
 		t.Fatal(err)
 	}
-	session, _, err := store.Load("alice")
-	if err != nil || session == nil || session.AccessToken != "test-token" {
+	saved, _, err := store.Load("alice")
+	if err != nil || saved == nil || saved.Session.AccessToken != "test-token" || saved.MaxTier == nil || *saved.MaxTier != 0 {
 		t.Fatalf("saved session did not round-trip: %v", err)
 	}
 	info, err := os.Stat(path)

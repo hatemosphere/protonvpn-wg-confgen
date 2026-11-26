@@ -30,6 +30,10 @@ type Client struct {
 	// FreshLogin is set when Authenticate signed in with the password rather
 	// than reusing a saved session.
 	FreshLogin bool
+
+	// MaxTier is the account's server tier as saved with the session, nil
+	// when unknown. After a fresh login, SetMaxTier fills it in.
+	MaxTier *int
 }
 
 // NewClient creates a new authentication client
@@ -62,7 +66,7 @@ func (c *Client) handleSessionRefresh(savedSession *api.Session, reason string) 
 	// Save the refreshed session
 	if !c.config.NoSession {
 		sessionDuration, _ := timeutil.ParseSessionDuration(c.config.SessionDuration)
-		if err := c.sessionStore.Save(refreshedSession, c.config.Username, sessionDuration); err != nil {
+		if err := c.sessionStore.Save(refreshedSession, c.config.Username, sessionDuration, c.MaxTier); err != nil {
 			fmt.Printf("Warning: Failed to save refreshed session: %v\n", err)
 		}
 	}
@@ -72,15 +76,17 @@ func (c *Client) handleSessionRefresh(savedSession *api.Session, reason string) 
 
 // tryExistingSession attempts to use an existing saved session
 func (c *Client) tryExistingSession() (*api.Session, error) {
-	savedSession, timeUntilExpiry, err := c.sessionStore.Load(c.config.Username)
+	saved, timeUntilExpiry, err := c.sessionStore.Load(c.config.Username)
 	if err != nil {
 		fmt.Printf("Warning: Failed to load saved session: %v\n", err)
 		return nil, err
 	}
 
-	if savedSession == nil {
+	if saved == nil {
 		return nil, nil
 	}
+	savedSession := saved.Session
+	c.MaxTier = saved.MaxTier
 
 	// Determine what to do with the saved session
 	switch {
@@ -276,9 +282,16 @@ func (c *Client) saveSessionIfEnabled(session *api.Session) {
 		sessionDuration = 0
 	}
 
-	if err := c.sessionStore.Save(session, c.config.Username, sessionDuration); err != nil {
+	if err := c.sessionStore.Save(session, c.config.Username, sessionDuration, c.MaxTier); err != nil {
 		fmt.Printf("Warning: Failed to save session: %v\n", err)
 	}
+}
+
+// SetMaxTier records the account's tier, read after a fresh login, and saves
+// it with the session so later runs know it without asking the API.
+func (c *Client) SetMaxTier(tier *int, session *api.Session) {
+	c.MaxTier = tier
+	c.saveSessionIfEnabled(session)
 }
 
 func (c *Client) ensureUsername() error {
