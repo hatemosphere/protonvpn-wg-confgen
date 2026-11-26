@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Live run against the real Proton API with a dedicated free account: login
-# with 2FA, server list, the generated key driving Gluetun (the flow its
-# ProtonVPN page documents), and the persistent certificate lifecycle. Every
-# certificate on the account is revoked on exit, so never point this at an
-# account you use.
+# with 2FA, then the generated key driving Gluetun (the flow its ProtonVPN page
+# documents). Kept minimal because Proton rate limits certificate creation
+# (code 2028); a run makes two. Every certificate on the account is revoked on
+# exit, so never point this at an account you use.
 #
 # Needs PWG_USERNAME, PWG_PASSWORD and PWG_TOTP (otpauth URI or base32 seed),
 # and docker, jq, curl, python3. Usage: live.sh [binary]
@@ -50,10 +50,6 @@ if ! out=$(totp | pwg --list-configs 2>&1); then
   exit 1
 fi
 
-step "server list"
-pwg --list-servers --countries NL --free-only --json 2>/dev/null >servers.json
-jq -e 'length > 0 and all(.tier == "Free")' servers.json >/dev/null
-
 step "persistent config drives Gluetun"
 pwg --countries NL --free-only --duration 1h --output persist.conf 2>&1
 WIREGUARD_PRIVATE_KEY=$(awk -F' = ' '/^PrivateKey/ {print $2}' persist.conf)
@@ -74,18 +70,4 @@ vpn_ip=$(docker logs pwg-gluetun 2>&1 | sed -n 's/.*Public IP address is \([0-9.
 direct_ip=$(curl -fsS --max-time 20 https://api.ipify.org)
 echo "through Gluetun $vpn_ip, direct $direct_ip"
 [ -n "$vpn_ip" ] && [ "$vpn_ip" != "$direct_ip" ]
-docker rm -f pwg-gluetun >/dev/null
-
-step "persistent certificate: renew, revoke"
-serial=$(pwg --list-configs --json 2>/dev/null | jq -r '.[] | select(.mode == "persistent") | .serial')
-[ -n "$serial" ]
-pwg --renew-serial "$serial" --duration 2h 2>&1
-renewed=$(pwg --list-configs --json 2>/dev/null | jq -r '.[] | select(.mode == "persistent") | .serial')
-[ -n "$renewed" ] && [ "$renewed" != "$serial" ]
-pwg --revoke-serial "$renewed" 2>&1
-[ -z "$(pwg --list-configs --json 2>/dev/null | jq -r '.[] | select(.mode == "persistent") | .serial')" ]
-
-step "session refresh"
-pwg --force-refresh --list-configs >/dev/null 2>&1
-
 echo "live run passed"
