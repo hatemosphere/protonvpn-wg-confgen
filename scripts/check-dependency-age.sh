@@ -21,18 +21,30 @@ status=0
 added() { git diff -U0 "$base" -- "$@" | grep '^+[^+]' | cut -c2- || true; }
 epoch() { jq -rn --arg t "$1" '$t | sub("\\.[0-9]+"; "") | fromdate'; }
 check() { # name, publish time
-  if [ -z "$2" ] || [ "$2" = null ]; then
-    echo "FAIL $1: no publish time found"; status=1
-  elif [ "$(epoch "$2")" -gt "$cutoff" ]; then
+  local ts
+  ts=$(epoch "$2" 2>/dev/null) || ts=
+  if ! [[ $ts =~ ^[0-9]+$ ]]; then
+    echo "FAIL $1: no usable publish time (${2:-none})"; status=1
+  elif [ "$ts" -gt "$cutoff" ]; then
     echo "FAIL $1: published $2, younger than ${MIN_AGE_DAYS:-7} days"; status=1
   else
     echo "ok   $1: published $2"
   fi
 }
 
+# A go run/install pin names a package; its module is the longest prefix the
+# proxy knows.
+modtime() {
+  local path=$1
+  while :; do
+    go list -m -json "$path@$2" 2>/dev/null | jq -r .Time && return
+    [[ $path == */* ]] || return 0
+    path=${path%/*}
+  done
+}
+
 while read -r module version; do
-  version=${version%/go.mod}
-  check "$module@$version" "$(go list -m -json "$module@$version" | jq -r .Time)"
+  check "$module@$version" "$(modtime "$module" "$version")"
 done < <({
   added go.sum | awk '{print $1, $2}'
   added .github scripts Makefile | grep -oE 'go (run|install) [^ @]+@v[^ ]+' | awk '{split($3, m, "@"); print m[1], m[2]}'
@@ -47,8 +59,9 @@ while read -r repo sha tag; do
 done < <(added .github/workflows .github/actions | sed -nE 's/.*uses: *([^@ ]+)@([0-9a-f]{40}) *# *([^ ]+).*/\1 \2 \3/p' | sort -u)
 
 while read -r version repo; do
-  published=$(gh api "repos/$repo/releases/tags/$version" --jq .published_at 2>/dev/null ||
-    gh api "repos/$repo/releases/tags/v$version" --jq .published_at 2>/dev/null || true)
+  published=$(gh api "repos/$repo/releases/tags/$version" --jq .published_at 2>/dev/null) ||
+    published=$(gh api "repos/$repo/releases/tags/v$version" --jq .published_at 2>/dev/null) ||
+    published=
   check "$repo@$version" "$published"
 done < <(added .github | sed -nE 's/.*: *"?([v0-9][^" ]*)"? *# *([A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+) *$/\1 \2/p' | sort -u)
 
