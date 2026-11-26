@@ -36,8 +36,36 @@ func EligibleServers(cfg *config.Config, servers []api.LogicalServer) []api.Logi
 	return filtered
 }
 
+// ApplyPlan fits the selection to the account's plan. A free account can only
+// connect to free servers, so it gets them without --free-only, and options
+// that need a paid plan fail here, before a certificate is issued for nothing.
+func ApplyPlan(cfg *config.Config) error {
+	if cfg.MaxTier == nil || *cfg.MaxTier > api.TierFree {
+		return nil
+	}
+	for _, paid := range []struct {
+		set  bool
+		flag string
+	}{
+		{cfg.SecureCoreOnly, "--secure-core"},
+		{cfg.P2PServersOnly && cfg.Explicit["p2p-only"], "--p2p-only"},
+		{cfg.PortForwarding, "--port-forwarding"},
+		{cfg.ModerateNAT, "--moderate-nat"},
+		{cfg.NetShield > 0, "--netshield"},
+	} {
+		if paid.set {
+			return fmt.Errorf("%s needs a paid Proton VPN plan, this account is on the free plan", paid.flag)
+		}
+	}
+	cfg.FreeOnly = true
+	return nil
+}
+
 func isEligible(cfg *config.Config, server *api.LogicalServer) bool {
 	if !isEnabled(server) {
+		return false
+	}
+	if cfg.MaxTier != nil && server.Tier > *cfg.MaxTier {
 		return false
 	}
 	// Free tier is opt-in: -free-only selects it exclusively, otherwise it is excluded.
@@ -72,9 +100,14 @@ func (s *ServerSelector) SelectBest(servers []api.LogicalServer) (*api.LogicalSe
 	// If a specific server is requested, find it by exact name match
 	if s.config.ServerName != "" {
 		for i := range servers {
-			if servers[i].Name == s.config.ServerName && servers[i].Status == constants.StatusOnline {
-				return &servers[i], nil
+			if servers[i].Name != s.config.ServerName || servers[i].Status != constants.StatusOnline {
+				continue
 			}
+			if s.config.MaxTier != nil && servers[i].Tier > *s.config.MaxTier {
+				return nil, fmt.Errorf("server %s is a %s server, which this account's plan does not include",
+					servers[i].Name, api.GetTierName(servers[i].Tier))
+			}
+			return &servers[i], nil
 		}
 		return nil, fmt.Errorf("server %q not found or offline", s.config.ServerName)
 	}
@@ -142,6 +175,29 @@ func GetBestPhysicalServer(server *api.LogicalServer) *api.PhysicalServer {
 	// The official clients pick at random among the online ones, which spreads
 	// users across the hosts behind a logical server.
 	return online[rand.IntN(len(online))] //nolint:gosec // G404: load spreading, not a secret
+}
+
+// DistinctHosts lists each address of a logical server once. Proton lists a
+// host several times under different labels, which pick a backend behind the
+// same address; a WireGuard configuration cannot choose between them. A host
+// counts as online when any of its entries is.
+func DistinctHosts(servers []api.PhysicalServer) []api.PhysicalServer {
+	type host struct{ domain, entry, exit, key string }
+	out := make([]api.PhysicalServer, 0, len(servers))
+	index := map[host]int{}
+	for j := range servers {
+		p := &servers[j]
+		h := host{p.Domain, p.EntryIP, p.ExitIP, p.X25519PublicKey}
+		if i, seen := index[h]; seen {
+			if p.Status == constants.StatusOnline {
+				out[i].Status = constants.StatusOnline
+			}
+			continue
+		}
+		index[h] = len(out)
+		out = append(out, *p)
+	}
+	return out
 }
 
 // printDebugServerList prints a debug list of filtered servers

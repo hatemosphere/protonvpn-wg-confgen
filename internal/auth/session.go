@@ -37,14 +37,16 @@ type SavedSession struct {
 	Username  string       `json:"username"`
 	SavedAt   time.Time    `json:"saved_at"`
 	ExpiresAt time.Time    `json:"expires_at"`
+	MaxTier   *int         `json:"max_tier,omitempty"` // the account's server tier, see config.MaxTier
 }
 
 // Save stores the session to disk
-func (s *SessionStore) Save(session *api.Session, username string, duration time.Duration) error {
+func (s *SessionStore) Save(session *api.Session, username string, duration time.Duration, maxTier *int) error {
 	savedSession := &SavedSession{
 		Session:  session,
 		Username: username,
 		SavedAt:  time.Now(),
+		MaxTier:  maxTier,
 	}
 
 	// Calculate expiration based on API response
@@ -77,7 +79,7 @@ func (s *SessionStore) Save(session *api.Session, username string, duration time
 }
 
 // Load retrieves a saved session from disk
-func (s *SessionStore) Load(username string) (*api.Session, time.Duration, error) {
+func (s *SessionStore) Load(username string) (*SavedSession, time.Duration, error) {
 	data, err := os.ReadFile(s.filePath)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -108,7 +110,7 @@ func (s *SessionStore) Load(username string) (*api.Session, time.Duration, error
 	// Calculate time until expiration
 	timeUntilExpiry := savedSession.ExpiresAt.Sub(now)
 
-	return savedSession.Session, timeUntilExpiry, nil
+	return &savedSession, timeUntilExpiry, nil
 }
 
 // Delete removes the saved session

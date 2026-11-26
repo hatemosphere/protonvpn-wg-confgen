@@ -53,8 +53,9 @@ func run() error {
 	vpnClient := vpn.NewClient(cfg, session)
 	if authClient.FreshLogin {
 		// The official client loads its session data right after signing in.
-		vpnClient.SyncSession()
+		authClient.SetMaxTier(vpnClient.SyncSession(), session)
 	}
+	cfg.MaxTier = authClient.MaxTier
 
 	switch {
 	case cfg.ListConfigs:
@@ -75,17 +76,12 @@ func run() error {
 }
 
 func generateConfig(cfg *config.Config, vpnClient *vpn.Client) error {
-	keyPair, err := ed25519.NewKeyPair()
-	if err != nil {
-		return fmt.Errorf("failed to generate key pair: %w", err)
-	}
-	cfg.ClientPrivateKey = keyPair.ToX25519Base64()
-
-	vpnInfo, err := vpnClient.GetCertificate(keyPair)
-	if err != nil {
-		return fmt.Errorf("failed to get VPN certificate: %w", err)
+	if err := vpn.ApplyPlan(cfg); err != nil {
+		return err
 	}
 
+	// Pick the server first, so a selection that cannot be met fails before a
+	// certificate is issued: Proton rate limits those (code 2028).
 	servers, err := vpnClient.GetServers()
 	if err != nil {
 		return fmt.Errorf("failed to get servers: %w", err)
@@ -95,6 +91,17 @@ func generateConfig(cfg *config.Config, vpnClient *vpn.Client) error {
 	server, err := selector.SelectBest(servers)
 	if err != nil {
 		return err
+	}
+
+	keyPair, err := ed25519.NewKeyPair()
+	if err != nil {
+		return fmt.Errorf("failed to generate key pair: %w", err)
+	}
+	cfg.ClientPrivateKey = keyPair.ToX25519Base64()
+
+	vpnInfo, err := vpnClient.GetCertificate(keyPair)
+	if err != nil {
+		return fmt.Errorf("failed to get VPN certificate: %w", err)
 	}
 
 	features := api.GetFeatureNames(server.Features)
@@ -110,7 +117,7 @@ func generateConfig(cfg *config.Config, vpnClient *vpn.Client) error {
 
 	fmt.Printf("Selected server: %s (Country: %s, City: %s, Tier: %s, Load: %d%%, Score: %.2f, Servers: %d%s)\n",
 		server.Name, countryStr, server.City, api.GetTierName(server.Tier),
-		server.Load, server.Score, len(server.Servers), featureStr)
+		server.Load, server.Score, len(vpn.DistinctHosts(server.Servers)), featureStr)
 
 	physicalServer := vpn.GetBestPhysicalServer(server)
 	if physicalServer == nil {
@@ -137,6 +144,9 @@ func generateConfig(cfg *config.Config, vpnClient *vpn.Client) error {
 }
 
 func listServers(cfg *config.Config, vpnClient *vpn.Client, stdout io.Writer) error {
+	if err := vpn.ApplyPlan(cfg); err != nil {
+		return err
+	}
 	servers, err := vpnClient.GetServers()
 	if err != nil {
 		return fmt.Errorf("failed to get servers: %w", err)
@@ -310,9 +320,10 @@ func serversJSON(servers []api.LogicalServer) []serverJSON {
 		if features == nil {
 			features = []string{} // [] rather than null, so jq filters need no guard
 		}
-		endpoints := make([]endpointJSON, 0, len(s.Servers))
-		for j := range s.Servers {
-			p := &s.Servers[j]
+		hosts := vpn.DistinctHosts(s.Servers)
+		endpoints := make([]endpointJSON, 0, len(hosts))
+		for j := range hosts {
+			p := &hosts[j]
 			endpoints = append(endpoints, endpointJSON{
 				Hostname:  p.Domain,
 				EntryIP:   p.EntryIP,

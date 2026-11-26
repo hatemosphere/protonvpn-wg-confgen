@@ -67,6 +67,14 @@ type VPNInfo struct {
 	Features             CertFeatures `json:"Features"`
 }
 
+// VPNAccount is the part of the GET /vpn/v2 response this tool reads.
+type VPNAccount struct {
+	Code int `json:"Code"`
+	VPN  struct {
+		MaxTier *int `json:"MaxTier"` // 0 on the free plan
+	} `json:"VPN"`
+}
+
 // CertFeatures is how the certificate *create* response reports features. The
 // keys differ from the request side and moderate-nat is the inverse of
 // RandomNAT. The list endpoint reports CertFeaturesSent instead.

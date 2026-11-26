@@ -206,3 +206,40 @@ func TestPreferInCountry(t *testing.T) {
 		t.Errorf("with no in-country server, selection must be unchanged: got %s", got)
 	}
 }
+
+func TestAccountPlan(t *testing.T) {
+	free, plus := 0, api.TierPlus
+	paidOnly := []config.Config{
+		{SecureCoreOnly: true},
+		{P2PServersOnly: true, Explicit: map[string]bool{"p2p-only": true}},
+		{PortForwarding: true},
+		{ModerateNAT: true},
+		{NetShield: 1},
+	}
+	for _, cfg := range paidOnly {
+		cfg.MaxTier = &free
+		if err := ApplyPlan(&cfg); err == nil {
+			t.Errorf("free account accepted %+v", cfg)
+		}
+	}
+
+	// The P2P default is on for everyone; only asking for it is an error.
+	cfg := config.Config{MaxTier: &free, P2PServersOnly: true}
+	if err := ApplyPlan(&cfg); err != nil || !cfg.FreeOnly {
+		t.Fatalf("free account defaults: err %v, FreeOnly %t", err, cfg.FreeOnly)
+	}
+	all := []api.LogicalServer{server("NL", api.TierPlus, 0), server("US", api.TierFree, 0)}
+	if got := EligibleServers(&cfg, all); len(got) != 1 || got[0].Name != usServer {
+		t.Errorf("free account eligible = %v", got)
+	}
+
+	internal := server("CH", api.TierPM, 0)
+	cfg = config.Config{MaxTier: &plus}
+	if got := EligibleServers(&cfg, []api.LogicalServer{internal}); len(got) != 0 {
+		t.Errorf("tier above the plan was eligible: %v", got)
+	}
+	cfg.ServerName = chServer
+	if _, err := NewServerSelector(&cfg).SelectBest([]api.LogicalServer{internal}); err == nil {
+		t.Error("--server above the plan was selected")
+	}
+}
