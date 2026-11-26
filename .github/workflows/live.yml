@@ -1,6 +1,6 @@
 name: Live
 
-# Nightly run of test/integration/live.sh against the real Proton API with a
+# Daily run of test/integration/live.sh against the real Proton API with a
 # dedicated free account. Credentials come from a read-only 1Password service
 # account whose token sits in the integration environment, which only main can
 # use. Never give this workflow a pull_request trigger.
