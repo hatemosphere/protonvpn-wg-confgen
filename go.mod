@@ -5,7 +5,7 @@ go 1.27.4
 require (
 	github.com/ProtonMail/go-srp v0.0.7
 	github.com/ProtonVPN/go-vpn-lib v0.0.0-20260331132522-9440653831b0
-	github.com/klauspost/compress v1.20.4
+	github.com/klauspost/compress v1.20.5
 	github.com/refraction-networking/utls v1.8.2
 	golang.org/x/term v0.48.0
 )
