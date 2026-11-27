@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"runtime"
 	"strings"
 	"time"
 
@@ -16,6 +17,7 @@ import (
 	"protonvpn-wg-confgen/internal/config"
 	"protonvpn-wg-confgen/internal/constants"
 	"protonvpn-wg-confgen/internal/timeutil"
+	"protonvpn-wg-confgen/internal/validation"
 
 	"github.com/ProtonMail/go-srp"
 	"golang.org/x/term"
@@ -296,13 +298,13 @@ func (c *Client) SetMaxTier(tier *int, session *api.Session) {
 
 func (c *Client) ensureUsername() error {
 	if c.config.Username == "" {
-		fmt.Print("Username (without @protonmail.com): ")
+		fmt.Print("Username: ")
 		reader := bufio.NewReader(os.Stdin)
 		username, err := reader.ReadString('\n')
 		if err != nil {
 			return fmt.Errorf("error reading username: %w", err)
 		}
-		c.config.Username = strings.TrimSpace(username)
+		c.config.Username = validation.CleanUsername(username)
 		if c.config.Username == "" {
 			return fmt.Errorf("username cannot be empty")
 		}
@@ -320,9 +322,9 @@ func (c *Client) ensurePassword() error {
 		return nil
 	}
 	if c.config.Password == "" {
-		const stdinFileDescriptor = 0
 		fmt.Print("Password: ")
-		passwordBytes, err := term.ReadPassword(stdinFileDescriptor)
+		// A console handle on Windows, not file descriptor 0.
+		passwordBytes, err := term.ReadPassword(int(os.Stdin.Fd()))
 		fmt.Println()
 		if err != nil {
 			return fmt.Errorf("error reading password: %w", err)
@@ -354,7 +356,11 @@ func (c *Client) get2FACode() (string, error) {
 	if c.config.PasswordStdin {
 		// Stdin belongs to the password producer. Ask for TOTP separately on
 		// the controlling terminal so a password pipe still supports 2FA.
-		tty, err := os.Open("/dev/tty")
+		terminal := "/dev/tty"
+		if runtime.GOOS == "windows" {
+			terminal = "CONIN$"
+		}
+		tty, err := os.Open(terminal)
 		if err != nil {
 			return "", fmt.Errorf("2FA requires a controlling terminal with --password-stdin; retry using interactive login: %w", err)
 		}

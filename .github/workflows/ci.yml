@@ -85,6 +85,11 @@ jobs:
       - name: Build (native)
         run: go build -o build/protonvpn-wg-confgen${{ matrix.os == 'windows-latest' && '.exe' || '' }} cmd/protonvpn-wg/main.go
 
+      # Terminal input, file permissions and paths differ per OS; the tests
+      # include the interactive prompts run in a real terminal.
+      - name: Test (native)
+        run: go test ./...
+
   cross-compile:
     name: Cross-compile
     runs-on: ubuntu-latest
