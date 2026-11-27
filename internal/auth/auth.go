@@ -324,7 +324,7 @@ func (c *Client) ensurePassword() error {
 	if c.config.Password == "" {
 		fmt.Print("Password: ")
 		// A console handle on Windows, not file descriptor 0.
-		passwordBytes, err := term.ReadPassword(int(os.Stdin.Fd()))
+		passwordBytes, err := term.ReadPassword(0)
 		fmt.Println()
 		if err != nil {
 			return fmt.Errorf("error reading password: %w", err)
